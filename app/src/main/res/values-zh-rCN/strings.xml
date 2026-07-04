@@ -1,0 +1,1050 @@
+<resources xmlns:xliff="http://schemas.android.com/apk/res-auto">
+
+    <!-- App -->
+    <string name="app_name">影视</string>
+
+    <!-- Live -->
+    <string name="live_pass">密码</string>
+    <string name="live_refresh">刷新</string>
+    <string name="live_line">线路 <xliff:g name="name">%s</xliff:g></string>
+    <string name="live_control_source">直播源</string>
+
+    <!-- Detail -->
+    <string name="detail_title"><xliff:g name="name">%s</xliff:g>：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_site">站源：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_year">年份：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_area">地区：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_type">类型：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_director">导演：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_actor">演员：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_content">简介：<xliff:g name="name">%s</xliff:g></string>
+    <string name="detail_desc">简介</string>
+
+    <!-- Keep -->
+    <string name="keep">收藏</string>
+    <string name="keep_add">已加入收藏</string>
+    <string name="keep_del">已取消收藏</string>
+
+    <!-- Play -->
+    <string name="play">播放</string>
+    <string name="pause">暂停</string>
+    <string name="play_op">片头</string>
+    <string name="play_ed">片尾</string>
+    <string name="play_exo">EXO</string>
+    <string name="play_next">下集</string>
+    <string name="play_prev">上集</string>
+    <string name="play_stop">停止</string>
+    <string name="play_repeat">循环</string>
+    <string name="play_forward">→</string>
+    <string name="play_backward">←</string>
+    <string name="play_speed">1.00</string>
+    <string name="play_reset">刷新</string>
+    <string name="play_decode">硬解</string>
+    <string name="play_timer">定时</string>
+    <string name="play_title">章节</string>
+    <string name="play_scale">原始</string>
+    <string name="play_lut">LUT</string>
+    <string name="play_config">配置</string>
+    <string name="play_cast">投屏</string>
+    <string name="play_change">换源</string>
+    <string name="play_short_display">短显</string>
+    <string name="play_search">搜索</string>
+    <string name="play_fullscreen">全屏</string>
+    <string name="play_exit_fullscreen">退出全屏</string>
+    <string name="play_invert">反转</string>
+    <string name="play_across">跨类</string>
+    <string name="play_reverse">倒序</string>
+    <string name="play_track_text">字幕</string>
+    <string name="play_track_audio">音轨</string>
+    <string name="play_track_video">视轨</string>
+    <string name="play_track_disable_subtitle">关闭字幕</string>
+    <string name="offset_text">字幕偏移</string>
+    <string name="offset_audio">音轨偏移</string>
+    <string name="offset_setting">偏移设置</string>
+    <string name="play_forward_hint">已切换正序播放</string>
+    <string name="play_backward_hint">已切换倒序播放</string>
+    <string name="play_ready">准备播放：<xliff:g name="name">%s</xliff:g></string>
+    <string name="play_switch_flag">正在切换线路至「<xliff:g name="name">%s</xliff:g>」</string>
+    <string name="play_switch_site">正在切换站源至「<xliff:g name="name">%s</xliff:g>」</string>
+    <string name="play_switch_parse">正在切换解析至「<xliff:g name="name">%s</xliff:g>」</string>
+
+    <!-- Danmaku Setting -->
+    <string name="danmaku">弹幕</string>
+    <string name="danmaku_select">选择弹幕</string>
+    <string name="danmaku_setting">弹幕设置</string>
+    <string name="danmaku_text_size">字体缩放</string>
+    <string name="danmaku_transparency">透明度</string>
+    <string name="danmaku_text_bold">粗体</string>
+    <string name="danmaku_style_mode">字体效果</string>
+    <string name="danmaku_style_none">无</string>
+    <string name="danmaku_style_shadow">阴影</string>
+    <string name="danmaku_style_stroke">描边</string>
+    <string name="danmaku_style_projection">投影</string>
+    <string name="danmaku_shadow_transparency">阴影透明度</string>
+    <string name="danmaku_stroke_width">描边宽度</string>
+    <string name="danmaku_projection_offset_x">投影水平偏移</string>
+    <string name="danmaku_projection_offset_y">投影垂直偏移</string>
+    <string name="danmaku_projection_transparency">投影透明度</string>
+    <string name="danmaku_color_mode">颜色模式</string>
+    <string name="danmaku_color_default">原色</string>
+    <string name="danmaku_color_colorful">彩色</string>
+    <string name="danmaku_color_gradient">渐变</string>
+    <string name="danmaku_color_override_hint">弹幕原始颜色将被忽略</string>
+    <string name="danmaku_auto">自动</string>
+    <string name="danmaku_duration">滚动时间</string>
+    <string name="danmaku_fixed_duration">固定显示时间</string>
+    <string name="danmaku_time_offset">时间偏移</string>
+    <string name="danmaku_max_on_screen">最多同时显示</string>
+    <string name="danmaku_scroll_area_ratio">滚动区域</string>
+    <string name="danmaku_max_scroll_lines">最大滚动行数</string>
+    <string name="danmaku_max_top_lines">最大顶部行数</string>
+    <string name="danmaku_max_bottom_lines">最大底部行数</string>
+    <string name="danmaku_top_rows">顶部行数</string>
+    <string name="danmaku_bottom_rows">底部行数</string>
+    <string name="danmaku_display_rows">显示行数</string>
+    <string name="danmaku_rows_1">1行</string>
+    <string name="danmaku_rows_2">2行</string>
+    <string name="danmaku_rows_3">3行</string>
+    <string name="danmaku_rows_4">4行</string>
+    <string name="danmaku_rows_5">5行</string>
+    <string name="danmaku_line_spacing">垂直间距</string>
+    <string name="danmaku_scroll_gap_ratio">水平间距</string>
+    <string name="danmaku_show_scroll">滚动弹幕</string>
+    <string name="danmaku_show_top">顶部固定</string>
+    <string name="danmaku_show_bottom">底部固定</string>
+    <string name="danmaku_show_reverse">反向滚动</string>
+    <string name="danmaku_show_positioned">定位弹幕</string>
+    <string name="danmaku_show_subtitle">字幕型</string>
+    <string name="danmaku_show_special">特效型</string>
+    <string name="danmaku_section_appearance">外观</string>
+    <string name="danmaku_section_display">显示</string>
+    <string name="danmaku_section_timing">时间</string>
+    <string name="danmaku_section_density">密度</string>
+    <string name="danmaku_reset">重置</string>
+
+    <!-- Parse -->
+    <string name="parse">解析</string>
+    <string name="parse_god">超级解析</string>
+    <string name="parse_from">解析来自：<xliff:g name="name">%s</xliff:g></string>
+
+    <!-- Push -->
+    <string name="push">推送</string>
+
+    <!-- Setting -->
+    <string name="setting_vod">点播</string>
+    <string name="setting_live">直播</string>
+    <string name="setting_wall">壁纸</string>
+    <string name="setting_builtin_wall">内置壁纸</string>
+    <string name="setting_player">播放设置</string>
+    <string name="setting_danmaku">弹幕设置</string>
+    <string name="setting_enhance">增强功能</string>
+    <string name="repo_github">GitHub 仓库</string>
+    <string name="repo_cnb">CNB 仓库</string>
+    <string name="setting_debug_log">调试日志</string>
+    <string name="setting_manage_page">管理页面</string>
+    <string name="setting_remote_trust">远程托管</string>
+    <string name="setting_git_cloud">Git 云盘</string>
+    <string name="git_cloud_account_count">账号 %1$d</string>
+    <string name="dialog_cancel">取消</string>
+    <string name="dialog_confirm">确认</string>
+    <string name="remote_trust_server_url">中转服务 URL</string>
+    <string name="remote_trust_enable">启用此服务</string>
+    <string name="remote_trust_keep_online">保持远程托管在线</string>
+    <string name="remote_trust_save_register">保存/注册</string>
+    <string name="remote_trust_create_bind_code">生成绑定码</string>
+    <string name="remote_trust_file_permission">文件权限</string>
+    <string name="remote_trust_clear">清空托管</string>
+    <string name="remote_trust_clear_message">清空本机所有远程托管服务、设备令牌、设备组和待绑定码？</string>
+    <string name="remote_trust_no_bind_code">暂无绑定码</string>
+    <string name="remote_trust_dialog_hint">填写中转服务 URL 后保存/注册本机。需要把本机加入控制端时，再生成绑定码。</string>
+    <string name="remote_trust_bind_code_hint">点击绑定码可复制。绑定码短时间有效，可在 Web 控制台或另一台 WebHTV 里使用。</string>
+    <string name="remote_trust_file_permission_hint">建议授予文件权限，卸载重装后也能恢复托管关系。</string>
+    <string name="remote_trust_server_required">请输入有效的中转服务 URL</string>
+    <string name="remote_trust_register_done">远程托管已注册</string>
+    <string name="remote_trust_bind_code_done">绑定码已生成</string>
+    <string name="remote_trust_bind_code_copied">绑定码已复制</string>
+    <string name="remote_trust_bind_code_expired">绑定码不存在或已过期。请确认两台设备使用同一个中转服务，再输入目标设备最新绑定码。</string>
+    <string name="remote_trust_status_unbound">未绑定</string>
+    <string name="remote_trust_status_enabled">已启用</string>
+    <string name="remote_trust_status_online">在线</string>
+    <string name="remote_trust_current_status_summary">%1$s · 组 %2$d · 设备 %3$d</string>
+    <string name="remote_trust_notification_title">远程托管在线</string>
+    <string name="remote_trust_section_local">本机接入</string>
+    <string name="remote_trust_section_local_hint">把当前 WebHTV 注册到中转服务。需要让其他设备管理本机时，在这里生成绑定码。</string>
+    <string name="remote_trust_section_manage">管理设备</string>
+    <string name="remote_trust_section_manage_hint">输入另一台 WebHTV 显示的绑定码，把它添加到本机管理列表后即可下发基础操作。</string>
+    <string name="remote_trust_bind_code">绑定码</string>
+    <string name="remote_trust_device_alias">设备备注</string>
+    <string name="remote_trust_add_device">添加设备</string>
+    <string name="remote_trust_add_short">添加</string>
+    <string name="remote_trust_no_devices">暂无管理设备。请先在目标设备生成绑定码，再在这里添加。</string>
+    <string name="remote_trust_wait_devices">设备组已添加，正在等待目标设备同步并上线。</string>
+    <string name="remote_trust_device_online">在线</string>
+    <string name="remote_trust_device_offline">离线</string>
+    <string name="remote_trust_selected_device">已选：%1$s</string>
+    <string name="remote_trust_action_status">状态</string>
+    <string name="remote_trust_action_search">搜索播放</string>
+    <string name="remote_trust_action_push">推送</string>
+    <string name="remote_trust_action_log">日志</string>
+    <string name="remote_trust_action_config">接口</string>
+    <string name="remote_trust_action_sync">一键同步</string>
+    <string name="remote_trust_search_keyword">搜索关键词</string>
+    <string name="remote_trust_push_url">推送播放地址</string>
+    <string name="remote_trust_add_done">设备已添加</string>
+    <string name="remote_trust_no_self_add">不能添加本机</string>
+    <string name="remote_trust_no_profile">请先保存/注册中转服务</string>
+    <string name="remote_trust_no_group">暂无可信设备组</string>
+    <string name="remote_trust_no_device_selected">请先选择设备</string>
+    <string name="remote_trust_code_required">请输入绑定码</string>
+    <string name="remote_trust_group_title">设备组 %1$s</string>
+    <string name="remote_trust_self_device">本机</string>
+    <string name="remote_trust_controlled_device">可控设备</string>
+    <string name="remote_trust_command_result">命令 %1$s · %2$s</string>
+    <string name="remote_trust_command_success">执行成功</string>
+    <string name="remote_trust_command_failed">执行失败</string>
+    <string name="remote_trust_command_waiting">等待目标设备执行。目标离线时，重连后会继续处理。</string>
+    <string name="remote_trust_empty_result">命令已发送，暂无结果</string>
+    <string name="remote_trust_tab_devices">设备</string>
+    <string name="remote_trust_tab_settings">设置</string>
+    <string name="remote_trust_local_status">本机状态</string>
+    <string name="remote_trust_device_list">管理设备</string>
+    <string name="remote_trust_bind_local">绑定本机</string>
+    <string name="remote_trust_go_settings">去设置</string>
+    <string name="remote_trust_service_entry">服务</string>
+    <string name="remote_trust_done">完成</string>
+    <string name="remote_trust_bind_code_inline">码 %1$s</string>
+    <string name="remote_trust_bind_code_empty">绑定码 --</string>
+    <string name="remote_trust_bind_code_loading">生成中...</string>
+    <string name="remote_trust_bind_code_unavailable">未配置</string>
+    <string name="remote_trust_command_result_title">执行结果</string>
+    <string name="remote_trust_command_log_title">日志</string>
+    <string name="remote_trust_result_action">操作</string>
+    <string name="remote_trust_result_status">状态</string>
+    <string name="remote_trust_result_state">结果</string>
+    <string name="remote_trust_result_log_lines">最近日志：%1$d 行</string>
+    <string name="remote_trust_result_copied">结果已复制</string>
+    <string name="remote_trust_settings_title">中转服务</string>
+    <string name="remote_trust_edit_server">编辑中转地址</string>
+    <string name="remote_trust_detect_service">检测服务</string>
+    <string name="remote_trust_copy_diagnostics">复制诊断信息</string>
+    <string name="remote_trust_diagnostics_copied">诊断信息已复制</string>
+    <string name="remote_trust_service_unchecked">服务未检测</string>
+    <string name="remote_trust_service_ok">服务可用</string>
+    <string name="remote_trust_service_error">服务不可用</string>
+    <string name="remote_trust_service_failed_with_reason">原因：%1$s</string>
+    <string name="remote_trust_service_connect_failed">连接失败，请检查服务地址、网络或部署状态。</string>
+    <string name="remote_trust_service_request_failed">检测失败，可复制诊断信息查看详情。</string>
+    <string name="remote_trust_service_memory_warning">当前是内存中转模式，跨设备绑定码可能失效。正式使用前请更新 Cloudflare Worker Durable Object 配置。</string>
+    <string name="remote_trust_bind_local_title">本机绑定码</string>
+    <string name="remote_trust_refresh_bind_code">刷新</string>
+    <string name="remote_trust_refresh_short">刷新</string>
+    <string name="remote_trust_copy">复制</string>
+    <string name="remote_trust_add_device_title">添加设备</string>
+    <string name="remote_trust_back_devices">返回</string>
+    <string name="remote_trust_send_search">发送搜索</string>
+    <string name="remote_trust_send_push">推送播放</string>
+    <string name="remote_trust_config_hint">选择本机接口，或手动输入接口 URL。</string>
+    <string name="remote_trust_config_type">类型</string>
+    <string name="remote_trust_config_type_vod">点播</string>
+    <string name="remote_trust_config_type_live">直播</string>
+    <string name="remote_trust_config_type_wall">壁纸</string>
+    <string name="remote_trust_config_mode_local">本机配置</string>
+    <string name="remote_trust_config_mode_manual">手动输入</string>
+    <string name="remote_trust_config_url">接口 URL</string>
+    <string name="remote_trust_config_name">接口名称，可选</string>
+    <string name="remote_trust_config_list">查看列表</string>
+    <string name="remote_trust_config_add">新增</string>
+    <string name="remote_trust_config_edit">编辑</string>
+    <string name="remote_trust_config_active">当前</string>
+    <string name="remote_trust_config_loading">正在读取远端接口…</string>
+    <string name="remote_trust_config_load_failed">接口读取失败</string>
+    <string name="remote_trust_config_remote_empty">远端设备暂无接口</string>
+    <string name="remote_trust_config_manage_hint">远端已有接口</string>
+    <string name="remote_trust_config_summary">%1$s · %2$d 个接口</string>
+    <string name="remote_trust_config_add_local_summary">本机%1$s接口</string>
+    <string name="remote_trust_config_add_manual_summary">手动%1$s接口</string>
+    <string name="remote_trust_config_edit_summary">编辑%1$s接口</string>
+    <string name="remote_trust_config_save">继续</string>
+    <string name="remote_trust_config_save_remote">保存到远端</string>
+    <string name="remote_trust_config_upsert">保存接口</string>
+    <string name="remote_trust_config_use">切换接口</string>
+    <string name="remote_trust_config_home">主页站点</string>
+    <string name="remote_trust_config_delete">删除接口</string>
+    <string name="remote_trust_config_upsert_short">保存</string>
+    <string name="remote_trust_config_use_short">使用</string>
+    <string name="remote_trust_config_use_setting">设置中…</string>
+    <string name="remote_trust_config_current">当前</string>
+    <string name="remote_trust_config_use_status_setting">接口切换中</string>
+    <string name="remote_trust_config_use_status_success">接口已切换</string>
+    <string name="remote_trust_config_use_status_failed">接口切换失败</string>
+    <string name="remote_trust_config_home_short">切换主页</string>
+    <string name="remote_trust_config_home_label">当前主页：%1$s</string>
+    <string name="remote_trust_config_home_loading">正在读取站点…</string>
+    <string name="remote_trust_config_home_setting">设置中…</string>
+    <string name="remote_trust_config_home_status_setting">主页设置中：%1$s</string>
+    <string name="remote_trust_config_home_status_success">主页已设置：%1$s</string>
+    <string name="remote_trust_config_home_status_failed">主页设置失败：%1$s</string>
+    <string name="remote_trust_config_delete_short">删除</string>
+    <string name="remote_trust_config_url_required">请输入接口 URL</string>
+    <string name="remote_trust_config_delete_message">删除远端设备上的接口？\n%1$s</string>
+    <string name="remote_trust_config_local_empty">没有该类型的本机配置</string>
+    <string name="remote_trust_config_select">选择</string>
+    <string name="remote_trust_result_config_count">接口：%1$d 个</string>
+    <string name="remote_trust_result_site_count">站点：%1$d 个</string>
+    <string name="remote_trust_config_home_empty">解析接口后没有找到站点</string>
+    <string name="remote_trust_sync_confirm">将本机默认同步数据发送到 %1$s，并覆盖目标设备相关数据？</string>
+    <string name="remote_trust_sync_started">同步任务已创建。来源设备会先上传数据，目标设备随后恢复。</string>
+    <string name="remote_trust_sync_self_forbidden">不能把本机同步到本机</string>
+    <string name="remote_trust_sync_missing_id">同步任务创建失败：缺少任务 ID</string>
+    <string name="remote_trust_sync_device">设备</string>
+    <string name="remote_trust_sync_task">任务</string>
+    <string name="remote_trust_sync_uploaded">已上传</string>
+    <string name="remote_trust_sync_message">信息</string>
+    <string name="remote_trust_sync_running">同步中</string>
+    <string name="remote_trust_sync_progress">进度：%1$d/%2$d</string>
+    <string name="remote_trust_sync_background_hint">可关闭窗口，后台会继续处理；重新打开可查看最近进度。</string>
+    <string name="remote_trust_sync_step_line">%1$d. %2$s：%3$s</string>
+    <string name="remote_trust_sync_step_create">创建任务</string>
+    <string name="remote_trust_sync_step_export">导出本机数据</string>
+    <string name="remote_trust_sync_step_upload">上传同步数据</string>
+    <string name="remote_trust_sync_step_restore">恢复到对方设备</string>
+    <string name="remote_trust_sync_step_finish">完成同步</string>
+    <string name="remote_trust_sync_step_done">已完成</string>
+    <string name="remote_trust_sync_step_current">进行中</string>
+    <string name="remote_trust_sync_step_pending">待执行</string>
+    <string name="remote_trust_sync_step_failed">失败</string>
+    <string name="remote_trust_sync_state_creating">正在创建同步任务...</string>
+    <string name="remote_trust_sync_state_created">等待本机导出数据...</string>
+    <string name="remote_trust_sync_state_exporting">正在上传同步数据...</string>
+    <string name="remote_trust_sync_state_exported">等待对方恢复数据...</string>
+    <string name="remote_trust_sync_state_done">同步完成</string>
+    <string name="remote_trust_sync_state_failed">同步失败</string>
+    <string name="remote_trust_sync_state_timeout">仍在等待回执，目标设备离线或未开启远程托管时会超时</string>
+    <string name="remote_trust_sync_part_backup">接口备份</string>
+    <string name="remote_trust_sync_part_remote_relay">中转服务</string>
+    <string name="remote_trust_sync_part_sync_files">文件包</string>
+    <string name="remote_trust_sync_part_login_state">登录态</string>
+    <string name="remote_trust_sync_result_counts">恢复文件：%1$s，登录态：%2$s</string>
+    <string name="remote_trust_device_id">设备</string>
+    <string name="remote_trust_app_version">版本</string>
+    <string name="remote_trust_service_info">模式：%1$s\n中转：%2$s\n支持：%3$s\n最大分片：%4$s</string>
+    <string name="remote_trust_support_none">无</string>
+    <string name="remote_trust_cap_device">设备托管</string>
+    <string name="remote_trust_cap_config">接口管理</string>
+    <string name="remote_trust_cap_sync">远端同步</string>
+    <string name="remote_trust_cap_push">推送</string>
+    <string name="remote_trust_cap_log">最近日志</string>
+    <string name="remote_trust_advanced">高级</string>
+    <string name="remote_trust_advanced_hide">收起高级</string>
+    <string name="remote_trust_added_devices">已添加设备</string>
+    <string name="remote_trust_delete_device">删除设备</string>
+    <string name="remote_trust_delete_device_message">删除 %1$s 的本机托管数据？</string>
+    <string name="remote_trust_delete_device_done">设备托管数据已删除</string>
+    <string name="remote_trust_reset_local">重置本机托管数据</string>
+    <string name="remote_trust_scan_server">扫码</string>
+    <string name="remote_trust_scan_unavailable">当前设备不支持扫码</string>
+    <string name="remote_trust_server_qr">中转服务二维码</string>
+    <string name="remote_trust_scan_filled">已填入扫码 URL，点击完成后保存。</string>
+    <string name="remote_trust_send_server_title">发送中转 URL</string>
+    <string name="remote_trust_send_server_hint">保存后会直接写入刚才扫码的那台设备。</string>
+    <string name="remote_trust_send_server_save">保存到对方</string>
+    <string name="remote_trust_send_server_done">已保存到对方设备</string>
+    <string name="remote_trust_send_server_failed">保存到对方设备失败：%1$s</string>
+    <string name="setting_login_state">登录态学习</string>
+    <string name="setting_site_health_sort">站点健康排序</string>
+    <string name="setting_site_health_enable">启用站点健康排序</string>
+    <string name="setting_site_health_dialog_sort">站点弹窗排序</string>
+    <string name="site_health_clear_done">站点健康记录已清空</string>
+    <string name="setting_web_home_extension">WebHome 扩展</string>
+    <string name="setting_web_home_fullscreen">WebHome 主页全屏</string>
+    <string name="setting_csp_warmup">CSP init 预热</string>
+    <string name="setting_playback_artwork_wall">播放界面剧照</string>
+    <string name="setting_viewing_record_sync">观影记录同步</string>
+    <string name="viewing_record_sync_entry_summary">%1$s · 远端 %2$d/%3$d · Webhook %4$d/%5$d</string>
+    <string name="viewing_record_sync_switches">开关</string>
+    <string name="viewing_record_sync_master_desc">控制远端同步和 Webhook 上报。</string>
+    <string name="viewing_record_sync_local_write">允许本机 API 修改</string>
+    <string name="viewing_record_sync_local_write_desc">允许爬虫通过本机 HTTP API 写入或清理本地观影进度。关闭后仍可读取当前播放记录。</string>
+    <string name="playback_remote_sync">远端同步</string>
+    <string name="playback_remote_sync_manage">管理</string>
+    <string name="playback_remote_sync_edit">编辑远端同步</string>
+    <string name="playback_remote_sync_empty">暂无远端同步源</string>
+    <string name="playback_remote_sync_summary">启用 %1$d · 总数 %2$d</string>
+    <string name="playback_remote_sync_name">名称</string>
+    <string name="playback_remote_sync_url">远端 API URL</string>
+    <string name="playback_remote_sync_token_optional">服务端 Token，可选</string>
+    <string name="playback_remote_sync_interval">间隔分钟</string>
+    <string name="playback_remote_sync_max_items">最大条数</string>
+    <string name="playback_remote_sync_startup">启动时同步</string>
+    <string name="playback_remote_sync_now">同步</string>
+    <string name="playback_remote_sync_saved">远端同步已保存</string>
+    <string name="playback_remote_sync_done">写入 %1$d · 跳过 %2$d · 失败 %3$d</string>
+    <string name="playback_remote_sync_result">拉取 %1$d · 写入 %2$d · 跳过 %3$d · 失败 %4$d</string>
+    <string name="playback_remote_sync_last_at">最近 %1$s</string>
+    <string name="playback_remote_sync_last_error">错误：%1$s</string>
+    <string name="playback_remote_sync_never">从未同步</string>
+    <string name="playback_remote_sync_delete_title">删除远端同步</string>
+    <string name="playback_remote_sync_delete_message">删除 %1$s？</string>
+    <string name="playback_webhook_manage">管理</string>
+    <string name="playback_webhook">Webhook 上报</string>
+    <string name="playback_webhook_edit">编辑 Webhook</string>
+    <string name="playback_webhook_empty">暂无 Webhook 端点</string>
+    <string name="playback_webhook_summary">启用 %1$d · 总数 %2$d</string>
+    <string name="playback_webhook_name">名称</string>
+    <string name="playback_webhook_url">端点 URL</string>
+    <string name="playback_webhook_token">服务端 Token</string>
+    <string name="playback_webhook_token_optional">服务端 Token，可选</string>
+    <string name="playback_webhook_site_keys">站点 key，留空为全部</string>
+    <string name="playback_webhook_preset">字段预设</string>
+    <string name="playback_webhook_preset_safe">基础</string>
+    <string name="playback_webhook_preset_standard">标准</string>
+    <string name="playback_webhook_preset_full">完整</string>
+    <string name="playback_webhook_preset_anonymous">匿名</string>
+    <string name="playback_webhook_preset_custom">自定义</string>
+    <string name="playback_webhook_fields">自定义字段</string>
+    <string name="playback_webhook_fields_summary">字段：%1$s</string>
+    <string name="playback_webhook_select_fields">选择字段</string>
+    <string name="playback_webhook_interval">进度间隔</string>
+    <string name="playback_webhook_retries">重试</string>
+    <string name="playback_webhook_advanced">高级</string>
+    <string name="playback_webhook_advanced_hide">收起高级</string>
+    <string name="playback_webhook_back">返回</string>
+    <string name="playback_webhook_save">保存</string>
+    <string name="playback_webhook_active">运行中</string>
+    <string name="playback_webhook_incomplete">未完成</string>
+    <string name="playback_webhook_suspended">已暂停</string>
+    <string name="playback_webhook_token_set">已设服务端 Token</string>
+    <string name="playback_webhook_token_empty">无服务端 Token</string>
+    <string name="playback_webhook_all_sites">全部站点</string>
+    <string name="playback_webhook_sites">站点 %1$s</string>
+    <string name="playback_webhook_row_meta">%1$s · %2$s · %3$s</string>
+    <string name="playback_webhook_last_error">最近错误：%1$s</string>
+    <string name="playback_webhook_saved">Webhook 上报已保存</string>
+    <string name="playback_webhook_delete_title">删除端点</string>
+    <string name="playback_webhook_delete_message">删除 %1$s？</string>
+    <string name="playback_webhook_url_invalid">端点 URL 必须以 http 开头</string>
+    <string name="playback_webhook_privacy_title">观影记录同步隐私声明</string>
+    <string name="playback_webhook_privacy_message">Webhook 上报会把您的观影记录（包括影片名称、播放进度）发送到您配置的服务器。\n\nApp 不会收集或转发给第三方；您可以随时停用或删除端点。填写服务端 Token 后会通过 X-WebHTV-Token 请求头发送，方便您的服务器分组和校验上报。</string>
+    <string-array name="playback_webhook_field_descriptions">
+        <item>本地点播配置 id，跨设备不稳定。</item>
+        <item>点播接口稳定 key，用于区分不同接口。</item>
+        <item>点播接口显示名称。</item>
+        <item>App 历史主键，通常由 siteKey 和 vodId 组成。</item>
+        <item>来源站点 key。</item>
+        <item>来源站点显示名称。</item>
+        <item>影片 id。</item>
+        <item>影片名称。</item>
+        <item>封面 URL。</item>
+        <item>播放线路或来源名称。</item>
+        <item>当前集名称或备注。</item>
+        <item>播放器状态，如 playing、paused、ended。</item>
+        <item>当前进度，单位毫秒。</item>
+        <item>总时长，单位毫秒。</item>
+        <item>进度比例，范围 0 到 1。</item>
+        <item>播放倍速。</item>
+        <item>是否视为完播。</item>
+        <item>当前集原始 URL，可能包含源站参数。</item>
+        <item>当前集序号，可识别时返回。</item>
+        <item>App 版本名。</item>
+        <item>客户端类型，例如 mobile 或 leanback。</item>
+        <item>设备标识哈希，只建议可信服务使用。</item>
+    </string-array>
+    <string name="web_home_extension_clear_done">WebHome 扩展缓存已清空</string>
+    <string name="web_home_extension_empty">暂无扩展。点击新增创建本地代码或添加外部源。</string>
+    <string name="web_home_extension_add_source">新增</string>
+    <string name="web_home_extension_debug">调试</string>
+    <string name="web_home_extension_refresh">刷新</string>
+    <string name="web_home_extension_clear_cache">清缓存</string>
+    <string name="web_home_extension_user_sources">用户扩展源</string>
+    <string name="web_home_extension_loaded_extensions">已加载扩展</string>
+    <string name="web_home_extension_user_source_status">用户源 · %1$s</string>
+    <string name="web_home_extension_site_scope">站点：%1$s</string>
+    <string name="web_home_extension_add_file">文件</string>
+    <string name="web_home_extension_add_link">链接</string>
+    <string name="web_home_extension_add_code">代码</string>
+    <string name="web_home_extension_add_form">表单</string>
+    <string name="web_home_extension_form_mode">表单</string>
+    <string name="web_home_extension_text_mode">文本(JSON)</string>
+    <string name="web_home_extension_source_type">来源方式</string>
+    <string name="web_home_extension_choose_file">选择文件</string>
+    <string name="web_home_extension_edit_source">编辑扩展源</string>
+    <string name="web_home_extension_edit_code">编辑本地代码</string>
+    <string name="web_home_extension_edit_form">编辑表单</string>
+    <string name="web_home_extension_link_hint">扩展链接</string>
+    <string name="web_home_extension_json_hint">用户扩展源 JSON</string>
+    <string name="web_home_extension_name_hint">名称</string>
+    <string name="web_home_extension_run_at_hint">注入时机</string>
+    <string name="web_home_extension_run_at_start_short">开始</string>
+    <string name="web_home_extension_run_at_end_short">结束</string>
+    <string name="web_home_extension_run_at_idle_short">空闲</string>
+    <string name="web_home_extension_match_mode">匹配方式</string>
+    <string name="web_home_extension_match_sites">选择</string>
+    <string name="web_home_extension_match_regex">正则</string>
+    <string name="web_home_extension_choose_sites">选择站点</string>
+    <string name="web_home_extension_no_webhome_sites">当前点播配置没有 WebHome 站点</string>
+    <string name="web_home_extension_match_hint">站点 key 或正则</string>
+    <string name="web_home_extension_code_hint">JavaScript / CSS 注入代码</string>
+    <string name="web_home_extension_local_code_default">本地扩展 %1$d</string>
+    <string name="web_home_extension_delete_source_title">删除扩展源</string>
+    <string name="web_home_extension_delete_source_message">删除 %1$s？</string>
+    <string name="web_home_extension_source_saved">扩展源已保存</string>
+    <string name="web_home_extension_source_empty">扩展源或代码不能为空</string>
+    <string name="web_home_extension_source_invalid">扩展源 JSON 格式无效</string>
+    <string name="web_home_extension_summary">订阅 %1$d · 已安装 %2$d · 已匹配 %3$d · 可注入 %4$d · 站点 %5$s</string>
+    <string name="web_home_extension_source">来源：%1$s</string>
+    <string name="web_home_extension_inline_source">内联配置</string>
+    <string name="web_home_extension_unknown_site">无</string>
+    <string name="web_home_extension_match">匹配：%1$s</string>
+    <string name="web_home_extension_exclude">排除：%1$s</string>
+    <string name="web_home_extension_depends">依赖：%1$s</string>
+    <string name="web_home_extension_last_log">最近日志：%1$s</string>
+    <string name="web_home_extension_enable_confirm_title">启用扩展</string>
+    <string name="web_home_extension_enable_confirm_message">启用后该扩展可以调用 WebHome 已开放的 SDK。\n\n名称：%1$s\n来源：%2$s\n匹配：%3$s</string>
+    <string name="web_home_extension_status_ready">待注入</string>
+    <string name="web_home_extension_status_injected">已注入</string>
+    <string name="web_home_extension_status_disabled">已禁用</string>
+    <string name="web_home_extension_status_unmatched">未匹配</string>
+    <string name="web_home_extension_status_skipped">已跳过</string>
+    <string name="web_home_extension_status_matched">已匹配</string>
+    <string name="web_home_extension_debug_title">WebHome 调试工作台</string>
+    <string name="web_home_extension_tab_web">Web</string>
+    <string name="web_home_extension_tab_console">控制台</string>
+    <string name="web_home_extension_tab_elements">元素</string>
+    <string name="web_home_extension_tab_network">网络</string>
+    <string name="web_home_extension_tab_code">代码</string>
+    <string name="web_home_extension_inspect_element">检查元素</string>
+    <string name="web_home_extension_inspect_hint">点击 Web 页里的元素进行检查</string>
+    <string name="web_home_extension_clear_panel">清空</string>
+    <string name="web_home_extension_select_script">选择脚本</string>
+    <string name="web_home_extension_save_preview">保存</string>
+    <string name="web_home_extension_network_all">全部</string>
+    <string name="web_home_extension_network_web">页面资源</string>
+    <string name="web_home_extension_network_fetch">Fetch</string>
+    <string name="web_home_extension_network_xhr">XHR</string>
+    <string name="web_home_extension_network_script">脚本请求</string>
+    <string name="web_home_extension_network_error">错误</string>
+    <string name="web_home_extension_network_native">原生</string>
+    <string name="web_home_extension_network_detail">请求详情</string>
+    <string name="web_home_extension_network_detail_smaller">-</string>
+    <string name="web_home_extension_network_detail_bigger">+</string>
+    <string name="web_home_extension_network_filter">过滤 URL / 状态 / 详情</string>
+    <string name="web_home_extension_network_empty">当前过滤条件下没有请求</string>
+    <string name="web_home_extension_network_select">选择一个请求查看详情。</string>
+    <string name="web_home_extension_network_clear">清空请求</string>
+    <string name="setting_shell_proxy">Proxy</string>
+    <string name="setting_shell_proxy_config">Proxy</string>
+    <string name="setting_custom_csp">站点注入</string>
+    <string name="setting_custom_csp_add">新增</string>
+    <string name="setting_custom_csp_insert_short">位置</string>
+    <string name="setting_custom_csp_recognize">识别</string>
+    <string name="setting_custom_csp_recognize_title">自动识别</string>
+    <string name="setting_custom_csp_recognize_hint">粘贴站点 JSON 片段</string>
+    <string name="setting_custom_csp_recognize_empty">请先粘贴站点 JSON</string>
+    <string name="setting_custom_csp_recognize_invalid">未识别到有效站点 JSON</string>
+    <string name="setting_custom_csp_recognize_done">已添加 %1$d 个条目</string>
+    <string name="setting_custom_csp_sort">排序</string>
+    <string name="setting_custom_csp_sort_done">完成</string>
+    <string name="setting_custom_csp_sort_drag">拖拽排序</string>
+    <string name="setting_custom_csp_sort_more">排序操作</string>
+    <string name="setting_custom_csp_sort_top">置顶</string>
+    <string name="setting_custom_csp_sort_bottom">置底</string>
+    <string name="setting_custom_csp_sort_forward_five">上移 5 位</string>
+    <string name="setting_custom_csp_sort_backward_five">下移 5 位</string>
+    <string name="setting_custom_csp_sort_move_to">移动到指定位置</string>
+    <string name="setting_custom_csp_sort_move_to_title">移动到指定位置</string>
+    <string name="setting_custom_csp_sort_move_to_hint">位置 1-%1$d</string>
+    <string name="setting_custom_csp_count">%1$d/%2$d 可用</string>
+    <string name="setting_custom_csp_api">api</string>
+    <string name="setting_custom_csp_code">代码</string>
+    <string name="setting_custom_csp_down">下移</string>
+    <string name="setting_custom_csp_ext">ext</string>
+    <string name="setting_custom_csp_home">首页</string>
+    <string name="setting_custom_csp_home_page">homePage</string>
+    <string name="setting_custom_csp_home_page_optional">homePage</string>
+    <string name="setting_custom_csp_extensions_toggle">扩展</string>
+    <string name="setting_custom_csp_extensions">扩展 URL / JSON</string>
+    <string name="setting_custom_csp_extensions_file">文件</string>
+    <string name="setting_custom_csp_extensions_example">https://example.com/site.js</string>
+    <string name="setting_custom_csp_extensions_invalid">extensions JSON 格式无效</string>
+    <string name="setting_custom_csp_permission_required">站点注入需要文件访问权限。</string>
+    <string name="setting_custom_csp_save_failed">站点注入保存失败：%1$s</string>
+    <string name="setting_custom_csp_webhome">WebHome</string>
+    <string name="setting_custom_csp_common">通用 CSP</string>
+    <string name="setting_custom_csp_live">直播</string>
+    <string name="setting_custom_csp_other">其他</string>
+    <string name="setting_custom_csp_webhome_name">WebHome %1$d</string>
+    <string name="setting_custom_csp_common_name">通用 CSP %1$d</string>
+    <string name="setting_custom_csp_live_name">直播 %1$d</string>
+    <string name="setting_custom_csp_other_name">其他 %1$d</string>
+    <string name="setting_custom_csp_other_fields">field</string>
+    <string name="setting_custom_csp_other_json">value JSON</string>
+    <string name="setting_custom_csp_key">key</string>
+    <string name="setting_custom_csp_type">type</string>
+    <string name="setting_custom_csp_player_type">playerType</string>
+    <string name="setting_custom_csp_unset">不写</string>
+    <string name="setting_custom_csp_player_system">0 系统</string>
+    <string name="setting_custom_csp_player_ijk">1 IJK</string>
+    <string name="setting_custom_csp_player_exo">2 EXO</string>
+    <string name="setting_custom_csp_live_url">url</string>
+    <string name="setting_custom_csp_logo">logo</string>
+    <string name="setting_custom_csp_epg">epg</string>
+    <string name="setting_custom_csp_ua">ua</string>
+    <string name="setting_custom_csp_origin">Origin</string>
+    <string name="setting_custom_csp_referer">Referer</string>
+    <string name="setting_custom_csp_time_zone">timeZone</string>
+    <string name="setting_custom_csp_timeout">timeout</string>
+    <string name="setting_custom_csp_click">click</string>
+    <string name="setting_custom_csp_play_url">playUrl</string>
+    <string name="setting_custom_csp_hide">hide</string>
+    <string name="setting_custom_csp_searchable">searchable</string>
+    <string name="setting_custom_csp_changeable">changeable</string>
+    <string name="setting_custom_csp_quick_search">quickSearch</string>
+    <string name="setting_custom_csp_insert">插入位置</string>
+    <string name="setting_custom_csp_insert_decrease">减少插入位置</string>
+    <string name="setting_custom_csp_insert_increase">增加插入位置</string>
+    <string name="setting_custom_csp_import">文件</string>
+    <string name="setting_custom_csp_json_hint">Raw JSON：完整配置、sites/lives 数组或单个站点/直播对象</string>
+    <string name="setting_custom_csp_json_invalid">站点注入 JSON 格式无效</string>
+    <string name="setting_custom_csp_jar">Jar</string>
+    <string name="setting_custom_csp_link">链接</string>
+    <string name="setting_custom_csp_up">上移</string>
+    <string name="setting_proxy_url">socks5://127.0.0.1:9978</string>
+    <string name="setting_proxy_hosts">匹配域名</string>
+    <string name="setting_proxy_rules">Proxy 规则</string>
+    <string name="setting_proxy_rules_raw">Raw 规则</string>
+    <string name="setting_proxy_rules_hint">Raw JSON：{&quot;proxy&quot;:[{&quot;hosts&quot;:[&quot;example.com&quot;],&quot;urls&quot;:[&quot;socks5://127.0.0.1:1080&quot;]}]}</string>
+    <string name="setting_proxy_default_url">默认代理地址</string>
+    <string name="setting_proxy_rule_url">代理地址</string>
+    <string name="setting_proxy_text_mode">文本</string>
+    <string name="setting_proxy_ui_mode">编辑</string>
+    <string name="setting_proxy_add_rule">新增规则</string>
+    <string name="setting_proxy_rule_count">%1$d 条规则</string>
+    <string name="setting_proxy_invalid">代理地址无效</string>
+    <string name="setting_proxy_suggest">自动建议</string>
+    <string name="setting_proxy_recognize">自动识别</string>
+    <string name="setting_proxy_recognize_hint">粘贴完整配置、proxy 片段、规则数组或单个规则对象</string>
+    <string name="setting_proxy_recognize_empty">请先粘贴 Proxy 规则</string>
+    <string name="setting_proxy_recognize_failed">未识别到 Proxy 规则</string>
+    <string name="setting_proxy_recognize_done">已识别 %1$d 条 Proxy 规则</string>
+    <string name="setting_proxy_test">测试代理</string>
+    <string name="setting_proxy_select_site">选择站点</string>
+    <string name="setting_proxy_no_site">暂无可选站点</string>
+    <string name="setting_proxy_no_suggest">未发现可代理域名</string>
+    <string name="setting_proxy_suggest_added">已新增 %1$d 个域名，共 %2$d 个</string>
+    <string name="setting_proxy_test_no_rule">没有命中的代理规则</string>
+    <string name="setting_proxy_test_running">正在测试代理...</string>
+    <string name="setting_proxy_test_success">代理测试通过：%1$s</string>
+    <string name="setting_proxy_test_failed">代理测试失败：%1$s</string>
+    <string name="setting_one_key_sync">一键同步</string>
+    <string name="setting_incognito">无痕模式</string>
+    <string name="setting_drive_check">网盘检测</string>
+    <string name="setting_theme_color">主题色彩</string>
+    <string name="setting_auto">自动</string>
+    <string name="setting_custom">自定义</string>
+    <string name="setting_size">图片尺寸</string>
+    <string name="setting_ui_scale">界面大小</string>
+    <string name="setting_doh">DoH</string>
+    <string name="setting_proxy">Proxy</string>
+    <string name="setting_cache">缓存</string>
+    <string name="setting_backup">备份</string>
+    <string name="setting_restore">恢复</string>
+    <string name="setting_about">关于</string>
+    <string name="setting_version">版本</string>
+    <string name="setting_choose">选择</string>
+    <string name="setting_delete">删除</string>
+    <string name="setting_disable">禁用</string>
+    <string name="setting_enable">启用</string>
+    <string name="setting_order_normal">正序</string>
+    <string name="setting_order_reverse">倒序</string>
+    <string name="setting_off">关</string>
+    <string name="setting_on">开</string>
+
+    <!-- About -->
+    <string name="about_title">关于 WebHomeTV</string>
+    <string name="about_free_badge">完全免费</string>
+    <string name="about_version">版本 %1$s · %2$s/%3$s</string>
+    <string name="about_disclaimer">WebHomeTV 是基于开源生态二次开发的技术学习与研究项目，软件本体完全免费，不提供任何付费服务、影视内容、直播源、接口源、资源存储或内容分发能力。\n\nAI助手功能支持4款大模型，① 豆包火山，② 通义千问，③ 智谱清言，④ DeepSeek。\n一键转到浏览器申请免费Key密钥，添加Key密钥后与AI助手对话获取配置，获取配置后一键加载到App中使用。\n\n重要提示说明：所有AI助手提供的配置均来源AI模型搜索互联网上获取，非本App提供。本AI助手功能仅用于学习代码和演示，不可用于私自商用获利，如已使用AI助手就证明已看到本说明，如有私自使用获的利益者与AI助手无关，不承担任何责任，现已说明，请尽快卸载停止使用。\n\n本软件仅供技术学习、研究和个人测试使用，请在下载、安装或试用后 24 小时内自行卸载。继续使用本软件所产生的一切行为及后果，由使用者自行承担。\n\n本软件不内置、不售卖、不传播任何影视资源，不对用户自行添加的接口、站源、插件、脚本、链接、网盘资源或第三方服务内容负责。使用者应遵守所在地法律法规，尊重版权方和内容提供方的合法权益，不得将本软件用于任何侵权、盗版、传播非法内容或其他违法违规用途。\n\n严禁任何个人或组织以本软件名义进行售卖、引流、收费维护、会员服务、广告变现、盒子预装、电视盒子捆绑销售或其他任何形式的获益行为。对于将本软件内置于电视盒子、机顶盒、付费套餐或商业服务中进行销售、推广的行为，项目方明确反对并予以谴责。\n\n如你不同意以上声明，请立即停止使用并卸载本软件。</string>
+    <string name="about_check_update">检查更新</string>
+    <string name="about_acknowledge">我已知悉</string>
+
+    <!-- Backup & Restore -->
+    <string name="restore_select">选择备份</string>
+    <string name="restore_success">恢复成功</string>
+    <string name="restore_fail">恢复失败</string>
+    <string name="backup_success">备份成功</string>
+    <string name="backup_fail">备份失败</string>
+
+    <!-- Device Sync -->
+    <string name="device_select">选择设备</string>
+    <string name="device_offline">设备已离线</string>
+    <string name="sync_success">同步完成</string>
+    <string name="sync_progress">正在同步...</string>
+    <string name="sync_failed">同步失败</string>
+    <string name="sync_mode_to_remote">本机 -> 选中设备</string>
+    <string name="sync_mode_from_remote">选中设备 -> 本机</string>
+    <string name="sync_local_device">本机</string>
+    <string name="sync_remote_device">选中设备</string>
+    <string name="sync_sender">发送</string>
+    <string name="sync_receiver">接收</string>
+    <string name="sync_direction_change">切换同步方向</string>
+    <string name="sync_change_device">选择设备</string>
+    <string name="sync_switch_short">切换</string>
+    <string name="sync_push">推送</string>
+    <string name="sync_pull">拉取</string>
+    <string name="sync_select_all">全选</string>
+    <string name="sync_select_none">取消全选</string>
+    <string name="sync_item_config">接口与站源列表</string>
+    <string name="sync_item_spider">Jar/脚本保存数据</string>
+    <string name="sync_item_login_state">登录态</string>
+    <string name="sync_item_webhome">WebHome 主页数据</string>
+    <string name="sync_item_search">搜索记录</string>
+    <string name="sync_item_history">观看记录</string>
+    <string name="sync_item_keep">收藏数据</string>
+    <string name="sync_item_settings">应用设置</string>
+    <string name="sync_item_remote_relay">中转服务配置</string>
+    <string name="sync_paths_title">同步目录</string>
+    <string name="sync_paths_edit">编辑</string>
+    <string name="sync_paths_desc">每行一个外置存储相对路径，默认同步 TV、TVBox、TVData。可加入本地包目录；目录内容会随 Jar/脚本保存数据一起同步。</string>
+    <string name="sync_paths_hint">TV&#10;TVBox&#10;TVData</string>
+    <string name="sync_paths_up">收起</string>
+    <string name="sync_paths_refresh">刷新</string>
+    <string name="sync_paths_enter">打开目录</string>
+    <string name="sync_paths_empty">当前目录没有可选文件夹</string>
+    <string name="sync_paths_selected">已选：%1$s</string>
+    <string name="sync_paths_selected_empty">未选择目录</string>
+    <string name="login_state_message">学习 Cookie 和登录态文件路径，供一键同步使用。当前已选 %1$d 条，可在管理路径中查看候选和文件内容。</string>
+    <string name="login_state_learning_message">学习中。请去完成网盘登录，返回这里后点击完成学习。当前已选 %1$d 条路径。</string>
+    <string name="login_state_start">开始学习</string>
+    <string name="login_state_finish">完成学习</string>
+    <string name="login_state_started">已开始登录态学习</string>
+    <string name="login_state_finished">登录态学习完成：已选 %1$d 条，待确认 %2$d 条</string>
+    <string name="login_state_count">已选 %1$d · 待确认 %2$d</string>
+    <string name="login_state_learning_count">学习中 · 已选 %1$d · 待确认 %2$d</string>
+    <string name="login_state_learned_title">已选路径</string>
+    <string name="login_state_pending_title">待确认候选</string>
+    <string name="login_state_findings_title">最近学习结果</string>
+    <string name="login_state_reset_results">重置候选和结果</string>
+    <string name="login_state_reset_results_done">已清空待确认候选和最近学习结果</string>
+    <string name="login_state_more_count">还有 %1$d 条</string>
+    <string name="login_state_empty">未发现登录态文件</string>
+    <string name="login_state_edit">查看/编辑登录态文件</string>
+    <string name="login_state_saved">登录态文件已保存</string>
+    <string name="login_state_preview_readonly">只读预览</string>
+    <string name="login_state_preview_truncated">只读预览，内容已截断</string>
+    <string name="login_state_paths_title">登录态路径</string>
+    <string name="login_state_manage_paths">管理路径</string>
+    <string name="login_state_paths_empty_selected">未选择登录态路径</string>
+    <string name="login_state_paths_selected_count">已选 %1$d 条，可同步 %2$d 条，缺失 %3$d 条</string>
+    <string name="login_state_paths_empty_selected_with_pending">未选择登录态路径 · 待确认 %1$d 条</string>
+    <string name="login_state_paths_selected_count_with_pending">已选 %1$d 条，可同步 %2$d 条，缺失 %3$d 条 · 待确认 %4$d 条</string>
+    <string name="login_state_confirm_pending">勾选待确认</string>
+    <string name="login_state_confirm_pending_count">勾选待确认 %1$d</string>
+    <string name="login_state_confirm_empty">没有待确认项</string>
+    <string name="login_state_confirm_done">已勾选 %1$d 个待确认项</string>
+    <string name="login_state_reveal_pending">显示待确认</string>
+    <string name="login_state_reveal_pending_count">显示待确认 %1$d</string>
+    <string name="login_state_pending_revealed">已在目录树中显示 %1$d 个待确认项</string>
+    <string name="login_state_pending_detail">%1$s · %2$s · %3$s</string>
+    <string name="login_state_tree_app">App 私有目录</string>
+    <string name="login_state_tree_sdcard">共享存储</string>
+    <string name="login_state_tree_title_count">%1$s · 已确认 %2$d · 待确认 %3$d</string>
+    <string name="login_state_tree_expand">展开文件夹</string>
+    <string name="login_state_tree_collapse">收起文件夹</string>
+    <string name="login_state_state_selected">已选</string>
+    <string name="login_state_state_pending">待确认</string>
+    <string name="login_state_state_has_pending">含待确认</string>
+    <string name="login_state_state_partial">部分已选</string>
+    <string name="login_state_state_missing">缺失</string>
+    <string name="sync_device_mobile">手机</string>
+    <string name="sync_device_tv">电视</string>
+    <string name="sync_discovering">正在发现设备...</string>
+    <string name="sync_no_device">未发现设备，请确认两台设备在同一局域网并已打开 WebHTV，然后刷新。</string>
+    <string name="sync_selected">已选择：%1$s · %2$s</string>
+    <string name="sync_start">开始同步</string>
+    <string name="sync_cancel">取消同步</string>
+    <string name="sync_prepare_files">正在准备同步文件...</string>
+    <string name="sync_prepare_progress">正在压缩：%1$d 个文件，%2$s，%3$s/s</string>
+    <string name="sync_wait_remote">正在等待选中设备发送数据...</string>
+    <string name="sync_upload_prepare">准备上传：%1$d 个文件，%2$s，压缩后 %3$s</string>
+    <string name="sync_upload_progress">%1$d%% · %2$s / %3$s · %4$s/s · %5$d 个文件</string>
+    <string name="sync_canceled">同步已取消</string>
+    <string name="sync_select_device_first">请先选择设备</string>
+    <string name="sync_failed_with_reason">同步失败：%1$s</string>
+    <string name="sync_receive_success">已接收同步数据</string>
+
+    <!-- Player -->
+    <string name="player">播放核心</string>
+    <string name="player_render">渲染方式</string>
+    <string name="player_button_config">播放器按钮</string>
+    <string name="player_button_config_summary">显示 %1$d/%2$d</string>
+    <string name="player_button_up">上移</string>
+    <string name="player_button_down">下移</string>
+    <string name="play_episodes">选集</string>
+    <string name="player_exo_4k_compat">EXO增强模式</string>
+    <string name="player_kernel">播放器内核</string>
+    <string name="player_scale">缩放比例</string>
+    <string name="player_lut">LUT 调色</string>
+    <string name="player_libass">字幕渲染</string>
+    <string name="player_caption">字幕样式</string>
+    <string name="player_background">后台播放</string>
+    <string name="player_audio_decode">音频软解</string>
+    <string name="player_video_decode">视频软解</string>
+    <string name="player_aac_track">AAC优先</string>
+    <string name="player_adblock">智能去广</string>
+    <string name="player_tunnel">隧道模式</string>
+    <string name="player_buffer">缓冲时间</string>
+    <string name="player_buffer_bytes">缓冲容量</string>
+    <string name="player_back_buffer">回退缓冲</string>
+    <string name="player_cache">播放缓存</string>
+    <string name="player_preload">预载</string>
+    <string name="player_preload_threads">预载线程</string>
+    <string name="player_preload_threads_value">%1$d 条</string>
+    <string name="player_preload_size">预载容量</string>
+    <string name="player_preload_time">预载时间</string>
+    <string name="player_preload_time_value">%1$d 秒</string>
+    <string name="player_auto_change">自动换源</string>
+    <string name="player_speed">长按倍速</string>
+    <string name="player_ua">User-Agent</string>
+    <string name="player_osd">屏显设置</string>
+    <string name="lut_original">原色</string>
+    <string name="lut_missing">预设不存在</string>
+    <string name="lut_summary">%1$s · %2$d%%</string>
+    <string name="lut_title_value">%1$s · %2$s</string>
+    <string name="lut_strength_value">强度 %1$d%%</string>
+    <string name="lut_preview_delay_value">%1$d秒</string>
+    <string name="lut_import">导入</string>
+    <string name="lut_local">本地</string>
+    <string name="lut_reset">重置</string>
+    <string name="lut_all">全部</string>
+    <string name="lut_favorite">收藏</string>
+    <string name="lut_directory">目录</string>
+    <string name="lut_select_current_dir">选择当前目录</string>
+    <string name="lut_close">关闭</string>
+    <string name="lut_imported">LUT 预设已导入</string>
+    <string name="lut_directory_selected">LUT 目录已选择</string>
+    <string name="lut_import_failed">LUT 导入失败</string>
+    <string name="lut_favorited">已加入收藏</string>
+    <string name="lut_unfavorited">已取消收藏</string>
+    <string name="lut_empty_presets">暂无 LUT 预设</string>
+    <string name="lut_empty_favorites">暂无收藏 LUT</string>
+    <string name="lut_apply_failed">LUT 调色已临时关闭</string>
+    <string name="lut_unavailable_player">当前播放器内核不支持 LUT 调色</string>
+    <string name="lut_unavailable_drm">DRM 保护视频不支持 LUT 调色</string>
+    <string name="lut_unavailable_tunnel">隧道模式不支持 LUT 调色</string>
+    <string name="lut_unavailable_soft_decode">软解不支持 LUT 调色</string>
+    <string name="lut_unavailable_video_prefer">扩展视频解码不支持 LUT 调色</string>
+    <string name="lut_unavailable_hdr">HDR/Dolby Vision 内容暂不支持 LUT 调色</string>
+    <string name="lut_unavailable_no_video">当前内容没有视频画面</string>
+
+    <!-- Danmaku -->
+    <string name="danmaku_load">弹幕加载</string>
+    <string name="danmaku_api">搜索接口</string>
+    <string name="danmaku_api_invalid">弹幕接口地址无效</string>
+    <string name="danmaku_auto_load">自动搜索</string>
+    <string name="danmaku_spider_first">爬虫优先</string>
+
+    <!-- Search -->
+    <string name="search_keyword">关键字…</string>
+    <string name="site_search_hint">搜索站点…</string>
+    <string name="search_record">历史</string>
+    <string name="search_suggest">建议</string>
+    <string name="search_hot">热搜</string>
+    <string name="search_hot_tv">电视榜</string>
+    <string name="search_hot_movie">电影榜</string>
+    <string name="search_hot_variety">综艺榜</string>
+    <string name="search_loading">搜索中...</string>
+    <string name="search_progress">(%1$d/%2$d)</string>
+    <string name="search_no_result">没有搜到</string>
+
+    <!-- Dialog -->
+    <string name="dialog_edit">修改</string>
+    <string name="dialog_positive">确定</string>
+    <string name="dialog_negative">取消</string>
+    <string name="dialog_reset">重置</string>
+    <string name="setting_show">显示</string>
+    <string name="setting_hide">隐藏</string>
+    <string name="dialog_select_title">选择章节</string>
+    <string name="dialog_config_hint">请输入配置…</string>
+    <string name="dialog_config_name">请输入名称…</string>
+    <string name="dialog_config_url">请输入地址…</string>
+
+    <!-- Error -->
+    <string name="error_config_get">配置取得失败</string>
+    <string name="error_play_next">已经是最后一集了！</string>
+    <string name="error_play_prev">已经是第一集了！</string>
+    <string name="error_play_parse">播放地址解析失败</string>
+    <string name="error_play_drm">此设备不支持所需的 DRM scheme</string>
+    <string name="error_play_url">播放地址加载失败</string>
+    <string name="error_play_flag">暂无线路数据</string>
+    <string name="error_play_timeout">连接超时</string>
+    <string name="error_play_tvbus">错误代码：<xliff:g name="name">%s</xliff:g></string>
+    <string name="error_detail">暂无播放数据</string>
+    <string name="error_empty">这里什麽都没有 👀</string>
+
+    <!-- Update -->
+    <string name="update_version">发现新版本 <xliff:g name="name">%s</xliff:g></string>
+    <string name="update_title">版本更新</string>
+    <string name="update_hint">选择版本查看更新内容并安装。</string>
+    <string name="update_check">正在检测更新…</string>
+    <string name="update_latest">已是最新版本</string>
+    <string name="update_failed">检测更新失败</string>
+    <string name="update_downloading">正在下载 %1$d%%</string>
+    <string name="update_downloading_unknown">正在下载…</string>
+    <string name="update_downloading_detail">正在下载 %1$d%% · %2$s/s · 已用 %3$s</string>
+    <string name="update_downloading_detail_remaining">正在下载 %1$d%% · %2$s/s · 剩余 %3$s · 已用 %4$s</string>
+    <string name="update_downloading_detail_unknown">正在下载 · %1$s/s · 已用 %2$s</string>
+    <string name="update_download_incomplete">更新包下载不完整，请重试。</string>
+    <string name="update_download_checksum">更新包校验失败，请重试。</string>
+    <string name="update_download_invalid">更新包无效，请重试。</string>
+    <string name="update_confirm">更新</string>
+    <string name="update_confirm_channel">更新%1$s</string>
+    <string name="update_cancel">取消更新</string>
+    <string name="update_canceled">更新已取消</string>
+    <string name="update_channel_stable">稳定版</string>
+    <string name="update_channel_beta">测试版</string>
+    <string name="update_channel_latest">当前通道已是最新版本。</string>
+    <string name="update_channel_unavailable">当前通道暂无可用更新清单。</string>
+    <string name="update_no_notes">暂无更新日志。</string>
+    <string name="update_status_available">可更新</string>
+    <string name="update_status_latest">已最新</string>
+    <string name="update_status_unavailable">暂无</string>
+    <string name="update_expand">展开</string>
+    <string name="update_collapse">收起</string>
+
+    <!-- Crash -->
+    <string name="crash_info">发生意外错误\n抱歉给您带来不便</string>
+    <string name="crash_restart">重新启动</string>
+    <string name="crash_details">错误信息</string>
+    <string name="crash_details_title">错误信息</string>
+    <string name="crash_details_close">关闭</string>
+
+    <!-- Hint -->
+    <string name="copied">已复制</string>
+    <string name="debug_log_dialog_message">调试日志服务已启动。\n\n局域网地址：\n%1$s\n\n本机地址：\n%2$s\n\n电视端没有浏览器也没关系，请在同一局域网的电脑或手机浏览器中打开局域网地址。</string>
+    <string name="debug_log_open_browser">打开浏览器</string>
+    <string name="debug_log_copy_url">复制地址</string>
+    <string name="debug_log_no_browser">未找到可打开网页的应用，请使用局域网地址访问</string>
+    <string name="debug_log_url_copied">调试日志地址已复制</string>
+    <string name="manage_page_web">浏览器页面</string>
+    <string name="manage_page_dialog_message">管理页面已启动。\n\n局域网地址：\n%1$s\n\n本机地址：\n%2$s\n\n管理文件或设置时请保持页面打开。浏览器页面关闭一段时间后服务会自动停止，也可以手动停止。</string>
+    <string name="manage_page_open_browser">打开浏览器</string>
+    <string name="manage_page_copy_url">复制地址</string>
+    <string name="manage_page_stop">停止页面</string>
+    <string name="manage_page_notification_title">管理页面运行中</string>
+    <string name="manage_page_no_browser">未找到可打开网页的应用，请使用局域网地址访问</string>
+    <string name="manage_page_url_copied">管理页面地址已复制</string>
+    <string name="manage_page_battery_title">后台访问权限</string>
+    <string name="manage_page_battery_message">当前设备可能会在 App 切到后台后限制网络，导致浏览器管理页无法连接。点击“打开设置”只会尝试当前品牌已知的后台运行/耗电管理入口；如果系统不允许直达，请按下面路径手动设置：\n\n%1$s</string>
+    <string name="manage_page_battery_allow">打开设置</string>
+    <string name="manage_page_open_anyway">仍然打开</string>
+    <string name="manage_page_battery_open_failed">未找到可直达的后台设置页，请按弹窗中的系统路径手动设置</string>
+    <string name="manage_page_battery_guide_vivo">vivo/iQOO：设置 → 电池 → 后台耗电管理/后台高耗电 → 找到本应用 → 改为“允许后台高耗电”。如果不能直达，请在系统设置里搜索“后台耗电管理”。</string>
+    <string name="manage_page_battery_guide_xiaomi">小米/Redmi/POCO：设置 → 应用设置 → 授权管理 → 自启动管理 → 允许本应用；再到应用电池用量中选择无限制。</string>
+    <string name="manage_page_battery_guide_oppo">OPPO/realme/一加：设置 → 应用 → 自启动/关联启动 → 允许本应用；再到电池 → 应用耗电管理中允许后台运行。</string>
+    <string name="manage_page_battery_guide_huawei">华为/荣耀：手机管家或设置 → 应用启动管理 → 找到本应用 → 关闭自动管理，并允许自启动、关联启动、后台活动。</string>
+    <string name="manage_page_battery_guide_samsung">三星：设置 → 应用 → 本应用 → 电池 → 选择不受限制；同时在电池 → 后台使用限制中不要加入休眠应用。</string>
+    <string name="manage_page_battery_guide_meizu">魅族：手机管家 → 权限管理/后台管理 → 找到本应用 → 允许后台运行；再到电量管理中把本应用设为不限制。</string>
+    <string name="manage_page_battery_guide_default">设置 → 应用 → 本应用 → 电池 → 选择不受限制/不优化；如果有自启动或后台运行选项，也请允许本应用。</string>
+
+    <!-- UNIT -->
+    <string name="all">全部</string>
+    <string name="yes">有</string>
+    <string name="none">无</string>
+    <string name="times">倍</string>
+    <string name="lines">行</string>
+
+    <string-array name="select_decode">
+        <item>软解</item>
+        <item>硬解</item>
+    </string-array>
+
+    <string-array name="select_player_kernel">
+        <item>EXO</item>
+        <item>IJK</item>
+    </string-array>
+    <string-array name="select_buffer_bytes">
+        <item>自动</item>
+        <item>64MB</item>
+        <item>128MB</item>
+        <item>256MB</item>
+    </string-array>
+    <string-array name="select_back_buffer">
+        <item>关闭</item>
+        <item>15秒</item>
+        <item>30秒</item>
+        <item>60秒</item>
+    </string-array>
+    <string-array name="select_play_cache">
+        <item>128MB</item>
+        <item>256MB</item>
+        <item>512MB</item>
+        <item>1GB</item>
+        <item>2GB</item>
+    </string-array>
+
+    <string-array name="select_size">
+        <item>小</item>
+        <item>中</item>
+        <item>大</item>
+        <item>特大</item>
+    </string-array>
+
+    <string-array name="select_ui_scale">
+        <item>跟随系统</item>
+        <item>标准</item>
+        <item>较紧凑</item>
+        <item>紧凑</item>
+        <item>更紧凑</item>
+        <item>更小</item>
+    </string-array>
+
+    <string-array name="select_scale">
+        <item>原始</item>
+        <item>16:9</item>
+        <item>4:3</item>
+        <item>填充</item>
+        <item>裁剪</item>
+    </string-array>
+
+    <string-array name="select_reset">
+        <item>刷新</item>
+        <item>重播</item>
+    </string-array>
+
+    <string-array name="select_caption">
+        <item>预设</item>
+        <item>系统</item>
+    </string-array>
+
+    <string-array name="select_player_osd">
+        <item>标题</item>
+        <item>分辨率</item>
+        <item>时间</item>
+        <item>进度</item>
+        <item>网速</item>
+        <item>迷你</item>
+        <item>播放参数</item>
+    </string-array>
+
+    <string-array name="select_track">
+        <item>选择音轨</item>
+        <item>选择视轨</item>
+        <item>选择字幕</item>
+    </string-array>
+    
+    <!-- Reset App -->
+<string name="setting_reset_app">重置应用</string>
+<string name="setting_reset_app_confirm">确认重置应用吗？这将清除所有数据和设置，应用将重启。</string>
+
+<string name="download">下载</string>
+
+    <string-array name="model_names">
+        <item>豆包火山</item>
+        <item>通义千问</item>
+        <item>智谱清言</item>
+        <item>DeepSeek</item>
+    </string-array>
+
+<string name="add_config">添加配置</string>
+    
+</resources>
