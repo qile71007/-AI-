@@ -1,0 +1,151 @@
+name: Manual APK Build & Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      custom_package:
+        description: '自定义包名（留空则使用项目原有包名，示例：com.example.app）'
+        required: false
+        default: 'com.fongmi.android.tv'
+      app_name:
+        description: '自定义应用名称（留空则使用项目原有名称，示例：我的影视）'
+        required: false
+        default: '影视'
+      release_tag:
+        description: 'Release Tag（留空则使用项目原有版本名，示例：v1.0.0）'
+        required: false
+        default: 'v1.0.0'
+      release_notes:
+        description: '更新日志说明'
+        required: false
+        default: '修复若干问题'
+      create_release:
+        description: '✅ 勾选：APK 发布到 Releases（对外更新下载）。❌ 不勾选：APK 仅保留在 Actions 中'
+        required: true
+        default: 'true'
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Modify app name
+        if: ${{ github.event.inputs.app_name != '' }}
+        run: |
+          NEW_NAME="${{ github.event.inputs.app_name }}"
+          ESCAPED_NAME=$(echo "$NEW_NAME" | sed 's/[&/\]/\\&/g')
+          find app/src/main/res -name "strings.xml" -exec sed -i "s/<string name=\"app_name\">.*<\/string>/<string name=\"app_name\">$ESCAPED_NAME<\/string>/g" {} \;
+          echo "App name changed to: $NEW_NAME"
+
+      - name: Modify applicationId
+        if: ${{ github.event.inputs.custom_package != '' }}
+        run: |
+          PACKAGE="${{ github.event.inputs.custom_package }}"
+          sed -i "s/applicationId \".*\"/applicationId \"$PACKAGE\"/g" app/build.gradle
+          echo "Package name changed to: $PACKAGE"
+
+      - name: Modify versionName
+        if: ${{ github.event.inputs.release_tag != '' }}
+        run: |
+          TAG="${{ github.event.inputs.release_tag }}"
+          sed -i "s/versionName \".*\"/versionName \"$TAG\"/g" app/build.gradle
+          echo "Version name changed to: $TAG"
+
+      - name: Build APKs
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleMobileArm64_v8aRelease
+          ./gradlew :app:assembleLeanbackArmeabi_v7aRelease
+          ./gradlew :app:assembleLeanbackArm64_v8aRelease
+
+      - name: Prepare release assets
+        id: prepare
+        run: |
+          mkdir -p release_assets
+
+          APK_LIST=$(find app/build/outputs/apk -name "*.apk" -type f)
+          if [ -z "$APK_LIST" ]; then
+            echo "❌ No APK files found! Build may have failed."
+            exit 1
+          fi
+          echo "Found APK files:"
+          echo "$APK_LIST"
+
+          # 复制所有 APK 并保留原始文件名
+          for apk in $APK_LIST; do
+            fname=$(basename "$apk")
+            cp "$apk" "release_assets/$fname"
+            echo "✅ Copied $apk -> release_assets/$fname"
+          done
+
+          APK_COUNT=$(find release_assets -name "*.apk" | wc -l)
+          if [ "$APK_COUNT" -eq 0 ]; then
+            echo "❌ No APK files were copied to release_assets!"
+            exit 1
+          fi
+
+          echo "Contents of release_assets:"
+          ls -la release_assets/
+
+          # 提取版本信息
+          VERSION_NAME=$(grep 'versionName' app/build.gradle | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          VERSION_CODE=$(grep 'versionCode' app/build.gradle | head -1 | sed 's/[^0-9]*\([0-9]*\)/\1/')
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
+
+          # 生成 manifest.json（供更新检查使用）
+          DESC="${{ github.event.inputs.release_notes }}"
+          DESC_JSON=$(echo "$DESC" | sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/"/\\"/g')
+          cat > release_assets/manifest.json <<EOF
+          {
+            "version": "${VERSION_NAME}",
+            "code": ${VERSION_CODE},
+            "desc": "${DESC_JSON}"
+          }
+          EOF
+          echo "Generated manifest.json"
+
+          echo "Final contents:"
+          ls -la release_assets/
+
+      - name: Upload APKs as Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-apks
+          path: release_assets/
+
+      - name: Create Release and Upload Assets
+        if: ${{ github.event.inputs.create_release == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.release_tag != '' && github.event.inputs.release_tag || format('v{0}', env.VERSION_NAME) }}
+          name: ${{ github.event.inputs.release_tag != '' && github.event.inputs.release_tag || format('Release {0}', env.VERSION_NAME) }}
+          body: ${{ github.event.inputs.release_notes }}
+          files: |
+            release_assets/*.apk
+            release_assets/manifest.json
+          overwrite: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
