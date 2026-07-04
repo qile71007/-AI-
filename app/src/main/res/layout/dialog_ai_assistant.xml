@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:padding="0dp">
+
+    <!-- 标题栏：黑底白字 -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#FF000000"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:title="AI助手"
+        app:titleTextColor="#FFFFFF"
+        app:navigationIcon="?attr/homeAsUpIndicator"
+        app:navigationIconTint="#FFFFFF"
+        app:navigationContentDescription="返回" />
+
+    <!-- 模型选择区域：白底黑字，与标题栏相反 -->
+    <LinearLayout
+        android:id="@+id/model_selector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:background="#F5F5F5"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="更换模型"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+            
+        <TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="\u00A0"
+    android:textColor="#000000"
+    android:textSize="16sp"
+    android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_current_model"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:singleLine="true"
+            android:layout_marginStart="12dp"
+            android:text="豆包火山" />
+
+        <!-- 修改Key文字按钮 -->
+        <TextView
+            android:id="@+id/btn_modify_key"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Key密钥"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+
+    <!-- Key 设置区域：白底黑字卡片 -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/key_setting_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🔑 配置 API Key"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <!-- 申请Key按钮：黑底白字（与标题栏呼应） -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/tv_get_key"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📌 免费申请 API Key"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#000000"
+                android:layout_marginBottom="12dp"
+                style="@style/Widget.Material3.Button" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="请输入你的 API Key"
+                android:textColorHint="#888888"
+                app:endIconMode="clear_text"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                app:boxStrokeColor="#000000"
+                app:hintTextColor="#888888">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_api_key"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textVisiblePassword"
+                    android:singleLine="true"
+                    android:textColor="#000000"
+                    android:textColorHint="#888888" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save_key"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="保存 Key"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#000000"
+                style="@style/Widget.Material3.Button" />
+
+            <TextView
+                android:id="@+id/tv_key_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="#000000"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- 对话消息列表：白底黑字 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_messages"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="4dp"
+        android:clipToPadding="false"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        android:background="#FFFFFF" />
+
+    <!-- 底部输入区：白底黑字，圆角边框 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/shape_input_bg"
+        android:backgroundTint="#FFFFFF"
+        android:backgroundTintMode="src_in"
+        android:padding="4dp"
+        android:elevation="2dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_input"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="输入你想搜索的配置..."
+            android:maxLines="3"
+            android:inputType="textMultiLine"
+            android:background="@android:color/transparent"
+            android:padding="12dp"
+            android:textColor="#000000"
+            android:textColorHint="#888888" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_send"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="发送"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#000000"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            style="@style/Widget.Material3.Button" />
+
+    </LinearLayout>
+
+    <!-- 底部操作栏：添加配置按钮（白底黑字或黑底白字，这里用黑底白字保持一致性） -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_add_config"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="✅ 添加此配置"
+            android:enabled="false"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#000000"
+            style="@style/Widget.Material3.Button" />
+
+    </LinearLayout>
+
+</LinearLayout>
