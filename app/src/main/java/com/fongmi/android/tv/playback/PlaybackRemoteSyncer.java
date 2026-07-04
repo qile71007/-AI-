@@ -1,0 +1,91 @@
+package com.fongmi.android.tv.playback;
+
+import android.text.TextUtils;
+
+import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.setting.Setting;
+import com.fongmi.android.tv.utils.Task;
+import com.github.catvod.crawler.SpiderDebug;
+import com.github.catvod.net.OkHttp;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.Request;
+import okhttp3.Response;
+
+public final class PlaybackRemoteSyncer {
+
+    private static final long TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10);
+    private static final Runnable PERIODIC = new Runnable() {
+        @Override
+        public void run() {
+            Task.execute(() -> syncDue(false));
+            App.post(this, TimeUnit.MINUTES.toMillis(5));
+        }
+    };
+    private static boolean started;
+
+    private PlaybackRemoteSyncer() {
+    }
+
+    public static void start() {
+        if (started) return;
+        started = true;
+        App.post(PERIODIC, TimeUnit.SECONDS.toMillis(3));
+        Task.execute(() -> syncDue(true));
+    }
+
+    public static void syncDue(boolean startup) {
+        if (!ViewingRecordSyncStore.isEnabled() || Setting.isIncognito()) return;
+        long now = System.currentTimeMillis();
+        for (RemoteSyncConfig config : PlaybackRemoteSyncStore.list()) {
+            if (!config.shouldSyncNow(now, startup)) continue;
+            sync(config.id);
+        }
+    }
+
+    public static PlaybackRemoteSyncResult sync(String id) {
+        RemoteSyncConfig config = PlaybackRemoteSyncStore.find(id);
+        PlaybackRemoteSyncResult result;
+        if (config == null) {
+            result = PlaybackRemoteSyncResult.failure("远端同步源不存在");
+        } else {
+            result = sync(config);
+        }
+        if (config != null) PlaybackRemoteSyncStore.markResult(config.id, result);
+        return result;
+    }
+
+    private static PlaybackRemoteSyncResult sync(RemoteSyncConfig config) {
+        try {
+            if (!ViewingRecordSyncStore.isEnabled()) return PlaybackRemoteSyncResult.failure("观影记录同步未开启");
+            if (Setting.isIncognito()) return PlaybackRemoteSyncResult.failure("隐身模式不允许同步");
+            if (!config.isUsable()) return PlaybackRemoteSyncResult.failure("远端同步源未完成配置");
+            String body = fetch(config);
+            List<PlaybackProgressInput> inputs = PlaybackProgressInput.listFromJson(body);
+            if (config.maxItems > 0 && inputs.size() > config.maxItems) inputs = inputs.subList(0, config.maxItems);
+            PlaybackProgressBatchResult batch = PlaybackProgressWriter.applyFromRemoteSync(inputs, config);
+            RefreshEvent.history();
+            SpiderDebug.log("playback-remote-sync", "source=%s fetched=%s applied=%s skipped=%s failed=%s", config.displayName(), batch.total, batch.applied, batch.skipped, batch.failed);
+            return PlaybackRemoteSyncResult.success(batch);
+        } catch (Throwable e) {
+            String message = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+            SpiderDebug.log("playback-remote-sync", e);
+            return PlaybackRemoteSyncResult.failure(message);
+        }
+    }
+
+    private static String fetch(RemoteSyncConfig config) throws Exception {
+        Request.Builder builder = new Request.Builder().url(config.url).get();
+        builder.header("Accept", "application/json");
+        PlaybackHttpHeaders.header(builder, "X-WebHTV-Config-Key", PlaybackConfigIdentity.currentKey());
+        PlaybackHttpHeaders.header(builder, "X-WebHTV-Config-Name", PlaybackConfigIdentity.currentName());
+        if (!TextUtils.isEmpty(config.token)) builder.header("X-WebHTV-Token", config.token);
+        try (Response response = OkHttp.client(TIMEOUT_MS).newCall(builder.build()).execute()) {
+            if (!response.isSuccessful()) throw new IllegalStateException("HTTP " + response.code());
+            return response.body() == null ? "" : response.body().string();
+        }
+    }
+}
