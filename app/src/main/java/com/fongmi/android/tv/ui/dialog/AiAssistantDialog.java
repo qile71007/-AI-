@@ -78,7 +78,7 @@ public class AiAssistantDialog extends DialogFragment {
     private static final int MODEL_DEEPSEEK = 3;
 
     // ==================== 远程配置URL ====================
-    private static final String REMOTE_CONFIG_URL = "https://gh.llkk.cc/https://raw.githubusercontent.com/jllyzjs/qile/main/qile.json";
+    private static final String REMOTE_CONFIG_URL = "https://cnb.cool/qile71007/qile/-/git/raw/main/qile.json";
 
     // ==================== 内置备用配置（20个稳定源） ====================
     private static final List<ConfigItem> FALLBACK_CONFIGS = Arrays.asList(
