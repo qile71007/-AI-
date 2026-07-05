@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.fragment;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -13,7 +14,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
@@ -68,7 +68,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private FragmentSettingBinding mBinding;
     private String[] size;
     private String[] uiScale;
-    private AlertDialog webDavDialog;
+    private Dialog webDavDialog;
 
     public static SettingFragment newInstance() {
         return new SettingFragment();
@@ -386,8 +386,13 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     private void showWebDavBackupDialog() {
         if (getContext() == null) return;
-        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_webdav_backup, null);
 
+        // 使用普通 Dialog，无标题栏，深色主题
+        webDavDialog = new Dialog(requireContext(), android.R.style.Theme_DeviceDefault_Dialog_NoActionBar);
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_webdav_backup, null);
+        webDavDialog.setContentView(dialogView);
+
+        // 获取控件
         EditText etServer = dialogView.findViewById(R.id.dialogWebdavUrl);
         EditText etUser = dialogView.findViewById(R.id.dialogWebdavUser);
         EditText etPass = dialogView.findViewById(R.id.dialogWebdavPass);
@@ -401,14 +406,10 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         TextView tvStatus = dialogView.findViewById(R.id.dialogWebdavStatus);
         Button btnClose = dialogView.findViewById(R.id.dialogClose);
 
+        // 加载配置
         etServer.setText(Setting.getWebdavUrl());
         etUser.setText(Setting.getWebdavUser());
         etPass.setText(Setting.getWebdavPass());
-
-        webDavDialog = new MaterialAlertDialogBuilder(requireContext())
-                .setView(dialogView)
-                .setCancelable(false)
-                .create();
 
         // ---- 本地备份 ----
         btnLocalBackup.setOnClickListener(v -> {
@@ -428,6 +429,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             });
         });
 
+        // ---- 注册开通 ----
         btnLink.setOnClickListener(v -> {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.webdav.com/register"));
@@ -437,6 +439,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }
         });
 
+        // ---- 保存配置 ----
         btnSave.setOnClickListener(v -> {
             String url = etServer.getText().toString().trim();
             String user = etUser.getText().toString().trim();
@@ -451,6 +454,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             tvStatus.setText("配置已保存");
         });
 
+        // ---- 测试连接 ----
         btnTest.setOnClickListener(v -> {
             String url = Setting.getWebdavUrl();
             String user = Setting.getWebdavUser();
@@ -468,6 +472,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }).start();
         });
 
+        // ---- 上传备份 ----
         btnUpload.setOnClickListener(v -> {
             String url = Setting.getWebdavUrl();
             String user = Setting.getWebdavUser();
@@ -490,6 +495,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }).start();
         });
 
+        // ---- 下载备份 ----
         btnDownload.setOnClickListener(v -> {
             String url = Setting.getWebdavUrl();
             String user = Setting.getWebdavUser();
@@ -546,6 +552,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }).start();
         });
 
+        // ---- 查看文件列表 ----
         btnList.setOnClickListener(v -> {
             String url = Setting.getWebdavUrl();
             String user = Setting.getWebdavUser();
@@ -574,22 +581,24 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }).start();
         });
 
+        // ---- 关闭 ----
         btnClose.setOnClickListener(v -> {
             if (webDavDialog != null) webDavDialog.dismiss();
         });
 
-        webDavDialog.show();
-
-        // ★★★ 关键修改：设置宽度为屏幕宽度的 95%（像素值），彻底解决宽度限制问题 ★★★
+        // ★★★ 强制窗口宽度为屏幕的 98%，清除默认边距 ★★★
         if (webDavDialog.getWindow() != null) {
             WindowManager.LayoutParams params = webDavDialog.getWindow().getAttributes();
             int screenWidth = getResources().getDisplayMetrics().widthPixels;
-            params.width = (int) (screenWidth * 0.95);
+            params.width = (int) (screenWidth * 0.98);
+            params.height = WindowManager.LayoutParams.WRAP_CONTENT;
             params.gravity = Gravity.CENTER;
+            webDavDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
             webDavDialog.getWindow().setAttributes(params);
-            // 清除系统默认的边距
             webDavDialog.getWindow().getDecorView().setPadding(0, 0, 0, 0);
         }
+
+        webDavDialog.show();
     }
 
     private File getLatestBackupFile() {
