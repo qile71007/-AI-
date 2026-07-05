@@ -1,9 +1,10 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.graphics.drawable.ColorDrawable;
 import android.text.Editable;
 import android.view.inputmethod.EditorInfo;
 
-import androidx.core.content.res.ResourcesCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -73,9 +74,9 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
         binding.recycler.setItemAnimator(null);
         binding.recycler.setHasFixedSize(true);
 
-        // 添加分割线（兼容原UI风格）
+        // 添加分割线（使用颜色，无需额外 drawable 文件）
         DividerItemDecoration divider = new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL);
-        divider.setDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.shape_divider, null));
+        divider.setDrawable(new ColorDrawable(ContextCompat.getColor(requireContext(), android.R.color.darker_gray)));
         binding.recycler.addItemDecoration(divider);
 
         // 滚动到当前选中的配置
