@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.fragment;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -601,9 +602,14 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         webDavDialog.show();
     }
 
+    // ★★★ 修改点：扫描公共存储目录 /storage/emulated/0/TV/ ★★★
     private File getLatestBackupFile() {
-        File dir = requireContext().getExternalFilesDir(null);
-        if (dir == null) return null;
+        // 使用公共存储目录 /storage/emulated/0/TV/
+        File dir = new File(Environment.getExternalStorageDirectory(), "TV");
+        if (!dir.exists()) {
+            // 如果目录不存在，返回 null
+            return null;
+        }
         File[] files = dir.listFiles((d, name) -> name.endsWith(".bk.gz") || name.endsWith(".zip"));
         if (files == null || files.length == 0) return null;
         File latest = files[0];
