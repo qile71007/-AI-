@@ -242,7 +242,7 @@ public class Setting {
         if (wall == WALL_MIDNIGHT_MOON) return "午夜月影";
         if (wall == WALL_CYAN_CRYSTAL) return "水晶青蓝";
         if (wall == WALL_LAVENDER_CRYSTAL) return "薰衣水晶";
-        return "梦幻紫霞";
+        return "雾青薄荷";
     }
 
     public static String getWallDesc(String desc) {
