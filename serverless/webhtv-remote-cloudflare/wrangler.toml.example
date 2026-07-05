@@ -1,0 +1,14 @@
+name = "webhtv-remote-cloudflare"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+
+[[durable_objects.bindings]]
+name = "RELAY_DO"
+class_name = "WebHTVRemoteRelayDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["WebHTVRemoteRelayDO"]
+
+# No KV, R2, database, or required environment variable is needed.
+# Durable Object keeps short-lived relay state consistent across devices.
