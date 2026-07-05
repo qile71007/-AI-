@@ -6,9 +6,9 @@ import com.fongmi.android.tv.BuildConfig;
 
 public class Github {
 
-    private static final String GITHUB_API = "https://api.github.com/repos/qile71007/webhtv";
-    private static final String GITHUB_RELEASE = "https://github.com/qile71007/webhtv/releases/download";
-    private static final String CNB_API = "https://gitee.com/qile71007/webhtv/releases/download";
+    private static final String GITHUB_API = "https://api.github.com/repos/qile71007/-AI-";
+    private static final String GITHUB_RELEASE = "https://github.com/qile71007/-AI-/releases/download";
+    private static final String CNB_API = "https://gitee.com/qile71007/-AI-/releases/download";
 
     private Github() {
         // 私有构造方法，防止实例化
