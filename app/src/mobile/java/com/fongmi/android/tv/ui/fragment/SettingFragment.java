@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -591,14 +592,17 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             if (webDavDialog != null) webDavDialog.dismiss();
         });
 
-        // 显示对话框并扩大宽度
         webDavDialog.show();
 
-        // ★★★★★ 新增：对话框宽度扩大至屏幕 92% ★★★★★
+        // ★★★★★ 扩大宽度和高度：设置窗口为 MATCH_PARENT 和 WRAP_CONTENT ★★★★★
         if (webDavDialog.getWindow() != null) {
             WindowManager.LayoutParams params = webDavDialog.getWindow().getAttributes();
-            params.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.92);
+            params.width = WindowManager.LayoutParams.MATCH_PARENT;
+            params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            params.gravity = Gravity.CENTER;
             webDavDialog.getWindow().setAttributes(params);
+            // 清除系统默认的对话框边距，避免内容被挤压
+            webDavDialog.getWindow().getDecorView().setPadding(0, 0, 0, 0);
         }
     }
 
