@@ -1,226 +1,222 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="@drawable/shape_dialog_rounded"
-    android:padding="24dp">
+    android:fillViewport="true"
+    android:background="@drawable/shape_item"
+    android:padding="0dp">
 
-    <!-- 标题 -->
-    <com.google.android.material.textview.MaterialTextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="备份选项"
-        android:textColor="@android:color/black"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
-
-    <!-- 本地备份 -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnLocalBackup"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="本地备份"
-        android:textColor="@android:color/black"
-        android:textSize="13sp"
-        android:singleLine="true"
-        android:minHeight="44dp"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#DDDDDD"
-        android:layout_marginVertical="16dp" />
-
-    <!-- WebDAV 备份标题 -->
-    <com.google.android.material.textview.MaterialTextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="WebDAV 备份"
-        android:textColor="@android:color/black"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="12dp" />
-
-    <!-- 服务器地址 -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="服务器地址"
-        app:boxBackgroundMode="outline"
-        app:hintTextColor="@android:color/black"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/dialogWebdavUrl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textUri"
-            android:singleLine="true"
-            android:textColor="@android:color/black"
-            android:textColorHint="@android:color/darker_gray" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- 用户名 -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:hint="用户名"
-        app:boxBackgroundMode="outline"
-        app:hintTextColor="@android:color/black"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/dialogWebdavUser"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:singleLine="true"
-            android:textColor="@android:color/black"
-            android:textColorHint="@android:color/darker_gray" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- 密码 -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:hint="密码"
-        app:boxBackgroundMode="outline"
-        app:hintTextColor="@android:color/black"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/dialogWebdavPass"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPassword"
-            android:singleLine="true"
-            android:textColor="@android:color/black"
-            android:textColorHint="@android:color/darker_gray" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- 操作按钮行 -->
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:orientation="horizontal"
-        android:gravity="center">
+        android:orientation="vertical"
+        android:padding="20dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/dialogWebdavLink"
-            android:layout_width="0dp"
+        <!-- 标题 -->
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="4dp"
-            android:text="注册开通"
-            android:textColor="@android:color/black"
-            android:textSize="12sp"
-            android:singleLine="true"
+            android:text="备份选项"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="14dp" />
+
+        <!-- 本地备份 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLocalBackup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="本地备份"
+            android:textColor="@color/white"
+            android:textSize="14sp"
             android:minHeight="44dp"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/dialogWebdavSave"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="4dp"
-            android:text="保存配置"
-            android:textColor="@android:color/black"
-            android:textSize="12sp"
-            android:singleLine="true"
-            android:minHeight="44dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#444444"
+            android:layout_marginVertical="14dp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/dialogWebdavTest"
-            android:layout_width="0dp"
+        <!-- WebDAV 备份标题 -->
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="测试连接"
-            android:textColor="@android:color/black"
-            android:textSize="12sp"
-            android:singleLine="true"
+            android:text="WebDAV 备份"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp" />
+
+        <!-- 服务器地址 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="服务器地址"
+            app:boxBackgroundMode="outline"
+            app:hintTextColor="@color/white"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/dialogWebdavUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textUri"
+                android:textColor="@color/white"
+                android:textColorHint="@color/white_50" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 用户名 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="用户名"
+            app:boxBackgroundMode="outline"
+            app:hintTextColor="@color/white"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/dialogWebdavUser"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textColor="@color/white"
+                android:textColorHint="@color/white_50" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 密码 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="密码"
+            app:boxBackgroundMode="outline"
+            app:hintTextColor="@color/white"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/dialogWebdavPass"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:textColor="@color/white"
+                android:textColorHint="@color/white_50" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 操作按钮行 -->
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/dialogWebdavLink"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="注册开通"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="44dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/dialogWebdavSave"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="保存配置"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="44dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/dialogWebdavTest"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="测试连接"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="44dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <!-- 文件操作行 -->
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/dialogWebdavUpload"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="上传备份"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="44dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/dialogWebdavList"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="查看文件"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="44dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/dialogWebdavDownload"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="下载备份"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:minHeight="44dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <!-- 状态提示 -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/dialogWebdavStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text=""
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:gravity="center" />
+
+        <!-- 关闭按钮 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/dialogClose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="14dp"
+            android:text="关闭"
+            android:textColor="@color/white"
+            android:textSize="14sp"
             android:minHeight="44dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            style="@style/Widget.MaterialComponents.Button.TextButton" />
+
     </androidx.appcompat.widget.LinearLayoutCompat>
-
-    <!-- 文件操作行 -->
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:orientation="horizontal"
-        android:gravity="center">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/dialogWebdavUpload"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="4dp"
-            android:text="上传备份"
-            android:textColor="@android:color/black"
-            android:textSize="12sp"
-            android:singleLine="true"
-            android:minHeight="44dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/dialogWebdavList"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="4dp"
-            android:text="查看文件"
-            android:textColor="@android:color/black"
-            android:textSize="12sp"
-            android:singleLine="true"
-            android:minHeight="44dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/dialogWebdavDownload"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="下载备份"
-            android:textColor="@android:color/black"
-            android:textSize="12sp"
-            android:singleLine="true"
-            android:minHeight="44dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-    </androidx.appcompat.widget.LinearLayoutCompat>
-
-    <!-- 状态提示 -->
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/dialogWebdavStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text=""
-        android:textColor="#006600"
-        android:textSize="13sp"
-        android:gravity="center" />
-
-    <!-- 关闭按钮 -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/dialogClose"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="16dp"
-        android:text="关闭"
-        android:textColor="@android:color/black"
-        android:textSize="13sp"
-        android:singleLine="true"
-        android:minHeight="44dp"
-        style="@style/Widget.MaterialComponents.Button.TextButton" />
-
-</androidx.appcompat.widget.LinearLayoutCompat>
+</ScrollView>
