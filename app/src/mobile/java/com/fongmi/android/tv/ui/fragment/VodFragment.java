@@ -239,7 +239,6 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         return false;
     }
 
-    // ==================== 点击Logo打开点播配置列表 ====================
     private void onLogo(View view) {
         ConfigListDialog.create().type(0).listener(this).show(this);
     }
@@ -296,7 +295,12 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         } else if (id == R.id.web_home_fullscreen) {
             onWebHomeFullscreen();
         } else if (id == R.id.action_add_config) {
-            ConfigDialog.create().vod().show(this);
+            // 修改：若当前配置存在则进入编辑模式，否则进入添加模式
+            ConfigDialog dialog = ConfigDialog.create().vod();
+            if (getConfig() != null) {
+                dialog.edit();
+            }
+            dialog.show(this);
             return true;
         } else {
             return false;
