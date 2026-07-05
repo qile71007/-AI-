@@ -409,7 +409,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         etUser.setText(Setting.getWebdavUser());
         etPass.setText(Setting.getWebdavPass());
 
-        webDavDialog = new AlertDialog.Builder(requireContext())
+        // 使用 MaterialAlertDialogBuilder 并应用 Material 对话框主题
+        webDavDialog = new MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_MaterialComponents_Dialog)
                 .setView(dialogView)
                 .setCancelable(false)
                 .create();
@@ -435,7 +436,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         // ---- 注册开通（打开默认浏览器） ----
         btnLink.setOnClickListener(v -> {
             try {
-                Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.webdav.com/register")); // 可替换为真实链接
+                Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.webdav.com/register"));
                 startActivity(intent);
             } catch (Exception e) {
                 tvStatus.setText("无法打开注册页面");
@@ -484,7 +485,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
                 tvStatus.setText("请先保存配置");
                 return;
             }
-            // 扫描本地备份文件（取最新）
             File localBackup = getLatestBackupFile();
             if (localBackup == null || !localBackup.exists()) {
                 tvStatus.setText("请先执行本地备份（点击“本地备份”按钮）");
@@ -515,7 +515,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
                     requireActivity().runOnUiThread(() -> tvStatus.setText("远程无备份文件"));
                     return;
                 }
-                // 取最新的备份文件
                 WebdavUtil.RemoteFile latest = null;
                 for (WebdavUtil.RemoteFile f : files) {
                     if (f.path.endsWith(".bk.gz") || f.path.endsWith(".zip")) {
@@ -535,7 +534,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
                     requireActivity().runOnUiThread(() -> tvStatus.setText("下载失败"));
                     return;
                 }
-                // 恢复数据（假设 AppDatabase 有 restore(File, Callback) 方法）
                 requireActivity().runOnUiThread(() -> {
                     tvStatus.setText("正在恢复...");
                     AppDatabase.restore(tempFile, new Callback() {
