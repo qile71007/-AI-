@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:fillViewport="true"
-    android:background="@drawable/shape_item"
+    android:background="@drawable/shape_dialog_rounded"
     android:padding="0dp">
 
     <androidx.appcompat.widget.LinearLayoutCompat
@@ -18,7 +18,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="备份选项"
-            android:textColor="@color/white"
+            android:textColor="@android:color/black"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginBottom="14dp" />
@@ -29,7 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="本地备份"
-            android:textColor="@color/white"
+            android:textColor="@android:color/black"
             android:textSize="14sp"
             android:minHeight="44dp"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
@@ -37,7 +37,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#444444"
+            android:background="#DDDDDD"
             android:layout_marginVertical="14dp" />
 
         <!-- WebDAV 备份标题 -->
@@ -45,7 +45,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="WebDAV 备份"
-            android:textColor="@color/white"
+            android:textColor="@android:color/black"
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_marginBottom="10dp" />
@@ -56,7 +56,7 @@
             android:layout_height="wrap_content"
             android:hint="服务器地址"
             app:boxBackgroundMode="outline"
-            app:hintTextColor="@color/white"
+            app:hintTextColor="@android:color/black"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -64,8 +64,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textUri"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white_50" />
+                android:textColor="@android:color/black"
+                android:textColorHint="@android:color/darker_gray" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- 用户名 -->
@@ -75,7 +75,7 @@
             android:layout_marginTop="10dp"
             android:hint="用户名"
             app:boxBackgroundMode="outline"
-            app:hintTextColor="@color/white"
+            app:hintTextColor="@android:color/black"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -83,8 +83,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white_50" />
+                android:textColor="@android:color/black"
+                android:textColorHint="@android:color/darker_gray" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- 密码 -->
@@ -94,7 +94,7 @@
             android:layout_marginTop="10dp"
             android:hint="密码"
             app:boxBackgroundMode="outline"
-            app:hintTextColor="@color/white"
+            app:hintTextColor="@android:color/black"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -102,8 +102,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white_50" />
+                android:textColor="@android:color/black"
+                android:textColorHint="@android:color/darker_gray" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- 操作按钮行 -->
@@ -121,7 +121,7 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="4dp"
                 android:text="注册开通"
-                android:textColor="@color/white"
+                android:textColor="@android:color/black"
                 android:textSize="12sp"
                 android:minHeight="44dp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
@@ -133,7 +133,7 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="4dp"
                 android:text="保存配置"
-                android:textColor="@color/white"
+                android:textColor="@android:color/black"
                 android:textSize="12sp"
                 android:minHeight="44dp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
@@ -144,7 +144,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="测试连接"
-                android:textColor="@color/white"
+                android:textColor="@android:color/black"
                 android:textSize="12sp"
                 android:minHeight="44dp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
@@ -165,7 +165,7 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="4dp"
                 android:text="上传备份"
-                android:textColor="@color/white"
+                android:textColor="@android:color/black"
                 android:textSize="12sp"
                 android:minHeight="44dp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
@@ -177,7 +177,7 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="4dp"
                 android:text="查看文件"
-                android:textColor="@color/white"
+                android:textColor="@android:color/black"
                 android:textSize="12sp"
                 android:minHeight="44dp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
@@ -188,7 +188,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="下载备份"
-                android:textColor="@color/white"
+                android:textColor="@android:color/black"
                 android:textSize="12sp"
                 android:minHeight="44dp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
@@ -201,7 +201,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:text=""
-            android:textColor="@color/white"
+            android:textColor="#006600"
             android:textSize="13sp"
             android:gravity="center" />
 
@@ -213,7 +213,7 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="14dp"
             android:text="关闭"
-            android:textColor="@color/white"
+            android:textColor="@android:color/black"
             android:textSize="14sp"
             android:minHeight="44dp"
             style="@style/Widget.MaterialComponents.Button.TextButton" />
