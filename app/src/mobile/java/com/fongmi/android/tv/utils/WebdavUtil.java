@@ -5,13 +5,12 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
@@ -43,8 +42,9 @@ public class WebdavUtil {
 
     private static OkHttpClient getClient() {
         return new OkHttpClient.Builder()
-                .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
                 .build();
     }
 
@@ -56,17 +56,20 @@ public class WebdavUtil {
         return builder;
     }
 
-    // 测试连接
+    // 改进的测试连接方法 - 直接对根路径发送 PROPFIND
     public static boolean testConnection(String url, String user, String pass) {
         try {
-            String testUrl = url.endsWith("/") ? url + "backup-test" : url + "/backup-test";
-            Request request = getAuthRequestBuilder(testUrl, user, pass)
+            // 去除末尾多余的斜杠
+            String baseUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+            Request request = getAuthRequestBuilder(baseUrl, user, pass)
                     .method("PROPFIND", null)
+                    .header("Depth", "0")
                     .build();
             Response response = getClient().newCall(request).execute();
             int code = response.code();
             response.close();
-            return code >= 200 && code < 300;
+            // 2xx 或 207 表示成功
+            return code >= 200 && code < 300 || code == 207;
         } catch (Exception e) {
             Log.e(TAG, "testConnection error", e);
             return false;
@@ -165,20 +168,16 @@ public class WebdavUtil {
         }
     }
 
-    // 解析PROPFIND响应（简单解析，不依赖第三方xml库）
+    // 解析PROPFIND响应
     private static List<RemoteFile> parsePropfindResponse(String xml) {
         List<RemoteFile> files = new ArrayList<>();
-        // 按 <response> 分段
         String[] responses = xml.split("<response>");
         for (int i = 1; i < responses.length; i++) {
             String resp = responses[i];
-            // 提取href
             String href = extractTag(resp, "href");
             if (href == null) continue;
             href = href.trim();
-            // 跳过目录本身（结尾是/）
             if (href.endsWith("/")) continue;
-            // 提取修改时间
             String lastModified = extractTag(resp, "getlastmodified");
             long time = 0;
             if (lastModified != null) {
@@ -190,7 +189,6 @@ public class WebdavUtil {
                     time = System.currentTimeMillis();
                 }
             }
-            // 提取大小
             String sizeStr = extractTag(resp, "getcontentlength");
             long size = 0;
             if (sizeStr != null) {
@@ -198,7 +196,6 @@ public class WebdavUtil {
                     size = Long.parseLong(sizeStr.trim());
                 } catch (NumberFormatException ignored) {}
             }
-            // 只保留备份文件
             String fileName = href.substring(href.lastIndexOf('/') + 1);
             if (fileName.endsWith(".bk.gz") || fileName.endsWith(".zip")) {
                 files.add(new RemoteFile(href, time, size));
