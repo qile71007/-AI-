@@ -153,11 +153,9 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     @Override
     protected void initEvent() {
-        // 短按：打开配置列表
         mBinding.vod.setOnClickListener(this::onVod);
         mBinding.live.setOnClickListener(this::onLive);
         mBinding.wall.setOnClickListener(this::onWall);
-        // 长按：打开编辑对话框
         mBinding.vod.setOnLongClickListener(this::onVodEdit);
         mBinding.live.setOnLongClickListener(this::onLiveEdit);
         mBinding.wall.setOnLongClickListener(this::onWallEdit);
@@ -181,10 +179,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
-        
         mBinding.resetApp.setOnClickListener(this::onResetApp);
 
-        // AI 助手入口
         mBinding.aiAssistant.setOnClickListener(v -> {
             AiAssistantDialog dialog = new AiAssistantDialog();
             Bundle args = new Bundle();
@@ -194,7 +190,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         });
     }
 
-    // ==================== 短按：打开配置列表 ====================
+    // ==================== 短按 ====================
     private void onVod(View view) {
         ConfigListDialog.create().type(0).listener(this).show(this);
     }
@@ -207,7 +203,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         ConfigListDialog.create().type(2).listener(this).show(this);
     }
 
-    // ==================== 长按：打开编辑对话框 ====================
+    // ==================== 长按 ====================
     private boolean onVodEdit(View view) {
         ConfigDialog.create().vod().edit().show(this);
         return true;
@@ -223,7 +219,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         return true;
     }
 
-    // ==================== 其余方法 ====================
+    // ==================== 其他方法 ====================
     @Override
     public void setConfig(Config config) {
         if (config.getUrl().startsWith("file")) {
@@ -392,7 +388,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         if (getContext() == null) return;
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_webdav_backup, null);
 
-        // 获取控件（ID 与布局完全匹配）
         EditText etServer = dialogView.findViewById(R.id.dialogWebdavUrl);
         EditText etUser = dialogView.findViewById(R.id.dialogWebdavUser);
         EditText etPass = dialogView.findViewById(R.id.dialogWebdavPass);
@@ -406,12 +401,10 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         TextView tvStatus = dialogView.findViewById(R.id.dialogWebdavStatus);
         Button btnClose = dialogView.findViewById(R.id.dialogClose);
 
-        // 加载已保存的配置
         etServer.setText(Setting.getWebdavUrl());
         etUser.setText(Setting.getWebdavUser());
         etPass.setText(Setting.getWebdavPass());
 
-        // 使用 MaterialAlertDialogBuilder 无参构造
         webDavDialog = new MaterialAlertDialogBuilder(requireContext())
                 .setView(dialogView)
                 .setCancelable(false)
@@ -435,7 +428,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             });
         });
 
-        // ---- 注册开通（打开默认浏览器） ----
         btnLink.setOnClickListener(v -> {
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.webdav.com/register"));
@@ -445,7 +437,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }
         });
 
-        // ---- 保存配置 ----
         btnSave.setOnClickListener(v -> {
             String url = etServer.getText().toString().trim();
             String user = etUser.getText().toString().trim();
@@ -460,7 +451,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             tvStatus.setText("配置已保存");
         });
 
-        // ---- 测试连接 ----
         btnTest.setOnClickListener(v -> {
             String url = Setting.getWebdavUrl();
             String user = Setting.getWebdavUser();
@@ -478,7 +468,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }).start();
         });
 
-        // ---- 上传备份 ----
         btnUpload.setOnClickListener(v -> {
             String url = Setting.getWebdavUrl();
             String user = Setting.getWebdavUser();
@@ -501,7 +490,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }).start();
         });
 
-        // ---- 下载备份 ----
         btnDownload.setOnClickListener(v -> {
             String url = Setting.getWebdavUrl();
             String user = Setting.getWebdavUser();
@@ -558,7 +546,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }).start();
         });
 
-        // ---- 查看文件列表 ----
         btnList.setOnClickListener(v -> {
             String url = Setting.getWebdavUrl();
             String user = Setting.getWebdavUser();
@@ -587,26 +574,24 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }).start();
         });
 
-        // ---- 关闭 ----
         btnClose.setOnClickListener(v -> {
             if (webDavDialog != null) webDavDialog.dismiss();
         });
 
         webDavDialog.show();
 
-        // ★★★★★ 扩大宽度和高度：设置窗口为 MATCH_PARENT 和 WRAP_CONTENT ★★★★★
+        // ★★★ 关键修改：设置宽度为屏幕宽度的 95%（像素值），彻底解决宽度限制问题 ★★★
         if (webDavDialog.getWindow() != null) {
             WindowManager.LayoutParams params = webDavDialog.getWindow().getAttributes();
-            params.width = WindowManager.LayoutParams.MATCH_PARENT;
-            params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            int screenWidth = getResources().getDisplayMetrics().widthPixels;
+            params.width = (int) (screenWidth * 0.95);
             params.gravity = Gravity.CENTER;
             webDavDialog.getWindow().setAttributes(params);
-            // 清除系统默认的对话框边距，避免内容被挤压
+            // 清除系统默认的边距
             webDavDialog.getWindow().getDecorView().setPadding(0, 0, 0, 0);
         }
     }
 
-    // 获取外部存储目录中最新的备份文件（.bk.gz 或 .zip）
     private File getLatestBackupFile() {
         File dir = requireContext().getExternalFilesDir(null);
         if (dir == null) return null;
