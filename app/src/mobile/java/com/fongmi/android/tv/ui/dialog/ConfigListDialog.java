@@ -3,7 +3,9 @@ package com.fongmi.android.tv.ui.dialog;
 import android.text.Editable;
 import android.view.inputmethod.EditorInfo;
 
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
@@ -70,6 +72,11 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
         binding.recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.recycler.setItemAnimator(null);
         binding.recycler.setHasFixedSize(true);
+
+        // 添加分割线（兼容原UI风格）
+        DividerItemDecoration divider = new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL);
+        divider.setDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.shape_divider, null));
+        binding.recycler.addItemDecoration(divider);
 
         // 滚动到当前选中的配置
         Config current = getCurrentConfig();
