@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -409,7 +410,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         etUser.setText(Setting.getWebdavUser());
         etPass.setText(Setting.getWebdavPass());
 
-        // 使用 MaterialAlertDialogBuilder 无参构造（自动应用主题）
+        // 使用 MaterialAlertDialogBuilder 无参构造
         webDavDialog = new MaterialAlertDialogBuilder(requireContext())
                 .setView(dialogView)
                 .setCancelable(false)
@@ -590,7 +591,15 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             if (webDavDialog != null) webDavDialog.dismiss();
         });
 
+        // 显示对话框并扩大宽度
         webDavDialog.show();
+
+        // ★★★★★ 新增：对话框宽度扩大至屏幕 92% ★★★★★
+        if (webDavDialog.getWindow() != null) {
+            WindowManager.LayoutParams params = webDavDialog.getWindow().getAttributes();
+            params.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.92);
+            webDavDialog.getWindow().setAttributes(params);
+        }
     }
 
     // 获取外部存储目录中最新的备份文件（.bk.gz 或 .zip）
