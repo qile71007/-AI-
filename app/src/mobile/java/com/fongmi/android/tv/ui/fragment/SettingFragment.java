@@ -389,18 +389,20 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private void showWebDavBackupDialog() {
         if (getContext() == null) return;
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_webdav_backup, null);
-        // 初始化控件
-        EditText etServer = dialogView.findViewById(R.id.et_webdav_server);
-        EditText etUser = dialogView.findViewById(R.id.et_webdav_user);
-        EditText etPass = dialogView.findViewById(R.id.et_webdav_pass);
-        Button btnLocalBackup = dialogView.findViewById(R.id.btn_local_backup);
-        Button btnSaveConfig = dialogView.findViewById(R.id.btn_save_config);
-        Button btnTestConnection = dialogView.findViewById(R.id.btn_test_connection);
-        Button btnUpload = dialogView.findViewById(R.id.btn_upload);
-        Button btnDownload = dialogView.findViewById(R.id.btn_download);
-        Button btnListFiles = dialogView.findViewById(R.id.btn_list_files);
-        TextView tvStatus = dialogView.findViewById(R.id.tv_webdav_status);
-        Button btnClose = dialogView.findViewById(R.id.btn_close);
+
+        // 获取控件（ID 与布局完全匹配）
+        EditText etServer = dialogView.findViewById(R.id.dialogWebdavUrl);
+        EditText etUser = dialogView.findViewById(R.id.dialogWebdavUser);
+        EditText etPass = dialogView.findViewById(R.id.dialogWebdavPass);
+        Button btnLocalBackup = dialogView.findViewById(R.id.btnLocalBackup);
+        Button btnLink = dialogView.findViewById(R.id.dialogWebdavLink);
+        Button btnSave = dialogView.findViewById(R.id.dialogWebdavSave);
+        Button btnTest = dialogView.findViewById(R.id.dialogWebdavTest);
+        Button btnUpload = dialogView.findViewById(R.id.dialogWebdavUpload);
+        Button btnList = dialogView.findViewById(R.id.dialogWebdavList);
+        Button btnDownload = dialogView.findViewById(R.id.dialogWebdavDownload);
+        TextView tvStatus = dialogView.findViewById(R.id.dialogWebdavStatus);
+        Button btnClose = dialogView.findViewById(R.id.dialogClose);
 
         // 加载已保存的配置
         etServer.setText(Setting.getWebdavUrl());
@@ -430,8 +432,18 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             });
         });
 
+        // ---- 注册开通（打开默认浏览器） ----
+        btnLink.setOnClickListener(v -> {
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.webdav.com/register")); // 可替换为真实链接
+                startActivity(intent);
+            } catch (Exception e) {
+                tvStatus.setText("无法打开注册页面");
+            }
+        });
+
         // ---- 保存配置 ----
-        btnSaveConfig.setOnClickListener(v -> {
+        btnSave.setOnClickListener(v -> {
             String url = etServer.getText().toString().trim();
             String user = etUser.getText().toString().trim();
             String pass = etPass.getText().toString().trim();
@@ -446,7 +458,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         });
 
         // ---- 测试连接 ----
-        btnTestConnection.setOnClickListener(v -> {
+        btnTest.setOnClickListener(v -> {
             String url = Setting.getWebdavUrl();
             String user = Setting.getWebdavUser();
             String pass = Setting.getWebdavPass();
@@ -472,13 +484,13 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
                 tvStatus.setText("请先保存配置");
                 return;
             }
-            // 生成本地备份文件（若没有则先备份）
-            File localBackup = AppDatabase.getBackupFile();
+            // 扫描本地备份文件（取最新）
+            File localBackup = getLatestBackupFile();
             if (localBackup == null || !localBackup.exists()) {
-                tvStatus.setText("请先执行本地备份");
+                tvStatus.setText("请先执行本地备份（点击“本地备份”按钮）");
                 return;
             }
-            tvStatus.setText("正在上传...");
+            tvStatus.setText("正在上传 " + localBackup.getName() + " ...");
             new Thread(() -> {
                 boolean ok = WebdavUtil.uploadFile(url, user, pass, localBackup);
                 requireActivity().runOnUiThread(() -> {
@@ -487,7 +499,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }).start();
         });
 
-        // ---- 下载备份（自动恢复） ----
+        // ---- 下载备份 ----
         btnDownload.setOnClickListener(v -> {
             String url = Setting.getWebdavUrl();
             String user = Setting.getWebdavUser();
@@ -498,13 +510,12 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             }
             tvStatus.setText("正在获取文件列表...");
             new Thread(() -> {
-                // 获取远程文件列表
                 List<WebdavUtil.RemoteFile> files = WebdavUtil.listFiles(url, user, pass);
                 if (files == null || files.isEmpty()) {
                     requireActivity().runOnUiThread(() -> tvStatus.setText("远程无备份文件"));
                     return;
                 }
-                // 按修改时间排序，取最新的 .bk.gz 或 .zip
+                // 取最新的备份文件
                 WebdavUtil.RemoteFile latest = null;
                 for (WebdavUtil.RemoteFile f : files) {
                     if (f.path.endsWith(".bk.gz") || f.path.endsWith(".zip")) {
@@ -517,7 +528,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
                     requireActivity().runOnUiThread(() -> tvStatus.setText("未找到备份文件"));
                     return;
                 }
-                // 下载到临时文件
                 File tempFile = new File(requireContext().getExternalCacheDir(), "restore_temp." + (latest.path.endsWith(".zip") ? "zip" : "gz"));
                 requireActivity().runOnUiThread(() -> tvStatus.setText("正在下载..."));
                 boolean downloaded = WebdavUtil.downloadFile(url, user, pass, latest.path, tempFile);
@@ -525,7 +535,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
                     requireActivity().runOnUiThread(() -> tvStatus.setText("下载失败"));
                     return;
                 }
-                // 恢复
+                // 恢复数据（假设 AppDatabase 有 restore(File, Callback) 方法）
                 requireActivity().runOnUiThread(() -> {
                     tvStatus.setText("正在恢复...");
                     AppDatabase.restore(tempFile, new Callback() {
@@ -549,7 +559,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         });
 
         // ---- 查看文件列表 ----
-        btnListFiles.setOnClickListener(v -> {
+        btnList.setOnClickListener(v -> {
             String url = Setting.getWebdavUrl();
             String user = Setting.getWebdavUser();
             String pass = Setting.getWebdavPass();
@@ -583,6 +593,19 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         });
 
         webDavDialog.show();
+    }
+
+    // 获取外部存储目录中最新的备份文件（.bk.gz 或 .zip）
+    private File getLatestBackupFile() {
+        File dir = requireContext().getExternalFilesDir(null);
+        if (dir == null) return null;
+        File[] files = dir.listFiles((d, name) -> name.endsWith(".bk.gz") || name.endsWith(".zip"));
+        if (files == null || files.length == 0) return null;
+        File latest = files[0];
+        for (File f : files) {
+            if (f.lastModified() > latest.lastModified()) latest = f;
+        }
+        return latest;
     }
 
     private void onRestore(View view) {
