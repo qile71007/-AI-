@@ -38,15 +38,17 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
         return this;
     }
 
+    // ==================== 修改：不再移除任何配置，保留所有 ====================
     public ConfigAdapter addAll(int type) {
         mItems = Config.getAll(type);
-        if (!mItems.isEmpty() && !readOnly) mItems.remove(0);
+        // 删除下面这行，不再移除第一个配置
+        // if (!mItems.isEmpty() && !readOnly) mItems.remove(0);
         mFilteredItems.clear();
         mFilteredItems.addAll(mItems);
         return this;
     }
 
-    // ==================== 搜索过滤（已修复 null 问题） ====================
+    // ==================== 搜索过滤 ====================
     public void filter(String keyword) {
         mFilteredItems.clear();
         if (TextUtils.isEmpty(keyword)) {
@@ -54,7 +56,6 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
         } else {
             String lower = keyword.toLowerCase();
             for (Config item : mItems) {
-                // 安全获取字段，避免 null
                 String name = item.getName();
                 String url = item.getUrl();
                 String desc = item.getDesc();
