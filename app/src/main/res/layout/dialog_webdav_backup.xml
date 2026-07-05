@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
+    android:layout_marginHorizontal="8dp"
     app:cardCornerRadius="32dp"
     app:cardBackgroundColor="@android:color/white"
     app:cardElevation="8dp">
@@ -12,7 +12,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:paddingTop="40dp"
+        android:paddingBottom="40dp"
+        android:paddingStart="28dp"
+        android:paddingEnd="28dp">
 
         <!-- 标题 -->
         <com.google.android.material.textview.MaterialTextView
@@ -20,9 +23,9 @@
             android:layout_height="wrap_content"
             android:text="备份选项"
             android:textColor="@android:color/black"
-            android:textSize="20sp"
+            android:textSize="22sp"
             android:textStyle="bold"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="22dp" />
 
         <!-- 本地备份 -->
         <com.google.android.material.button.MaterialButton
@@ -39,7 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="#DDDDDD"
-            android:layout_marginVertical="16dp" />
+            android:layout_marginVertical="26dp" />
 
         <!-- WebDAV 备份标题 -->
         <com.google.android.material.textview.MaterialTextView
@@ -47,9 +50,9 @@
             android:layout_height="wrap_content"
             android:text="WebDAV 备份"
             android:textColor="@android:color/black"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="16dp" />
 
         <!-- 服务器地址 -->
         <com.google.android.material.textfield.TextInputLayout
@@ -73,7 +76,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="16dp"
             android:hint="用户名"
             app:boxBackgroundMode="outline"
             app:hintTextColor="@android:color/black"
@@ -92,7 +95,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="16dp"
             android:hint="密码"
             app:boxBackgroundMode="outline"
             app:hintTextColor="@android:color/black"
@@ -111,7 +114,7 @@
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="20dp"
             android:orientation="horizontal"
             android:gravity="center">
 
@@ -120,7 +123,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="6dp"
                 android:text="注册开通"
                 android:textColor="@android:color/black"
                 app:cornerRadius="16dp"
@@ -132,7 +135,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="6dp"
                 android:text="保存配置"
                 android:textColor="@android:color/black"
                 app:cornerRadius="16dp"
@@ -155,7 +158,7 @@
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="16dp"
             android:orientation="horizontal"
             android:gravity="center">
 
@@ -164,7 +167,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="6dp"
                 android:text="上传备份"
                 android:textColor="@android:color/black"
                 app:cornerRadius="16dp"
@@ -176,7 +179,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="6dp"
                 android:text="查看文件"
                 android:textColor="@android:color/black"
                 app:cornerRadius="16dp"
@@ -200,7 +203,7 @@
             android:id="@+id/dialogWebdavStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="20dp"
             android:text=""
             android:textColor="@android:color/black"
             android:textSize="14sp"
@@ -212,7 +215,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="24dp"
             android:text="关闭"
             android:textColor="@android:color/black"
             android:minHeight="44dp"
