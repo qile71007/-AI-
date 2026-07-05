@@ -409,8 +409,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         etUser.setText(Setting.getWebdavUser());
         etPass.setText(Setting.getWebdavPass());
 
-        // 使用 MaterialAlertDialogBuilder 并应用 Material 对话框主题
-        webDavDialog = new MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_MaterialComponents_Dialog)
+        // 使用 MaterialAlertDialogBuilder 无参构造（自动应用主题）
+        webDavDialog = new MaterialAlertDialogBuilder(requireContext())
                 .setView(dialogView)
                 .setCancelable(false)
                 .create();
