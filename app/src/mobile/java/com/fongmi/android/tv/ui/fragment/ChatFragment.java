@@ -26,7 +26,7 @@ public class ChatFragment extends Fragment {
     private WebView webView;
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> filePathCallback;
-    private static final String CHAT_URL = "http://71007.phpnet.us/index.php";
+    private static final String CHAT_URL = "http://tvmovie.hostingem.ru/index.php";
 
     // 使用 ActivityResultLauncher 启动文件选择器
     private final ActivityResultLauncher<Intent> filePickerLauncher =
