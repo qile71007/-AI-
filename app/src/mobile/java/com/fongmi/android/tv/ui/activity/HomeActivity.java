@@ -42,7 +42,7 @@ import com.fongmi.android.tv.ui.fragment.SettingDanmakuFragment;
 import com.fongmi.android.tv.ui.fragment.SettingFragment;
 import com.fongmi.android.tv.ui.fragment.SettingPlayerFragment;
 import com.fongmi.android.tv.ui.fragment.VodFragment;
-import com.fongmi.android.tv.ui.fragment.ChatFragment;  // 新增导入
+import com.fongmi.android.tv.ui.fragment.ChatFragment;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
@@ -142,7 +142,7 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
             case 2 -> SettingPlayerFragment.newInstance();
             case 3 -> SettingEnhanceFragment.newInstance();
             case 4 -> SettingDanmakuFragment.newInstance();
-            case 5 -> ChatFragment.newInstance(); // 新增
+            case 5 -> ChatFragment.newInstance();
             default -> null;
         });
         if (savedInstanceState == null) change(0);
@@ -190,7 +190,7 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     private void setNavigation() {
         mBinding.navigation.getMenu().findItem(R.id.vod).setVisible(true);
         mBinding.navigation.getMenu().findItem(R.id.setting).setVisible(true);
-        mBinding.navigation.getMenu().findItem(R.id.chat).setVisible(true); // 新增
+        mBinding.navigation.getMenu().findItem(R.id.chat).setVisible(true);
         mBinding.navigation.getMenu().findItem(R.id.live).setVisible(LiveConfig.hasUrl());
         syncNavigationSelection();
     }
@@ -257,10 +257,7 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         returnVodFromEnhance = false;
         setNavigationVisible(true);
-        // 新增 chat 分支
         if (item.getItemId() == R.id.chat) {
-            setNavigationVisible(true);
-            mBinding.navigation.setSelectedItemId(R.id.chat);
             return changeFragment(5);
         }
         if (item.getItemId() == R.id.setting) return changeFragment(1);
