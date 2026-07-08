@@ -85,4 +85,6 @@
         <item>画中画</item>
     </string-array>
 
+    <string name="nav_chat">用户交流</string>
+
 </resources>
