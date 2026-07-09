@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.fragment;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,16 +27,14 @@ public class ChatFragment extends Fragment {
     private WebView webView;
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> filePathCallback;
-    private static final String CHAT_URL = "http://tvmovie.hostingem.ru/index.php";
+    private static final String CHAT_URL = "http://71007.phpnet.us/index.php";
 
-    // 使用 ActivityResultLauncher 启动文件选择器
     private final ActivityResultLauncher<Intent> filePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                     result -> {
                         if (filePathCallback == null) return;
                         Uri[] results = null;
                         if (result.getResultCode() == getActivity().RESULT_OK && result.getData() != null) {
-                            // 处理多选，但我们只选一张
                             Uri dataUri = result.getData().getData();
                             if (dataUri != null) {
                                 results = new Uri[]{dataUri};
@@ -61,20 +60,25 @@ public class ChatFragment extends Fragment {
         settings.setDomStorageEnabled(true);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setUserAgentString(settings.getUserAgentString() + " ChatApp/1.0");
-        // 允许文件访问
         settings.setAllowFileAccess(true);
         settings.setAllowFileAccessFromFileURLs(true);
         settings.setAllowUniversalAccessFromFileURLs(true);
 
-        // 设置 WebChromeClient 处理文件选择
+        // ===== 关键修复：允许混合内容（HTTP 站点加载 HTTP 资源） =====
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        }
+
+        // 启用 WebView 调试（便于排查，生产环境可注释）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(true);
+        }
+
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
-                // 保存回调
                 ChatFragment.this.filePathCallback = filePathCallback;
-                // 启动文件选择器
                 Intent intent = fileChooserParams.createIntent();
-                // 设置 MIME 类型为图片
                 intent.setType("image/*");
                 filePickerLauncher.launch(intent);
                 return true;
@@ -100,7 +104,6 @@ public class ChatFragment extends Fragment {
             webView.clearHistory();
             webView.destroy();
         }
-        // 清理回调，避免内存泄漏
         if (filePathCallback != null) {
             filePathCallback.onReceiveValue(null);
             filePathCallback = null;
