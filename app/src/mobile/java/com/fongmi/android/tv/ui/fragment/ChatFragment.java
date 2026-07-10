@@ -27,7 +27,7 @@ public class ChatFragment extends Fragment {
     private WebView webView;
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> filePathCallback;
-    private static final String CHAT_URL = "http://tvmovie.hostingem.ru/index.php";
+    private static final String CHAT_URL = "http://tvm.serv00.net";
 
     private final ActivityResultLauncher<Intent> filePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
