@@ -112,18 +112,17 @@ public class ChatFragment extends Fragment {
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
-        // ===== 上传文件支持 =====
+        // ----- 上传文件支持 -----
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
                 ChatFragment.this.filePathCallback = filePathCallback;
                 Intent intent = fileChooserParams.createIntent();
-                // 默认打开 Download 文件夹（仅在低版本可能有效）
+                // 默认打开 Download 文件夹（仅作为提示，部分文件管理器支持）
                 try {
                     if (isAttached && getContext() != null) {
                         Uri downloadUri;
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            // Android 10+ 使用 MediaStore 创建虚拟文件，使选择器定位到 Download
                             ContentValues values = new ContentValues();
                             values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
                             downloadUri = getContext().getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
@@ -148,7 +147,7 @@ public class ChatFragment extends Fragment {
             }
         });
 
-        // ===== 下载支持（无需权限） =====
+        // ----- 下载支持（无需存储权限） -----
         webView.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
@@ -232,6 +231,7 @@ public class ChatFragment extends Fragment {
     private void setupButtons() {
         if (buttonContainer == null) return;
 
+        // 初始化位置（右下角，上移一个按钮高度）
         buttonContainer.post(() -> {
             if (!isAttached || getActivity() == null) return;
             int navHeight = getNavBarHeight();
@@ -261,6 +261,7 @@ public class ChatFragment extends Fragment {
             buttonContainer.setLayoutParams(lp);
         });
 
+        // 点击监听
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> {
                 if (webView != null && webView.canGoBack()) {
@@ -278,6 +279,7 @@ public class ChatFragment extends Fragment {
             });
         }
 
+        // 拖拽监听（容器整体拖动）
         buttonContainer.setOnTouchListener(new View.OnTouchListener() {
             private float startX, startY;
             private float lastX, lastY;
@@ -330,6 +332,7 @@ public class ChatFragment extends Fragment {
                         return true;
 
                     case MotionEvent.ACTION_UP:
+                        // 如果未拖动，则模拟点击对应按钮
                         if (!isDragging && btnRefresh != null && btnBack != null) {
                             float x = event.getX();
                             float y = event.getY();
