@@ -1,11 +1,9 @@
 package com.fongmi.android.tv.ui.fragment;
 
-import android.Manifest;
 import android.app.DownloadManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,7 +30,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.fongmi.android.tv.R;
@@ -47,8 +44,9 @@ public class ChatFragment extends Fragment {
     private ImageButton btnBack, btnRefresh;
     private ValueCallback<Uri[]> filePathCallback;
     private static final String CHAT_URL = "http://tvm.serv00.net";
-    private boolean isAttached = false; // 标记 Fragment 是否已 attach
+    private boolean isAttached = false;
 
+    // 文件选择器（上传）
     private final ActivityResultLauncher<Intent> filePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                     result -> {
@@ -62,14 +60,6 @@ public class ChatFragment extends Fragment {
                         }
                         filePathCallback.onReceiveValue(results);
                         filePathCallback = null;
-                    });
-
-    private final ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(),
-                    isGranted -> {
-                        if (!isGranted && isAttached) {
-                            Toast.makeText(getContext(), "需要存储权限才能下载文件", Toast.LENGTH_SHORT).show();
-                        }
                     });
 
     public static ChatFragment newInstance() {
@@ -122,15 +112,18 @@ public class ChatFragment extends Fragment {
             WebView.setWebContentsDebuggingEnabled(true);
         }
 
+        // ===== 上传文件支持 =====
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
                 ChatFragment.this.filePathCallback = filePathCallback;
                 Intent intent = fileChooserParams.createIntent();
+                // 默认打开 Download 文件夹（仅在低版本可能有效）
                 try {
                     if (isAttached && getContext() != null) {
                         Uri downloadUri;
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            // Android 10+ 使用 MediaStore 创建虚拟文件，使选择器定位到 Download
                             ContentValues values = new ContentValues();
                             values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
                             downloadUri = getContext().getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
@@ -155,18 +148,11 @@ public class ChatFragment extends Fragment {
             }
         });
 
+        // ===== 下载支持（无需权限） =====
         webView.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
                 if (!isAttached || getContext() == null) return;
-                
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                            != PackageManager.PERMISSION_GRANTED) {
-                        requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                        return;
-                    }
-                }
                 try {
                     DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
                     request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
@@ -370,13 +356,11 @@ public class ChatFragment extends Fragment {
     }
 
     private void updateBackButtonVisibility() {
-        // 确保 Fragment 已 attach，避免崩溃
         if (!isAttached || btnBack == null || webView == null) return;
         btnBack.setVisibility(webView.canGoBack() ? View.VISIBLE : View.GONE);
     }
 
     private int getNavBarHeight() {
-        // 确保 Fragment 已 attach
         if (!isAttached || getActivity() == null) return dpToPx(56);
         View navView = getActivity().findViewById(R.id.navigation);
         if (navView != null) {
@@ -391,7 +375,6 @@ public class ChatFragment extends Fragment {
     }
 
     public boolean onBackPressed() {
-        // 安全处理：检查 Fragment 是否已 attach 且 webView 可用
         if (!isAttached || webView == null) return false;
         if (webView.canGoBack()) {
             webView.goBack();
@@ -419,4 +402,4 @@ public class ChatFragment extends Fragment {
         progressBar = null;
         super.onDestroyView();
     }
-            }
+}
