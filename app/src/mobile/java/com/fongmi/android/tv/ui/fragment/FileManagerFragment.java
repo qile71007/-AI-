@@ -5,16 +5,23 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,13 +35,23 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.api.config.LiveConfig;
+import com.fongmi.android.tv.api.config.VodConfig;
+import com.fongmi.android.tv.api.config.WallConfig;
+import com.fongmi.android.tv.bean.Config;
+import com.fongmi.android.tv.event.ConfigEvent;
+import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.utils.Notify;
+import com.github.catvod.net.OkHttp;
 
+import org.greenrobot.eventbus.EventBus;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -46,15 +63,33 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+
 public class FileManagerFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private TextView tvPath;
     private ImageButton btnBackDir, btnNewFolder;
+    private LinearLayout buttonContainer;
+    private ImageButton btnEdit;
     private FileAdapter adapter;
     private File currentDir;
     private List<File> fileList = new ArrayList<>();
     private File copiedFile = null;
+    private boolean isAttached = false;
+
+    // 全屏编辑相关
+    private FrameLayout fullscreenEditorContainer;
+    private EditText fullscreenEditor;
+    private TextView fullscreenTitle;
+    private ImageButton btnCloseEditor, btnSaveEditor;
+
+    private File currentConfigFile = null;
+    private String currentConfigType = "";
+    private String currentConfigUrl = "";
+    private boolean isRemoteConfig = false;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(),
@@ -82,6 +117,18 @@ public class FileManagerFragment extends Fragment {
         return new FileManagerFragment();
     }
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        isAttached = true;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        isAttached = false;
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -90,6 +137,9 @@ public class FileManagerFragment extends Fragment {
         tvPath = view.findViewById(R.id.tv_path);
         btnBackDir = view.findViewById(R.id.btn_back_dir);
         btnNewFolder = view.findViewById(R.id.btn_new_folder);
+        buttonContainer = view.findViewById(R.id.button_container);
+        btnEdit = view.findViewById(R.id.btn_edit);
+        fullscreenEditorContainer = view.findViewById(R.id.fullscreen_editor_container);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new FileAdapter();
@@ -97,9 +147,399 @@ public class FileManagerFragment extends Fragment {
 
         btnBackDir.setOnClickListener(v -> goBack());
         btnNewFolder.setOnClickListener(v -> newFolder());
+        btnEdit.setOnClickListener(v -> editCurrentConfig());
+
+        setupDragButton();
+        setupFullscreenEditor();
+        detectCurrentConfig();
 
         checkPermissionsAndLoad();
         return view;
+    }
+
+    private void setupFullscreenEditor() {
+        if (fullscreenEditorContainer == null) return;
+
+        fullscreenEditor = fullscreenEditorContainer.findViewById(R.id.fullscreen_editor);
+        fullscreenTitle = fullscreenEditorContainer.findViewById(R.id.fullscreen_title);
+        btnCloseEditor = fullscreenEditorContainer.findViewById(R.id.btn_close_editor);
+        btnSaveEditor = fullscreenEditorContainer.findViewById(R.id.btn_save_editor);
+
+        if (fullscreenEditor != null) {
+            fullscreenEditor.setTypeface(android.graphics.Typeface.MONOSPACE);
+        }
+
+        if (btnCloseEditor != null) {
+            btnCloseEditor.setOnClickListener(v -> closeFullscreenEditor());
+        }
+
+        if (btnSaveEditor != null) {
+            btnSaveEditor.setOnClickListener(v -> {
+                if (fullscreenEditor != null && currentConfigFile != null) {
+                    saveAndApplyConfig(fullscreenEditor.getText().toString());
+                    closeFullscreenEditor();
+                }
+            });
+        }
+    }
+
+    private void showFullscreenEditor(String content, String fileName) {
+        if (fullscreenEditorContainer == null) return;
+
+        String title = "编辑: " + fileName;
+        if (isRemoteConfig) {
+            title += " (远程)";
+        }
+
+        fullscreenTitle.setText(title);
+        fullscreenEditor.setText(content);
+        fullscreenEditor.setSelection(0);
+
+        fullscreenEditorContainer.setVisibility(View.VISIBLE);
+        fullscreenEditorContainer.bringToFront();
+
+        // 显示软键盘
+        fullscreenEditor.requestFocus();
+        if (getActivity() != null) {
+            getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        }
+    }
+
+    private void closeFullscreenEditor() {
+        if (fullscreenEditorContainer != null) {
+            fullscreenEditorContainer.setVisibility(View.GONE);
+        }
+        // 隐藏软键盘
+        if (getActivity() != null) {
+            getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+        }
+    }
+
+    private void setupDragButton() {
+        if (buttonContainer == null) return;
+
+        buttonContainer.post(() -> {
+            if (!isAttached || getActivity() == null) return;
+            int navHeight = getNavBarHeight();
+            int marginBottom = navHeight + dpToPx(8);
+            int marginRight = dpToPx(16);
+
+            View parent = (View) buttonContainer.getParent();
+            if (parent == null) return;
+            int parentWidth = parent.getWidth();
+            int parentHeight = parent.getHeight();
+            if (parentWidth == 0 || parentHeight == 0) {
+                buttonContainer.post(this::setupDragButton);
+                return;
+            }
+
+            int leftMargin = parentWidth - buttonContainer.getWidth() - marginRight;
+            int topMargin = parentHeight - buttonContainer.getHeight() - marginBottom;
+            topMargin = Math.max(0, topMargin);
+            leftMargin = Math.max(0, leftMargin);
+
+            RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) buttonContainer.getLayoutParams();
+            lp.removeRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            lp.removeRule(RelativeLayout.ALIGN_PARENT_END);
+            lp.leftMargin = leftMargin;
+            lp.topMargin = topMargin;
+            buttonContainer.setLayoutParams(lp);
+        });
+
+        buttonContainer.setOnTouchListener(new View.OnTouchListener() {
+            private float startX, startY;
+            private float lastX, lastY;
+            private boolean isDragging;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        startX = event.getRawX();
+                        startY = event.getRawY();
+                        lastX = startX;
+                        lastY = startY;
+                        isDragging = false;
+                        return true;
+
+                    case MotionEvent.ACTION_MOVE:
+                        float dx = event.getRawX() - lastX;
+                        float dy = event.getRawY() - lastY;
+                        float totalDx = event.getRawX() - startX;
+                        float totalDy = event.getRawY() - startY;
+
+                        if (Math.abs(totalDx) > 10 || Math.abs(totalDy) > 10) {
+                            isDragging = true;
+                        }
+
+                        if (isDragging) {
+                            RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) v.getLayoutParams();
+                            int newLeft = lp.leftMargin + (int) dx;
+                            int newTop = lp.topMargin + (int) dy;
+
+                            View parent = (View) v.getParent();
+                            if (parent == null) return true;
+                            int parentWidth = parent.getWidth();
+                            int parentHeight = parent.getHeight();
+                            int navHeight = getNavBarHeight();
+
+                            int maxX = parentWidth - v.getWidth();
+                            int maxY = parentHeight - v.getHeight() - navHeight - dpToPx(8);
+                            newLeft = Math.max(0, Math.min(newLeft, maxX));
+                            newTop = Math.max(0, Math.min(newTop, maxY));
+
+                            lp.leftMargin = newLeft;
+                            lp.topMargin = newTop;
+                            v.setLayoutParams(lp);
+
+                            lastX = event.getRawX();
+                            lastY = event.getRawY();
+                        }
+                        return true;
+
+                    case MotionEvent.ACTION_UP:
+                        if (!isDragging) {
+                            btnEdit.performClick();
+                        }
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        });
+    }
+
+    private int getNavBarHeight() {
+        if (!isAttached || getActivity() == null) return dpToPx(56);
+        View navView = getActivity().findViewById(R.id.navigation);
+        if (navView != null) {
+            return navView.getHeight();
+        }
+        return dpToPx(56);
+    }
+
+    private int dpToPx(int dp) {
+        if (!isAttached || getContext() == null) return dp;
+        return (int) (dp * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private void detectCurrentConfig() {
+        try {
+            String vodUrl = VodConfig.get().getUrl();
+            if (vodUrl != null && !vodUrl.isEmpty()) {
+                currentConfigUrl = vodUrl;
+                currentConfigType = "vod";
+                if (vodUrl.startsWith("file://") || vodUrl.startsWith("/")) {
+                    String path = vodUrl.replace("file://", "");
+                    currentConfigFile = new File(path);
+                    isRemoteConfig = false;
+                } else {
+                    isRemoteConfig = true;
+                    currentConfigFile = getLocalConfigFile("vod");
+                }
+                return;
+            }
+
+            String liveUrl = LiveConfig.get().getUrl();
+            if (liveUrl != null && !liveUrl.isEmpty()) {
+                currentConfigUrl = liveUrl;
+                currentConfigType = "live";
+                if (liveUrl.startsWith("file://") || liveUrl.startsWith("/")) {
+                    String path = liveUrl.replace("file://", "");
+                    currentConfigFile = new File(path);
+                    isRemoteConfig = false;
+                } else {
+                    isRemoteConfig = true;
+                    currentConfigFile = getLocalConfigFile("live");
+                }
+                return;
+            }
+
+            String wallUrl = WallConfig.get().getUrl();
+            if (wallUrl != null && !wallUrl.isEmpty()) {
+                currentConfigUrl = wallUrl;
+                currentConfigType = "wall";
+                if (wallUrl.startsWith("file://") || wallUrl.startsWith("/")) {
+                    String path = wallUrl.replace("file://", "");
+                    currentConfigFile = new File(path);
+                    isRemoteConfig = false;
+                } else {
+                    isRemoteConfig = true;
+                    currentConfigFile = getLocalConfigFile("wall");
+                }
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        currentConfigFile = null;
+        currentConfigType = "";
+        isRemoteConfig = false;
+    }
+
+    private File getLocalConfigFile(String type) {
+        File configDir = new File(requireContext().getFilesDir(), "configs");
+        if (!configDir.exists()) {
+            configDir.mkdirs();
+        }
+        String fileName = type + "_" + System.currentTimeMillis() + ".txt";
+        return new File(configDir, fileName);
+    }
+
+    private void editCurrentConfig() {
+        if (fullscreenEditorContainer != null && fullscreenEditorContainer.getVisibility() == View.VISIBLE) {
+            return; // 编辑器已打开
+        }
+
+        if (TextUtils.isEmpty(currentConfigType) || TextUtils.isEmpty(currentConfigUrl)) {
+            Toast.makeText(getContext(), "未检测到已加载的配置，请在文件列表中选择配置文件编辑", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (isRemoteConfig) {
+            downloadAndEditRemoteConfig();
+        } else if (currentConfigFile != null && currentConfigFile.exists()) {
+            readAndEditLocalFile(currentConfigFile);
+        } else {
+            Toast.makeText(getContext(), "配置文件不存在", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void downloadAndEditRemoteConfig() {
+        Toast.makeText(getContext(), "正在下载远程配置...", Toast.LENGTH_SHORT).show();
+
+        OkHttp.get().newCall(new okhttp3.Request.Builder()
+                .url(currentConfigUrl)
+                .get()
+                .build())
+                .enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                        if (isAttached) {
+                            requireActivity().runOnUiThread(() ->
+                                    Toast.makeText(getContext(), "下载失败: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                            );
+                        }
+                    }
+
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                        if (response.isSuccessful() && response.body() != null) {
+                            String content = response.body().string();
+                            if (isAttached) {
+                                requireActivity().runOnUiThread(() -> {
+                                    try {
+                                        File localFile = getLocalConfigFile(currentConfigType);
+                                        try (FileWriter writer = new FileWriter(localFile)) {
+                                            writer.write(content);
+                                            writer.flush();
+                                        }
+                                        currentConfigFile = localFile;
+                                        isRemoteConfig = false;
+                                        Toast.makeText(getContext(), "下载成功", Toast.LENGTH_SHORT).show();
+                                        showFullscreenEditor(content, localFile.getName());
+                                    } catch (IOException e) {
+                                        Toast.makeText(getContext(), "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        } else {
+                            if (isAttached) {
+                                requireActivity().runOnUiThread(() ->
+                                        Toast.makeText(getContext(), "下载失败: HTTP " + response.code(), Toast.LENGTH_SHORT).show()
+                                );
+                            }
+                        }
+                    }
+                });
+    }
+
+    private void readAndEditLocalFile(File file) {
+        if (!file.exists() || !file.canRead()) {
+            Toast.makeText(getContext(), "文件不存在或无法读取", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StringBuilder content = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            Toast.makeText(getContext(), "读取文件失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (content.length() == 0) {
+            Toast.makeText(getContext(), "文件内容为空", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        showFullscreenEditor(content.toString(), file.getName());
+    }
+
+    private void saveAndApplyConfig(String content) {
+        if (currentConfigFile == null) {
+            Toast.makeText(getContext(), "未选择配置文件", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try (FileWriter writer = new FileWriter(currentConfigFile)) {
+            writer.write(content);
+            writer.flush();
+            Toast.makeText(getContext(), "配置文件保存成功", Toast.LENGTH_SHORT).show();
+
+            if (isRemoteConfig) {
+                isRemoteConfig = false;
+                Toast.makeText(getContext(), "已切换为本地配置", Toast.LENGTH_SHORT).show();
+            }
+
+            applyConfig(currentConfigFile.getAbsolutePath());
+            loadDirectory(currentDir);
+
+        } catch (IOException e) {
+            Toast.makeText(getContext(), "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void applyConfig(String filePath) {
+        try {
+            String url = "file://" + filePath;
+            switch (currentConfigType) {
+                case "vod":
+                    Config.find(url, 0);
+                    VodConfig.get().load(null);
+                    Notify.show("点播配置已更新");
+                    break;
+                case "live":
+                    Config.find(url, 1);
+                    LiveConfig.get().load();
+                    Notify.show("直播配置已更新");
+                    break;
+                case "wall":
+                    Config.find(url, 2);
+                    WallConfig.get().load();
+                    Notify.show("壁纸配置已更新");
+                    break;
+                default:
+                    Toast.makeText(getContext(), "未知配置类型", Toast.LENGTH_SHORT).show();
+                    return;
+            }
+            EventBus.getDefault().post(new ConfigEvent(ConfigEvent.Type.COMMON));
+            RefreshEvent.home();
+            Toast.makeText(getContext(), "配置已应用", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "应用配置失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void setCurrentConfig(File configFile, String type) {
+        this.currentConfigFile = configFile;
+        this.currentConfigType = type;
+        this.isRemoteConfig = false;
+        this.currentConfigUrl = "file://" + configFile.getAbsolutePath();
     }
 
     private void checkPermissionsAndLoad() {
@@ -157,8 +597,11 @@ public class FileManagerFragment extends Fragment {
         }
     }
 
-    // 供 HomeActivity 调用处理返回键
     public boolean onBackPressed() {
+        if (fullscreenEditorContainer != null && fullscreenEditorContainer.getVisibility() == View.VISIBLE) {
+            closeFullscreenEditor();
+            return true;
+        }
         if (currentDir != null && currentDir.getParentFile() != null) {
             goBack();
             return true;
@@ -257,7 +700,6 @@ public class FileManagerFragment extends Fragment {
                 count++;
             }
             try {
-                // 兼容所有 API 版本的文件复制
                 try (InputStream in = new FileInputStream(copiedFile);
                      OutputStream out = new FileOutputStream(dest)) {
                     byte[] buffer = new byte[4096];
@@ -277,6 +719,10 @@ public class FileManagerFragment extends Fragment {
     }
 
     private void editTextFile(File file) {
+        if (fullscreenEditorContainer != null && fullscreenEditorContainer.getVisibility() == View.VISIBLE) {
+            return;
+        }
+
         if (!file.canRead()) {
             Toast.makeText(getContext(), "无法读取文件", Toast.LENGTH_SHORT).show();
             return;
@@ -292,27 +738,13 @@ public class FileManagerFragment extends Fragment {
             return;
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("编辑文件: " + file.getName());
-        final EditText editText = new EditText(getContext());
-        editText.setMinLines(10);
-        editText.setMaxLines(20);
-        editText.setHorizontalScrollBarEnabled(true);
-        editText.setText(content.toString());
-        editText.setSelection(0);
-        builder.setView(editText);
-        builder.setPositiveButton("保存", (dialog, which) -> {
-            String newContent = editText.getText().toString();
-            try (FileWriter writer = new FileWriter(file)) {
-                writer.write(newContent);
-                Toast.makeText(getContext(), "保存成功", Toast.LENGTH_SHORT).show();
-                loadDirectory(currentDir);
-            } catch (IOException e) {
-                Toast.makeText(getContext(), "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-        builder.setNegativeButton("取消", null);
-        builder.show();
+        // 设置为当前配置以便保存
+        currentConfigFile = file;
+        currentConfigType = detectConfigType(file);
+        isRemoteConfig = false;
+        currentConfigUrl = "file://" + file.getAbsolutePath();
+
+        showFullscreenEditor(content.toString(), file.getName());
     }
 
     // ---------- Adapter ----------
@@ -339,7 +771,8 @@ public class FileManagerFragment extends Fragment {
                     if (name.endsWith(".txt") || name.endsWith(".java") || name.endsWith(".xml") ||
                             name.endsWith(".json") || name.endsWith(".log") || name.endsWith(".md") ||
                             name.endsWith(".py") || name.endsWith(".js") || name.endsWith(".html") ||
-                            name.endsWith(".css") || name.endsWith(".sh") || name.endsWith(".properties")) {
+                            name.endsWith(".css") || name.endsWith(".sh") || name.endsWith(".properties") ||
+                            name.endsWith(".m3u") || name.endsWith(".m3u8")) {
                         editTextFile(file);
                     } else {
                         Toast.makeText(getContext(), "不支持编辑此类型文件", Toast.LENGTH_SHORT).show();
@@ -347,7 +780,11 @@ public class FileManagerFragment extends Fragment {
                 }
             });
             holder.itemView.setOnLongClickListener(v -> {
-                showFileOptions(file);
+                if (!file.isDirectory()) {
+                    showFileOptions(file);
+                } else {
+                    showFolderOptions(file);
+                }
                 return true;
             });
         }
@@ -383,12 +820,7 @@ public class FileManagerFragment extends Fragment {
     private void showFileOptions(File file) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle(file.getName());
-        String[] items;
-        if (file.isDirectory()) {
-            items = new String[]{"删除", "重命名", "复制", "剪切", "粘贴"};
-        } else {
-            items = new String[]{"删除", "重命名", "复制", "剪切", "粘贴", "编辑"};
-        }
+        String[] items = {"删除", "重命名", "复制", "剪切", "粘贴", "设为当前配置", "编辑"};
         builder.setItems(items, (dialog, which) -> {
             switch (which) {
                 case 0: deleteFile(file); break;
@@ -400,11 +832,47 @@ public class FileManagerFragment extends Fragment {
                     break;
                 case 4: pasteFile(); break;
                 case 5:
+                    setCurrentConfig(file, detectConfigType(file));
+                    Toast.makeText(getContext(), "已设置为当前配置: " + file.getName(), Toast.LENGTH_SHORT).show();
+                    break;
+                case 6:
                     if (!file.isDirectory()) editTextFile(file);
                     break;
             }
         });
         builder.setNegativeButton("取消", null);
         builder.show();
+    }
+
+    private void showFolderOptions(File file) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(file.getName());
+        String[] items = {"删除", "重命名", "复制", "剪切", "粘贴"};
+        builder.setItems(items, (dialog, which) -> {
+            switch (which) {
+                case 0: deleteFile(file); break;
+                case 1: renameFile(file); break;
+                case 2: copyFile(file); break;
+                case 3:
+                    copyFile(file);
+                    deleteFile(file);
+                    break;
+                case 4: pasteFile(); break;
+            }
+        });
+        builder.setNegativeButton("取消", null);
+        builder.show();
+    }
+
+    private String detectConfigType(File file) {
+        String name = file.getName().toLowerCase();
+        if (name.contains("vod") || name.contains("点播") || name.endsWith(".json")) {
+            return "vod";
+        } else if (name.contains("live") || name.contains("直播") || name.endsWith(".m3u") || name.endsWith(".m3u8")) {
+            return "live";
+        } else if (name.contains("wall") || name.contains("壁纸")) {
+            return "wall";
+        }
+        return "vod";
     }
 }
