@@ -1,13 +1,22 @@
 package com.fongmi.android.tv.ui.fragment;
 
+import android.Manifest;
+import android.app.DownloadManager;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.CookieManager;
+import android.webkit.DownloadListener;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -17,14 +26,18 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.fongmi.android.tv.R;
+
+import java.io.File;
 
 public class ChatFragment extends Fragment {
 
@@ -34,6 +47,7 @@ public class ChatFragment extends Fragment {
     private ImageButton btnBack, btnRefresh;
     private ValueCallback<Uri[]> filePathCallback;
     private static final String CHAT_URL = "http://tvm.serv00.net";
+    private boolean isAttached = false; // 标记 Fragment 是否已 attach
 
     private final ActivityResultLauncher<Intent> filePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -50,8 +64,28 @@ public class ChatFragment extends Fragment {
                         filePathCallback = null;
                     });
 
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(),
+                    isGranted -> {
+                        if (!isGranted && isAttached) {
+                            Toast.makeText(getContext(), "需要存储权限才能下载文件", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
     public static ChatFragment newInstance() {
         return new ChatFragment();
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        isAttached = true;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        isAttached = false;
     }
 
     @Nullable
@@ -93,9 +127,75 @@ public class ChatFragment extends Fragment {
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
                 ChatFragment.this.filePathCallback = filePathCallback;
                 Intent intent = fileChooserParams.createIntent();
-                intent.setType("image/*");
+                try {
+                    if (isAttached && getContext() != null) {
+                        Uri downloadUri;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            ContentValues values = new ContentValues();
+                            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+                            downloadUri = getContext().getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                        } else {
+                            File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                            if (downloadDir != null && downloadDir.exists()) {
+                                downloadUri = Uri.fromFile(downloadDir);
+                            } else {
+                                downloadUri = Uri.parse("file://" + Environment.getExternalStorageDirectory().getPath() + "/Download");
+                            }
+                        }
+                        intent.putExtra(Intent.EXTRA_TITLE, "选择文件");
+                        if (intent.getData() == null) {
+                            intent.setDataAndType(downloadUri, "file/*");
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 filePickerLauncher.launch(intent);
                 return true;
+            }
+        });
+
+        webView.setDownloadListener(new DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
+                if (!isAttached || getContext() == null) return;
+                
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                            != PackageManager.PERMISSION_GRANTED) {
+                        requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                        return;
+                    }
+                }
+                try {
+                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI | DownloadManager.Request.NETWORK_MOBILE);
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, getFileNameFromUrl(url, contentDisposition));
+                    request.allowScanningByMediaScanner();
+                    request.setMimeType(mimetype);
+
+                    String ua = userAgent;
+                    if (ua == null || ua.isEmpty()) {
+                        ua = webView.getSettings().getUserAgentString();
+                    }
+                    request.addRequestHeader("User-Agent", ua);
+                    String cookies = CookieManager.getInstance().getCookie(url);
+                    if (cookies != null) {
+                        request.addRequestHeader("Cookie", cookies);
+                    }
+
+                    DownloadManager dm = (DownloadManager) getContext().getSystemService(Context.DOWNLOAD_SERVICE);
+                    dm.enqueue(request);
+                    if (isAttached) {
+                        Toast.makeText(getContext(), "下载已开始，文件保存在 Download 目录", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    if (isAttached) {
+                        Toast.makeText(getContext(), "下载失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
             }
         });
 
@@ -116,14 +216,42 @@ public class ChatFragment extends Fragment {
         webView.loadUrl(CHAT_URL);
     }
 
+    private String getFileNameFromUrl(String url, String contentDisposition) {
+        String filename = "download_" + System.currentTimeMillis();
+        if (contentDisposition != null) {
+            String[] parts = contentDisposition.split(";");
+            for (String part : parts) {
+                if (part.trim().startsWith("filename=")) {
+                    String temp = part.trim().substring("filename=".length());
+                    if (temp.startsWith("\"") && temp.endsWith("\"")) {
+                        temp = temp.substring(1, temp.length() - 1);
+                    }
+                    filename = temp;
+                    break;
+                }
+            }
+        } else if (url != null) {
+            String[] segments = url.split("/");
+            String last = segments[segments.length - 1];
+            if (last.contains("?")) {
+                last = last.substring(0, last.indexOf("?"));
+            }
+            if (!last.isEmpty()) {
+                filename = last;
+            }
+        }
+        return filename;
+    }
+
     private void setupButtons() {
-        // 初始化位置（上移一个按钮高度）
+        if (buttonContainer == null) return;
+
         buttonContainer.post(() -> {
-            if (getActivity() == null) return;
+            if (!isAttached || getActivity() == null) return;
             int navHeight = getNavBarHeight();
             int marginBottom = navHeight + dpToPx(8);
             int marginRight = dpToPx(16);
-            int extraOffset = dpToPx(60); // 上移一个按钮高度
+            int extraOffset = dpToPx(60);
 
             View parent = (View) buttonContainer.getParent();
             if (parent == null) return;
@@ -147,21 +275,23 @@ public class ChatFragment extends Fragment {
             buttonContainer.setLayoutParams(lp);
         });
 
-        // 点击监听
-        btnBack.setOnClickListener(v -> {
-            if (webView != null && webView.canGoBack()) {
-                webView.goBack();
-                webView.postDelayed(this::updateBackButtonVisibility, 150);
-            }
-        });
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> {
+                if (webView != null && webView.canGoBack()) {
+                    webView.goBack();
+                    webView.postDelayed(this::updateBackButtonVisibility, 150);
+                }
+            });
+        }
 
-        btnRefresh.setOnClickListener(v -> {
-            if (webView != null) {
-                webView.reload();
-            }
-        });
+        if (btnRefresh != null) {
+            btnRefresh.setOnClickListener(v -> {
+                if (webView != null) {
+                    webView.reload();
+                }
+            });
+        }
 
-        // 容器拖拽监听（修复点击与拖拽冲突）
         buttonContainer.setOnTouchListener(new View.OnTouchListener() {
             private float startX, startY;
             private float lastX, lastY;
@@ -176,7 +306,7 @@ public class ChatFragment extends Fragment {
                         lastX = startX;
                         lastY = startY;
                         isDragging = false;
-                        return true; // 消费事件
+                        return true;
 
                     case MotionEvent.ACTION_MOVE:
                         float dx = event.getRawX() - lastX;
@@ -214,13 +344,10 @@ public class ChatFragment extends Fragment {
                         return true;
 
                     case MotionEvent.ACTION_UP:
-                        // 如果未拖动，则手动触发按钮点击
-                        if (!isDragging) {
-                            // 判断点击位置在哪个按钮区域
-                            float x = event.getX(); // 容器内相对坐标
+                        if (!isDragging && btnRefresh != null && btnBack != null) {
+                            float x = event.getX();
                             float y = event.getY();
 
-                            // 获取按钮在容器中的位置
                             int refreshTop = btnRefresh.getTop();
                             int refreshBottom = btnRefresh.getBottom();
                             int backTop = btnBack.getTop();
@@ -243,13 +370,14 @@ public class ChatFragment extends Fragment {
     }
 
     private void updateBackButtonVisibility() {
-        if (btnBack != null && webView != null) {
-            btnBack.setVisibility(webView.canGoBack() ? View.VISIBLE : View.GONE);
-        }
+        // 确保 Fragment 已 attach，避免崩溃
+        if (!isAttached || btnBack == null || webView == null) return;
+        btnBack.setVisibility(webView.canGoBack() ? View.VISIBLE : View.GONE);
     }
 
     private int getNavBarHeight() {
-        if (getActivity() == null) return dpToPx(56);
+        // 确保 Fragment 已 attach
+        if (!isAttached || getActivity() == null) return dpToPx(56);
         View navView = getActivity().findViewById(R.id.navigation);
         if (navView != null) {
             return navView.getHeight();
@@ -258,12 +386,14 @@ public class ChatFragment extends Fragment {
     }
 
     private int dpToPx(int dp) {
-        if (getContext() == null) return dp;
+        if (!isAttached || getContext() == null) return dp;
         return (int) (dp * getResources().getDisplayMetrics().density + 0.5f);
     }
 
     public boolean onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
+        // 安全处理：检查 Fragment 是否已 attach 且 webView 可用
+        if (!isAttached || webView == null) return false;
+        if (webView.canGoBack()) {
             webView.goBack();
             updateBackButtonVisibility();
             return true;
@@ -289,4 +419,4 @@ public class ChatFragment extends Fragment {
         progressBar = null;
         super.onDestroyView();
     }
-}
+            }
