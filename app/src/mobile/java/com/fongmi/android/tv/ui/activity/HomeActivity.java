@@ -410,9 +410,12 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     @Override
     protected void onBackInvoked() {
         // 优先处理 ChatFragment 的返回逻辑
-        ChatFragment chatFragment = (ChatFragment) mManager.getFragment(5);
-        if (chatFragment != null && chatFragment.onBackPressed()) {
-            return;
+        androidx.fragment.app.Fragment fragment = mManager.getFragment(5);
+        if (fragment instanceof ChatFragment) {
+            ChatFragment chatFragment = (ChatFragment) fragment;
+            if (chatFragment.onBackPressed()) {
+                return;
+            }
         }
 
         if (mChrome != null && mChrome.consumeBack()) {
@@ -443,4 +446,4 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
         Server.get().stop();
         super.onDestroy();
     }
-}
+                    }
