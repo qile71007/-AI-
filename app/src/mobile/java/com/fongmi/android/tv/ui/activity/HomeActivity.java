@@ -144,7 +144,7 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
             case 3 -> SettingEnhanceFragment.newInstance();
             case 4 -> SettingDanmakuFragment.newInstance();
             case 5 -> ChatFragment.newInstance();
-            case 6 -> FileManagerFragment.newInstance();  // 新增
+            case 6 -> FileManagerFragment.newInstance();
             default -> null;
         });
         if (savedInstanceState == null) change(0);
@@ -193,7 +193,7 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
         mBinding.navigation.getMenu().findItem(R.id.vod).setVisible(true);
         mBinding.navigation.getMenu().findItem(R.id.setting).setVisible(true);
         mBinding.navigation.getMenu().findItem(R.id.chat).setVisible(true);
-        mBinding.navigation.getMenu().findItem(R.id.file).setVisible(true);  // 新增
+        mBinding.navigation.getMenu().findItem(R.id.file).setVisible(true);
         mBinding.navigation.getMenu().findItem(R.id.live).setVisible(LiveConfig.hasUrl());
         syncNavigationSelection();
     }
@@ -400,6 +400,13 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
         App.post(() -> checkOrientation(newConfig), 100);
     }
 
+    private void checkOrientation(Configuration newConfig) {
+        if (orientation != newConfig.orientation) {
+            orientation = newConfig.orientation;
+            RefreshEvent.home();
+        }
+    }
+
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
@@ -421,7 +428,7 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
             e.printStackTrace();
         }
 
-        // 新增：处理 FileManagerFragment 的返回（返回上级目录）
+        // 处理 FileManagerFragment 的返回
         try {
             androidx.fragment.app.Fragment fragment = mManager.getFragment(6);
             if (fragment instanceof FileManagerFragment) {
@@ -462,4 +469,4 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
         Server.get().stop();
         super.onDestroy();
     }
-}
+            }
