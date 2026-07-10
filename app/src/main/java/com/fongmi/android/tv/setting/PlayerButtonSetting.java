@@ -37,9 +37,6 @@ public class PlayerButtonSetting {
     public static final String EPISODES = "episodes";
     public static final String FULLSCREEN = "fullscreen";
     public static final String CHANGE = "change";
-    // ===== 新增下载按钮常量 =====
-    public static final String DOWNLOAD = "download";
-    // ===== 新增结束 =====
 
     private static final String ORDER = "player_button_order";
     private static final String HIDDEN = "player_button_hidden";
@@ -61,11 +58,6 @@ public class PlayerButtonSetting {
             new Item(PREV, R.string.play_prev),
             new Item(NEXT, R.string.play_next),
             new Item(EPISODES, R.string.play_episodes),
-            new Item(FULLSCREEN, R.string.play_fullscreen),
-            new Item(CHANGE, R.string.play_change),
-            // ===== 新增下载按钮到默认列表 =====
-            new Item(DOWNLOAD, R.string.play_download),
-            // ===== 新增结束 =====
             new Item(FULLSCREEN, R.string.play_fullscreen),
             new Item(CHANGE, R.string.play_change));
 
