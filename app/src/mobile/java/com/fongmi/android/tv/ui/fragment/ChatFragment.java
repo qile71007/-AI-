@@ -117,29 +117,27 @@ public class ChatFragment extends Fragment {
     }
 
     private void setupButtons() {
-        // 1. 初始化容器位置（右下角，预留导航栏高度）
+        // 初始化位置（上移一个按钮高度）
         buttonContainer.post(() -> {
             if (getActivity() == null) return;
             int navHeight = getNavBarHeight();
-            int marginBottom = navHeight + dpToPx(8);  // 导航栏高度 + 8dp间距
+            int marginBottom = navHeight + dpToPx(8);
             int marginRight = dpToPx(16);
+            int extraOffset = dpToPx(60); // 上移一个按钮高度
 
             View parent = (View) buttonContainer.getParent();
             if (parent == null) return;
             int parentWidth = parent.getWidth();
             int parentHeight = parent.getHeight();
-
-            // 如果父布局尚未测量，等待下一次绘制
             if (parentWidth == 0 || parentHeight == 0) {
                 buttonContainer.post(this::setupButtons);
                 return;
             }
 
             int leftMargin = parentWidth - buttonContainer.getWidth() - marginRight;
-            int topMargin = parentHeight - buttonContainer.getHeight() - marginBottom;
-
-            leftMargin = Math.max(0, leftMargin);
+            int topMargin = parentHeight - buttonContainer.getHeight() - marginBottom - extraOffset;
             topMargin = Math.max(0, topMargin);
+            leftMargin = Math.max(0, leftMargin);
 
             RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) buttonContainer.getLayoutParams();
             lp.removeRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
@@ -149,7 +147,7 @@ public class ChatFragment extends Fragment {
             buttonContainer.setLayoutParams(lp);
         });
 
-        // 2. 点击监听
+        // 点击监听
         btnBack.setOnClickListener(v -> {
             if (webView != null && webView.canGoBack()) {
                 webView.goBack();
@@ -163,7 +161,7 @@ public class ChatFragment extends Fragment {
             }
         });
 
-        // 3. 容器拖拽监听
+        // 容器拖拽监听（修复点击与拖拽冲突）
         buttonContainer.setOnTouchListener(new View.OnTouchListener() {
             private float startX, startY;
             private float lastX, lastY;
@@ -178,7 +176,7 @@ public class ChatFragment extends Fragment {
                         lastX = startX;
                         lastY = startY;
                         isDragging = false;
-                        return true;
+                        return true; // 消费事件
 
                     case MotionEvent.ACTION_MOVE:
                         float dx = event.getRawX() - lastX;
@@ -216,8 +214,25 @@ public class ChatFragment extends Fragment {
                         return true;
 
                     case MotionEvent.ACTION_UP:
-                        return isDragging;
+                        // 如果未拖动，则手动触发按钮点击
+                        if (!isDragging) {
+                            // 判断点击位置在哪个按钮区域
+                            float x = event.getX(); // 容器内相对坐标
+                            float y = event.getY();
 
+                            // 获取按钮在容器中的位置
+                            int refreshTop = btnRefresh.getTop();
+                            int refreshBottom = btnRefresh.getBottom();
+                            int backTop = btnBack.getTop();
+                            int backBottom = btnBack.getBottom();
+
+                            if (y >= refreshTop && y <= refreshBottom) {
+                                btnRefresh.performClick();
+                            } else if (y >= backTop && y <= backBottom) {
+                                btnBack.performClick();
+                            }
+                        }
+                        return true;
                     default:
                         return false;
                 }
@@ -235,11 +250,11 @@ public class ChatFragment extends Fragment {
 
     private int getNavBarHeight() {
         if (getActivity() == null) return dpToPx(56);
-        View navView = getActivity().findViewById(R.id.navigation); // ✅ 使用你的实际ID
+        View navView = getActivity().findViewById(R.id.navigation);
         if (navView != null) {
             return navView.getHeight();
         }
-        return dpToPx(56); // 默认值
+        return dpToPx(56);
     }
 
     private int dpToPx(int dp) {
@@ -247,7 +262,6 @@ public class ChatFragment extends Fragment {
         return (int) (dp * getResources().getDisplayMetrics().density + 0.5f);
     }
 
-    // 由Activity调用，处理物理返回键
     public boolean onBackPressed() {
         if (webView != null && webView.canGoBack()) {
             webView.goBack();
