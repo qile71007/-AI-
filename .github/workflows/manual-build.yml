@@ -6,15 +6,15 @@ on:
       custom_package:
         description: '自定义包名（留空则使用项目原有包名，示例：com.example.app）'
         required: false
-        default: 'com.fongmi.android.tv.ai'
+        default: 'com.fongmi.android.tv'
       app_name:
         description: '自定义应用名称（留空则使用项目原有名称，示例：我的影视）'
         required: false
-        default: '影视AI助手'
+        default: '影视'
       release_tag:
         description: 'Release Tag（留空则使用项目原有版本名，示例：v1.0.0）'
         required: false
-        default: 'v1.0.0'
+        default: 'v5.5.7'
       release_notes:
         description: '更新日志说明'
         required: false
