@@ -71,13 +71,13 @@
             android:padding="10dp" />
     </LinearLayout>
 
-    <!-- 全屏编辑器覆盖层 -->
+    <!-- 全屏编辑器覆盖层（白色背景，黑色文字） -->
     <FrameLayout
         android:id="@+id/fullscreen_editor_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
-        android:background="#FF1A1A1A">
+        android:background="#FFFFFF">
 
         <!-- 顶部工具栏 -->
         <LinearLayout
@@ -120,14 +120,15 @@
                 android:tint="@android:color/white" />
         </LinearLayout>
 
-        <!-- 编辑区域 -->
+        <!-- 编辑区域（白色背景，黑色文字） -->
         <EditText
             android:id="@+id/fullscreen_editor"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="64dp"
             android:background="@null"
-            android:textColor="#FFFFFF"
+            android:textColor="#000000"
+            android:hintTextColor="#999999"
             android:textSize="14sp"
             android:lineSpacingExtra="4dp"
             android:padding="16dp"
