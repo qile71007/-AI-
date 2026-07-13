@@ -83,15 +83,8 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
         divider.setDrawable(new ColorDrawable(ContextCompat.getColor(requireContext(), android.R.color.darker_gray)));
         binding.recycler.addItemDecoration(divider);
 
-        // 只高亮当前选中的配置，不滚动
+        // 高亮当前选中的配置
         Config current = getCurrentConfig();
-        if (current != null) {
-            int position = adapter.findPosition(current);
-            if (position != -1) {
-                adapter.setSelectedPosition(position);
-                // 不自动滚动
-            }
-        }
 
         // 恢复上次保存的滚动位置
         if (savedState != null) {
@@ -108,18 +101,8 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
         binding.keyword.addTextChangedListener(new CustomTextListener() {
             @Override
             public void afterTextChanged(Editable s) {
-                adapter.filter(s.toString());
-                // 过滤后只高亮，不滚动，并且重置滚动位置到顶部（因为数据变化）
-                Config current = getCurrentConfig();
-                if (current != null) {
-                    int position = adapter.findPosition(current);
-                    if (position != -1) {
-                        adapter.setSelectedPosition(position);
-                    }
-                }
-                // 搜索后滚动到顶部，避免显示异常
+                // 搜索后滚动到顶部
                 binding.recycler.scrollToPosition(0);
-                // 清除保存的状态，因为数据变了，旧位置无效
                 savedState = null;
             }
         });
