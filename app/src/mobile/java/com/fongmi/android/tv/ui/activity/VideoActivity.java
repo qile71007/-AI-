@@ -132,6 +132,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+
 public class VideoActivity extends PlaybackActivity implements Clock.Callback, CustomKeyDown.Listener, TrackDialog.Listener, ControlDialog.Listener, DanmakuDialog.Host, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, EpisodeGroupAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
 
     private static final String SIZE_TAG = "MPV_SIZE";
@@ -2649,5 +2653,32 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mViewModel.getSearch().removeObserver(mObserveSearch);
         SiteHealthStore.flush();
         super.onDestroy();
+    }
+
+    // ==================== 七乐版下载功能 ====================
+
+    public void onDownload(View view) {
+        String videoUrl = getCurrentVideoUrl();
+        if (TextUtils.isEmpty(videoUrl)) {
+            Toast.makeText(this, "当前没有可下载的链接", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("视频链接", videoUrl);
+        clipboard.setPrimaryClip(clip);
+        Toast.makeText(this, "链接已复制到剪贴板", Toast.LENGTH_SHORT).show();
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(videoUrl));
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "无法打开浏览器，链接已复制到剪贴板", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String getCurrentVideoUrl() {
+        if (service() == null) return null;
+        PlayerManager player = player();
+        if (player == null) return null;
+        return player.getUrl();
     }
 }
