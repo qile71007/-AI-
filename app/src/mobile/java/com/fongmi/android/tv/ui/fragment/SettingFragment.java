@@ -1,17 +1,9 @@
 package com.fongmi.android.tv.ui.fragment;
 
-import android.app.Dialog;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Environment;
-import android.view.Gravity;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -38,12 +30,12 @@ import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.activity.HomeActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.AboutDialog;
-import com.fongmi.android.tv.ui.dialog.AiAssistantDialog;
+import com.fongmi.android.tv.ui.dialog.ChoiceDialog;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
-import com.fongmi.android.tv.ui.dialog.ConfigListDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.RestoreDialog;
+import com.fongmi.android.tv.ui.dialog.BackupProgressDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.ui.dialog.ThemeDialog;
 import com.fongmi.android.tv.utils.AppVersion;
@@ -51,16 +43,13 @@ import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.fongmi.android.tv.utils.WebdavUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,31 +57,11 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     private FragmentSettingBinding mBinding;
     private String[] size;
+    private String[] language;
     private String[] uiScale;
-    private Dialog webDavDialog;
 
     public static SettingFragment newInstance() {
         return new SettingFragment();
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        getChildFragmentManager().setFragmentResultListener("ai_config_result", this, (requestKey, result) -> {
-            String url = result.getString("config_url");
-            String name = result.getString("config_name");
-            if (url != null && !url.isEmpty()) {
-                Config config = Config.find(url, 0);
-                if (config != null) {
-                    if (name != null && !name.isEmpty()) config.setName(name);
-                    setConfig(config);
-                } else {
-                    Notify.show("配置无效，请检查链接");
-                }
-            } else {
-                Notify.show("未收到有效的配置链接");
-            }
-        });
     }
 
     private String getSwitch(boolean value) {
@@ -139,6 +108,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.themeColorText.setText(getThemeText());
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
+        mBinding.languageText.setText((language = ResUtil.getStringArray(R.array.select_language))[Setting.getLanguageIndex()]);
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
         mBinding.uiScaleText.setText((uiScale = ResUtil.getStringArray(R.array.select_ui_scale))[Setting.getUiScaleIndex()]);
     }
@@ -155,14 +125,11 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     @Override
     protected void initEvent() {
         mBinding.vod.setOnClickListener(this::onVod);
+        mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.live.setOnClickListener(this::onLive);
         mBinding.wall.setOnClickListener(this::onWall);
-        mBinding.vod.setOnLongClickListener(this::onVodEdit);
-        mBinding.live.setOnLongClickListener(this::onLiveEdit);
-        mBinding.wall.setOnLongClickListener(this::onWallEdit);
-
-        mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.size.setOnClickListener(this::setSize);
+        mBinding.language.setOnClickListener(this::setLanguage);
         mBinding.uiScale.setOnClickListener(this::setUiScale);
         mBinding.cache.setOnClickListener(this::onCache);
         mBinding.backup.setOnClickListener(this::onBackup);
@@ -171,8 +138,11 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.danmaku.setOnClickListener(this::onDanmaku);
         mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.version.setOnClickListener(this::onVersion);
+        mBinding.vod.setOnLongClickListener(this::onVodEdit);
         mBinding.vodHome.setOnClickListener(this::onVodHome);
+        mBinding.live.setOnLongClickListener(this::onLiveEdit);
         mBinding.liveHome.setOnClickListener(this::onLiveHome);
+        mBinding.wall.setOnLongClickListener(this::onWallEdit);
         mBinding.incognito.setOnClickListener(this::setIncognito);
         mBinding.vodHistory.setOnClickListener(this::onVodHistory);
         mBinding.themeColor.setOnClickListener(this::onThemeColor);
@@ -180,50 +150,13 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
-        mBinding.resetApp.setOnClickListener(this::onResetApp);
-
-        mBinding.aiAssistant.setOnClickListener(v -> {
-            AiAssistantDialog dialog = new AiAssistantDialog();
-            Bundle args = new Bundle();
-            args.putInt("config_type", 0);
-            dialog.setArguments(args);
-            dialog.show(getChildFragmentManager(), "ai_assistant");
-        });
     }
 
-    // ==================== 短按 ====================
-    private void onVod(View view) {
-        ConfigListDialog.create().type(0).listener(this).show(this);
-    }
-
-    private void onLive(View view) {
-        ConfigListDialog.create().type(1).listener(this).show(this);
-    }
-
-    private void onWall(View view) {
-        ConfigListDialog.create().type(2).listener(this).show(this);
-    }
-
-    // ==================== 长按 ====================
-    private boolean onVodEdit(View view) {
-        ConfigDialog.create().vod().edit().show(this);
-        return true;
-    }
-
-    private boolean onLiveEdit(View view) {
-        ConfigDialog.create().live().edit().show(this);
-        return true;
-    }
-
-    private boolean onWallEdit(View view) {
-        ConfigDialog.create().wall().edit().show(this);
-        return true;
-    }
-
-    // ==================== 其他方法 ====================
     @Override
     public void setConfig(Config config) {
-        if (config.getUrl().startsWith("file")) {
+        if (config == null) return;
+        String url = config.getUrl();
+        if (!TextUtils.isEmpty(url) && url.startsWith("file")) {
             requireView().post(() -> PermissionUtil.requestFile(this, allGranted -> load(config)));
         } else {
             load(config);
@@ -282,6 +215,33 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         RefreshEvent.theme();
     }
 
+    private void onVod(View view) {
+        ConfigDialog.create().vod().show(this);
+    }
+
+    private void onLive(View view) {
+        ConfigDialog.create().live().show(this);
+    }
+
+    private void onWall(View view) {
+        ConfigDialog.create().wall().show(this);
+    }
+
+    private boolean onVodEdit(View view) {
+        ConfigDialog.create().vod().edit().show(this);
+        return true;
+    }
+
+    private boolean onLiveEdit(View view) {
+        ConfigDialog.create().live().edit().show(this);
+        return true;
+    }
+
+    private boolean onWallEdit(View view) {
+        ConfigDialog.create().wall().edit().show(this);
+        return true;
+    }
+
     private void onVodHome(View view) {
         SiteDialog.create().search().change().show(this);
     }
@@ -314,6 +274,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         ThemeDialog.show(this);
     }
 
+
     private void onVersion(View view) {
         AboutDialog.show(requireActivity(), () -> Updater.create().force().start(requireActivity()));
     }
@@ -341,28 +302,34 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     }
 
     private void setSize(View view) {
-        new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.setting_size).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(size, PlayerSetting.getSize(), (dialog, which) -> {
+        ChoiceDialog.showSingle(this, R.string.setting_size, size, PlayerSetting.getSize(), which -> {
             mBinding.sizeText.setText(size[which]);
             PlayerSetting.putSize(which);
             RefreshEvent.size();
-            dialog.dismiss();
-        }).show();
+        });
+    }
+
+    private void setLanguage(View view) {
+        ChoiceDialog.showSingle(this, R.string.setting_language, language, Setting.getLanguageIndex(), which -> {
+            if (which != Setting.getLanguageIndex()) {
+                Setting.putLanguageIndex(which);
+                RefreshEvent.language();
+            }
+        });
     }
 
     private void setUiScale(View view) {
-        new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.setting_ui_scale).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(uiScale, Setting.getUiScaleIndex(), (dialog, which) -> {
+        ChoiceDialog.showSingle(this, R.string.setting_ui_scale, uiScale, Setting.getUiScaleIndex(), which -> {
             mBinding.uiScaleText.setText(uiScale[which]);
             Setting.putUiScaleIndex(which);
-            dialog.dismiss();
             requireActivity().recreate();
-        }).show();
+        });
     }
 
     private void setDoh(View view) {
-        new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.setting_doh).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(getDohList(), getDohIndex(), (dialog, which) -> {
+        ChoiceDialog.showSingle(this, R.string.setting_doh, getDohList(), getDohIndex(), which -> {
             setDoh(VodConfig.get().getDoh().get(which));
-            dialog.dismiss();
-        }).show();
+        });
     }
 
     private void setDoh(Doh doh) {
@@ -380,243 +347,23 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         });
     }
 
-    // ==================== WebDAV 备份 ====================
     private void onBackup(View view) {
-        showWebDavBackupDialog();
-    }
-
-    private void showWebDavBackupDialog() {
-        if (getContext() == null) return;
-
-        // 使用普通 Dialog，无标题栏，深色主题
-        webDavDialog = new Dialog(requireContext(), android.R.style.Theme_DeviceDefault_Dialog_NoActionBar);
-        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_webdav_backup, null);
-        webDavDialog.setContentView(dialogView);
-
-        // 获取控件
-        EditText etServer = dialogView.findViewById(R.id.dialogWebdavUrl);
-        EditText etUser = dialogView.findViewById(R.id.dialogWebdavUser);
-        EditText etPass = dialogView.findViewById(R.id.dialogWebdavPass);
-        Button btnLocalBackup = dialogView.findViewById(R.id.btnLocalBackup);
-        Button btnLink = dialogView.findViewById(R.id.dialogWebdavLink);
-        Button btnSave = dialogView.findViewById(R.id.dialogWebdavSave);
-        Button btnTest = dialogView.findViewById(R.id.dialogWebdavTest);
-        Button btnUpload = dialogView.findViewById(R.id.dialogWebdavUpload);
-        Button btnList = dialogView.findViewById(R.id.dialogWebdavList);
-        Button btnDownload = dialogView.findViewById(R.id.dialogWebdavDownload);
-        TextView tvStatus = dialogView.findViewById(R.id.dialogWebdavStatus);
-        Button btnClose = dialogView.findViewById(R.id.dialogClose);
-
-        // 加载配置
-        etServer.setText(Setting.getWebdavUrl());
-        etUser.setText(Setting.getWebdavUser());
-        etPass.setText(Setting.getWebdavPass());
-
-        // ---- 本地备份 ----
-        btnLocalBackup.setOnClickListener(v -> {
-            PermissionUtil.requestFile(this, allGranted -> {
-                AppDatabase.backup(new Callback() {
-                    @Override
-                    public void success() {
-                        tvStatus.setText("本地备份成功");
-                        Notify.show(R.string.backup_success);
-                    }
-                    @Override
-                    public void error() {
-                        tvStatus.setText("本地备份失败");
-                        Notify.show(R.string.backup_fail);
-                    }
-                });
-            });
-        });
-
-        // ---- 注册开通 ----
-        btnLink.setOnClickListener(v -> {
-            try {
-                Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.webdav.com/register"));
-                startActivity(intent);
-            } catch (Exception e) {
-                tvStatus.setText("无法打开注册页面");
+        PermissionUtil.requestFile(this, allGranted -> {
+            BackupProgressDialog progress = BackupProgressDialog.open(getParentFragmentManager(), "备份应用数据");
+            AppDatabase.backup(new Callback() {
+            @Override
+            public void success() {
+                progress.finish();
+                Notify.show(R.string.backup_success);
             }
-        });
 
-        // ---- 保存配置 ----
-        btnSave.setOnClickListener(v -> {
-            String url = etServer.getText().toString().trim();
-            String user = etUser.getText().toString().trim();
-            String pass = etPass.getText().toString().trim();
-            if (url.isEmpty()) {
-                tvStatus.setText("请填写服务器地址");
-                return;
+            @Override
+            public void error() {
+                progress.finish();
+                Notify.show(R.string.backup_fail);
             }
-            Setting.putWebdavUrl(url);
-            Setting.putWebdavUser(user);
-            Setting.putWebdavPass(pass);
-            tvStatus.setText("配置已保存");
+            }, progress::update);
         });
-
-        // ---- 测试连接 ----
-        btnTest.setOnClickListener(v -> {
-            String url = Setting.getWebdavUrl();
-            String user = Setting.getWebdavUser();
-            String pass = Setting.getWebdavPass();
-            if (url.isEmpty()) {
-                tvStatus.setText("请先保存配置");
-                return;
-            }
-            tvStatus.setText("正在测试...");
-            new Thread(() -> {
-                boolean ok = WebdavUtil.testConnection(url, user, pass);
-                requireActivity().runOnUiThread(() -> {
-                    tvStatus.setText(ok ? "连接成功" : "连接失败，请检查配置");
-                });
-            }).start();
-        });
-
-        // ---- 上传备份 ----
-        btnUpload.setOnClickListener(v -> {
-            String url = Setting.getWebdavUrl();
-            String user = Setting.getWebdavUser();
-            String pass = Setting.getWebdavPass();
-            if (url.isEmpty()) {
-                tvStatus.setText("请先保存配置");
-                return;
-            }
-            File localBackup = getLatestBackupFile();
-            if (localBackup == null || !localBackup.exists()) {
-                tvStatus.setText("请先执行本地备份（点击“本地备份”按钮）");
-                return;
-            }
-            tvStatus.setText("正在上传 " + localBackup.getName() + " ...");
-            new Thread(() -> {
-                boolean ok = WebdavUtil.uploadFile(url, user, pass, localBackup);
-                requireActivity().runOnUiThread(() -> {
-                    tvStatus.setText(ok ? "上传成功" : "上传失败");
-                });
-            }).start();
-        });
-
-        // ---- 下载备份 ----
-        btnDownload.setOnClickListener(v -> {
-            String url = Setting.getWebdavUrl();
-            String user = Setting.getWebdavUser();
-            String pass = Setting.getWebdavPass();
-            if (url.isEmpty()) {
-                tvStatus.setText("请先保存配置");
-                return;
-            }
-            tvStatus.setText("正在获取文件列表...");
-            new Thread(() -> {
-                List<WebdavUtil.RemoteFile> files = WebdavUtil.listFiles(url, user, pass);
-                if (files == null || files.isEmpty()) {
-                    requireActivity().runOnUiThread(() -> tvStatus.setText("远程无备份文件"));
-                    return;
-                }
-                WebdavUtil.RemoteFile latest = null;
-                for (WebdavUtil.RemoteFile f : files) {
-                    if (f.path.endsWith(".bk.gz") || f.path.endsWith(".zip")) {
-                        if (latest == null || f.modified > latest.modified) {
-                            latest = f;
-                        }
-                    }
-                }
-                if (latest == null) {
-                    requireActivity().runOnUiThread(() -> tvStatus.setText("未找到备份文件"));
-                    return;
-                }
-                File tempFile = new File(requireContext().getExternalCacheDir(), "restore_temp." + (latest.path.endsWith(".zip") ? "zip" : "gz"));
-                requireActivity().runOnUiThread(() -> tvStatus.setText("正在下载..."));
-                boolean downloaded = WebdavUtil.downloadFile(url, user, pass, latest.path, tempFile);
-                if (!downloaded) {
-                    requireActivity().runOnUiThread(() -> tvStatus.setText("下载失败"));
-                    return;
-                }
-                requireActivity().runOnUiThread(() -> {
-                    tvStatus.setText("正在恢复...");
-                    AppDatabase.restore(tempFile, new Callback() {
-                        @Override
-                        public void success() {
-                            tvStatus.setText("恢复成功");
-                            Notify.show(R.string.restore_success);
-                            setOtherText();
-                            initConfig();
-                            tempFile.delete();
-                        }
-                        @Override
-                        public void error() {
-                            tvStatus.setText("恢复失败");
-                            Notify.show(R.string.restore_fail);
-                            tempFile.delete();
-                        }
-                    });
-                });
-            }).start();
-        });
-
-        // ---- 查看文件列表 ----
-        btnList.setOnClickListener(v -> {
-            String url = Setting.getWebdavUrl();
-            String user = Setting.getWebdavUser();
-            String pass = Setting.getWebdavPass();
-            if (url.isEmpty()) {
-                tvStatus.setText("请先保存配置");
-                return;
-            }
-            tvStatus.setText("正在获取列表...");
-            new Thread(() -> {
-                List<WebdavUtil.RemoteFile> files = WebdavUtil.listFiles(url, user, pass);
-                requireActivity().runOnUiThread(() -> {
-                    if (files == null || files.isEmpty()) {
-                        tvStatus.setText("远程无备份文件");
-                    } else {
-                        StringBuilder sb = new StringBuilder("文件列表:\n");
-                        for (WebdavUtil.RemoteFile f : files) {
-                            sb.append(f.path).append(" (")
-                                    .append(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
-                                            .format(new java.util.Date(f.modified)))
-                                    .append(")\n");
-                        }
-                        tvStatus.setText(sb.toString());
-                    }
-                });
-            }).start();
-        });
-
-        // ---- 关闭 ----
-        btnClose.setOnClickListener(v -> {
-            if (webDavDialog != null) webDavDialog.dismiss();
-        });
-
-        // ★★★ 强制窗口宽度为屏幕的 98%，清除默认边距 ★★★
-        if (webDavDialog.getWindow() != null) {
-            WindowManager.LayoutParams params = webDavDialog.getWindow().getAttributes();
-            int screenWidth = getResources().getDisplayMetrics().widthPixels;
-            params.width = (int) (screenWidth * 0.98);
-            params.height = WindowManager.LayoutParams.WRAP_CONTENT;
-            params.gravity = Gravity.CENTER;
-            webDavDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-            webDavDialog.getWindow().setAttributes(params);
-            webDavDialog.getWindow().getDecorView().setPadding(0, 0, 0, 0);
-        }
-
-        webDavDialog.show();
-    }
-
-    // ★★★ 修改点：扫描公共存储目录 /storage/emulated/0/TV/ ★★★
-    private File getLatestBackupFile() {
-        // 使用公共存储目录 /storage/emulated/0/TV/
-        File dir = new File(Environment.getExternalStorageDirectory(), "TV");
-        if (!dir.exists()) {
-            // 如果目录不存在，返回 null
-            return null;
-        }
-        File[] files = dir.listFiles((d, name) -> name.endsWith(".bk.gz") || name.endsWith(".zip"));
-        if (files == null || files.length == 0) return null;
-        File latest = files[0];
-        for (File f : files) {
-            if (f.lastModified() > latest.lastModified()) latest = f;
-        }
-        return latest;
     }
 
     private void onRestore(View view) {
@@ -625,7 +372,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
             public void success() {
                 Notify.show(R.string.restore_success);
                 setOtherText();
-                initConfig();
             }
 
             @Override
@@ -639,51 +385,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         VodConfig.get().init().load(getCallback());
         LiveConfig.get().init().load();
         WallConfig.get().init().load();
-    }
-
-    private void onResetApp(View view) {
-        new MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(R.string.setting_reset_app)
-                .setMessage(R.string.setting_reset_app_confirm)
-                .setNegativeButton(R.string.dialog_negative, null)
-                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> resetApp())
-                .show();
-    }
-
-    private void resetApp() {
-        try {
-            requireActivity().getSharedPreferences(requireActivity().getPackageName() + "_preferences", 0).edit().clear().apply();
-            File prefsDir = new File(requireActivity().getApplicationInfo().dataDir, "shared_prefs");
-            deleteRecursive(prefsDir);
-            File dbDir = new File(requireActivity().getApplicationInfo().dataDir, "databases");
-            deleteRecursive(dbDir);
-            File filesDir = requireActivity().getFilesDir();
-            deleteRecursive(filesDir);
-            File cacheDir = requireActivity().getCacheDir();
-            deleteRecursive(cacheDir);
-            File externalCacheDir = requireActivity().getExternalCacheDir();
-            if (externalCacheDir != null) deleteRecursive(externalCacheDir);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        Intent intent = requireActivity().getPackageManager().getLaunchIntentForPackage(requireActivity().getPackageName());
-        if (intent != null) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-        }
-        System.exit(0);
-    }
-
-    private void deleteRecursive(File file) {
-        if (file == null || !file.exists()) return;
-        if (file.isDirectory()) {
-            File[] children = file.listFiles();
-            if (children != null) {
-                for (File child : children) deleteRecursive(child);
-            }
-        }
-        file.delete();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -712,14 +413,5 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     public void onDestroyView() {
         super.onDestroyView();
         EventBus.getDefault().unregister(this);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        getChildFragmentManager().clearFragmentResultListener("ai_config_result");
-        if (webDavDialog != null && webDavDialog.isShowing()) {
-            webDavDialog.dismiss();
-        }
     }
 }

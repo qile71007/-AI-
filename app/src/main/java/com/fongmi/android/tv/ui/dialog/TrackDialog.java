@@ -43,6 +43,7 @@ public final class TrackDialog extends BaseBottomSheetDialog implements TrackAda
     private final TrackAdapter adapter;
     private DialogTrackBinding binding;
     private PlayerManager player;
+    private boolean secondarySubtitle;
     private int type;
 
     public static TrackDialog create() {
@@ -70,15 +71,19 @@ public final class TrackDialog extends BaseBottomSheetDialog implements TrackAda
     }
 
     private boolean hasChoose() {
-        return type == C.TRACK_TYPE_TEXT && player.isVod();
+        return !secondarySubtitle && type == C.TRACK_TYPE_TEXT && player.isVod();
     }
 
     private boolean hasText() {
-        return type == C.TRACK_TYPE_TEXT && player.haveTrack(type);
+        return !secondarySubtitle && type == C.TRACK_TYPE_TEXT && player.haveTrack(type);
     }
 
     private boolean hasAudio() {
         return type == C.TRACK_TYPE_AUDIO && player.haveTrack(type);
+    }
+
+    private boolean hasSecondarySubtitle() {
+        return type == C.TRACK_TYPE_TEXT && player.supportsSecondarySubtitle() && player.haveTrack(type);
     }
 
     @Override
@@ -90,9 +95,25 @@ public final class TrackDialog extends BaseBottomSheetDialog implements TrackAda
     protected void initView() {
         binding.recycler.setItemAnimator(null);
         binding.recycler.setHasFixedSize(true);
-        binding.recycler.setAdapter(adapter.addAll(getTrack()));
+        binding.recycler.setAdapter(adapter);
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
-        binding.title.setText(ResUtil.getStringArray(R.array.select_track)[type - 1]);
+        refreshTrackList();
+    }
+
+    @Override
+    protected void initEvent() {
+        binding.secondary.setOnClickListener(this::onSecondary);
+        binding.offset.setOnClickListener(this::onOffset);
+        binding.choose.setOnClickListener(this::onChoose);
+        binding.subtitle.setOnClickListener(this::onSubtitle);
+    }
+
+    private void refreshTrackList() {
+        adapter.replaceAll(getTrack());
+        binding.title.setText(getTitle());
+        binding.secondary.setText(secondarySubtitle ? R.string.play_track_primary_subtitle : R.string.play_track_secondary_subtitle);
+        binding.secondary.setContentDescription(binding.secondary.getText());
+        binding.secondary.setVisibility(hasSecondarySubtitle() ? View.VISIBLE : View.GONE);
         binding.recycler.post(() -> binding.recycler.scrollToPosition(adapter.getSelected()));
         binding.recycler.setVisibility(adapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
         binding.offset.setVisibility(hasText() || hasAudio() ? View.VISIBLE : View.GONE);
@@ -100,11 +121,14 @@ public final class TrackDialog extends BaseBottomSheetDialog implements TrackAda
         binding.subtitle.setVisibility(hasText() ? View.VISIBLE : View.GONE);
     }
 
-    @Override
-    protected void initEvent() {
-        binding.offset.setOnClickListener(this::onOffset);
-        binding.choose.setOnClickListener(this::onChoose);
-        binding.subtitle.setOnClickListener(this::onSubtitle);
+    private String getTitle() {
+        if (secondarySubtitle) return getString(R.string.select_secondary_subtitle_track);
+        return ResUtil.getStringArray(R.array.select_track)[type - 1];
+    }
+
+    private void onSecondary(View view) {
+        secondarySubtitle = !secondarySubtitle;
+        refreshTrackList();
     }
 
     private void onOffset(View view) {
@@ -135,11 +159,13 @@ public final class TrackDialog extends BaseBottomSheetDialog implements TrackAda
             Tracks.Group trackGroup = groups.get(i);
             if (trackGroup.getType() != type) continue;
             for (int j = 0; j < trackGroup.length; j++) {
-                if (!trackGroup.isTrackSupported(j)) continue;
                 Format format = trackGroup.getTrackFormat(j);
                 String name = provider.getTrackName(format);
-                Track item = new Track(type, name, PlayerHelper.describeFormat(format));
-                item.setSelected(trackGroup.isTrackSelected(j));
+                // Keep the player's native track id with the visible item. Runtime track
+                // switching must target this stable id directly; the formatted description
+                // is only persisted for restoring a preference on the next playback.
+                Track item = new Track(type, name, PlayerHelper.describeFormat(format)).playerId(format.id);
+                item.setSelected(secondarySubtitle ? player.isSecondarySubtitleSelected(format) : trackGroup.isTrackSelected(j));
                 items.add(item);
             }
         }
@@ -147,13 +173,18 @@ public final class TrackDialog extends BaseBottomSheetDialog implements TrackAda
 
     private void addDisableTrack(List<Track> items) {
         if (type != C.TRACK_TYPE_TEXT) return;
-        Track item = Track.disabled(type, getString(R.string.play_track_disable_subtitle));
+        Track item = Track.disabled(type, getString(secondarySubtitle ? R.string.play_track_disable_secondary_subtitle : R.string.play_track_disable_subtitle));
         item.setSelected(items.stream().noneMatch(Track::isSelected));
         items.add(0, item);
     }
 
     @Override
     public void onItemClick(Track item) {
+        if (secondarySubtitle) {
+            player.setSecondarySubtitleTrack(item);
+            dismiss();
+            return;
+        }
         player.setTrack(Arrays.asList(item.key(player.getKey()).save()));
         dismiss();
     }

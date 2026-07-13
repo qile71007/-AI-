@@ -7,6 +7,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.databinding.AdapterRestoreBinding;
+import com.fongmi.android.tv.utils.AppBackup;
+import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Formatters;
 import com.github.catvod.utils.Path;
 
@@ -23,7 +25,7 @@ public class RestoreAdapter extends RecyclerView.Adapter<RestoreAdapter.ViewHold
     public RestoreAdapter(OnClickListener listener) {
         this.mItems = new ArrayList<>();
         this.listener = listener;
-        this.addAll();
+        this.reload();
     }
 
     public interface OnClickListener {
@@ -36,18 +38,22 @@ public class RestoreAdapter extends RecyclerView.Adapter<RestoreAdapter.ViewHold
     private void addAll() {
         File[] files = Path.tv().listFiles();
         if (files == null) files = new File[0];
-        for (File file : files) if (file.getName().startsWith("tv") && file.getName().endsWith(".bk.gz")) mItems.add(file);
+        for (File file : files) if (AppBackup.isBackup(file)) mItems.add(file);
         if (!mItems.isEmpty()) mItems.sort((f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
+    }
+
+    public int reload() {
+        mItems.clear();
+        addAll();
         notifyDataSetChanged();
+        return getItemCount();
     }
 
     public int remove(File item) {
         int position = mItems.indexOf(item);
         if (position == -1) return -1;
         Path.clear(item);
-        mItems.remove(position);
-        notifyItemRemoved(position);
-        return getItemCount();
+        return reload();
     }
 
     @Override
@@ -65,7 +71,7 @@ public class RestoreAdapter extends RecyclerView.Adapter<RestoreAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         File item = mItems.get(position);
         holder.binding.name.setText(item.getName());
-        holder.binding.time.setText(Formatters.TIME_SEC.format(Instant.ofEpochMilli(item.lastModified())));
+        holder.binding.time.setText(Formatters.TIME_SEC.format(Instant.ofEpochMilli(item.lastModified())) + " · " + FileUtil.byteCountToDisplaySize(item.length()));
         holder.binding.delete.setOnClickListener(v -> listener.onDeleteClick(item));
         holder.binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
     }

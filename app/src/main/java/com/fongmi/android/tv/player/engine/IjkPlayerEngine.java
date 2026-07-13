@@ -2,6 +2,8 @@ package com.fongmi.android.tv.player.engine;
 
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.MediaMetadata;
+import androidx.media3.common.C;
+import androidx.media3.common.Format;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.common.Tracks;
@@ -10,6 +12,7 @@ import androidx.media3.common.util.UnstableApi;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.player.exo.ExoUtil;
+import com.fongmi.android.tv.player.exo.TrackUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.crawler.SpiderDebug;
 
@@ -68,11 +71,17 @@ public class IjkPlayerEngine implements PlayerEngine {
 
     @Override
     public void start(PlaySpec spec) {
+        start(spec, true);
+    }
+
+    @Override
+    public void start(PlaySpec spec, boolean playWhenReady) {
         this.spec = spec;
-        SpiderDebug.log("player-engine", "start ijk decode=%d url=%s headers=%s", decode, spec.getUrl(), spec.getHeaders());
+        SpiderDebug.log("player-engine", "start ijk decode=%d play=%s url=%s headers=%s", decode, playWhenReady, spec.getUrl(), spec.getHeaders());
         player.setMediaItem(ExoUtil.getMediaItem(spec, decode));
         player.prepare();
-        player.play();
+        if (playWhenReady) player.play();
+        else player.pause();
     }
 
     @Override
@@ -106,12 +115,17 @@ public class IjkPlayerEngine implements PlayerEngine {
 
     @Override
     public boolean haveTrack(int type) {
-        return false;
+        return TrackUtil.count(getCurrentTracks(), type) > 0;
     }
 
     @Override
     public Tracks getCurrentTracks() {
-        return Tracks.EMPTY;
+        return player.getCurrentTracksSnapshot();
+    }
+
+    @Override
+    public Format getVideoFormat() {
+        return TrackUtil.selectedFormat(getCurrentTracks(), C.TRACK_TYPE_VIDEO);
     }
 
     @Override

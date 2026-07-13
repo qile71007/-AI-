@@ -35,14 +35,15 @@ jna = "5.18.1"
 jupnp = "3.0.4"
 juniversalchardet = "1.0.3"
 jgit = "6.10.0.202406032230-r"
+jsoup = "1.22.2"
 logger = "2.2.0"
 lottie = "6.7.1"
 material = "1.14.0"
 materialdesigncolors = "1.0.0"
-media3 = "1.10.1-fongmi"
+media3 = "1.11.0-alpha01-fongmi"
 nanohttpd = "2.3.1"
 newpipeextractor = "v0.26.1"
-nextlib = "1.10.0-0.12.1"
+nextlib = "1.10.0-0.12.1-fongmi-softload"
 okhttp = "5.4.0"
 permissionx = "1.8.1"
 quickjs = "3.2.3"
@@ -90,6 +91,7 @@ guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 jna = { group = "net.java.dev.jna", name = "jna", version.ref = "jna" }
 juniversalchardet = { group = "com.googlecode.juniversalchardet", name = "juniversalchardet", version.ref = "juniversalchardet" }
 jgit = { group = "org.eclipse.jgit", name = "org.eclipse.jgit", version.ref = "jgit" }
+jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 rtmp-client = { group = "com.github.mcxinyu", name = "LibRtmp-Client-for-Android", version.ref = "rtmpClient" }
 logger = { group = "com.orhanobut", name = "logger", version.ref = "logger" }
 lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }

@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.setting;
 
+import android.net.Uri;
 import android.text.TextUtils;
 
 import com.fongmi.android.tv.App;
@@ -11,6 +12,7 @@ import com.fongmi.android.tv.gson.ExtAdapter;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.crawler.SpiderDebug;
+import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Util;
 import com.google.gson.annotations.JsonAdapter;
@@ -32,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class CustomCspSetting {
 
@@ -49,6 +52,8 @@ public class CustomCspSetting {
     private static final List<String> ROOT_OTHER_FIELD_LIST = List.of("spider", "parses", "doh", "hosts", "headers", "rules", "ads", "flags", "wallpaper", "logo", "notice", "home", "parse", "urls", "msg");
     private static final Set<String> ROOT_OTHER_FIELDS = new HashSet<>(ROOT_OTHER_FIELD_LIST);
     private static final Set<String> ROOT_OTHER_STRING_FIELDS = Set.of("spider", "wallpaper", "logo", "notice", "home", "parse", "msg");
+    private static final Pattern PYTHON_LIVE_METHOD = Pattern.compile("(?m)^\\s*def\\s+liveContent\\s*\\(");
+    private static final Pattern JS_LIVE_METHOD = Pattern.compile("(?m)(?:^|[,{;]\\s*)(?:async\\s+)?liveContent\\s*(?:[:=]\\s*(?:async\\s*)?(?:function\\s*)?|\\()", Pattern.CASE_INSENSITIVE);
 
     public static Registry load() {
         String text = Path.read(registryFile());
@@ -85,7 +90,7 @@ public class CustomCspSetting {
         return registry.normalize();
     }
 
-    private static JsonElement parseFlexible(String text) {
+    public static JsonElement parseFlexible(String text) {
         String value = stripTrailingCommas(text);
         try {
             return JsonParser.parseString(value);
@@ -216,15 +221,82 @@ public class CustomCspSetting {
         if (object.has("kind") && object.get("kind").isJsonPrimitive()) return KIND_LIVE.equals(object.get("kind").getAsString());
         if (object.has("live") && object.get("live").isJsonObject()) return true;
         if (object.has("site") || object.has("key")) return false;
-        return object.has("url") || object.has("groups") || object.has("epg");
+        if (object.has("url") || object.has("groups") || object.has("epg")) return true;
+        String api = Json.safeString(object, "api");
+        return hasLocalLiveMethod(api) || hasLiveScriptConvention(api);
+    }
+
+    private static boolean hasLocalLiveMethod(String api) {
+        if (TextUtils.isEmpty(api)) return false;
+        try {
+            String value = api.trim();
+            String path;
+            if (value.startsWith("file://")) path = value.substring("file://".length());
+            else {
+                Uri uri = Uri.parse(value);
+                if (!isLocalHost(uri.getHost()) || uri.getPath() == null || !uri.getPath().startsWith("/file/")) return false;
+                path = uri.getPath().substring("/file/".length());
+            }
+            File file = Path.local(path);
+            if (!file.isFile()) return false;
+            String script = Path.read(file);
+            boolean live = hasLiveMethod(api, script);
+            if (live) SpiderDebug.log("custom-csp", "recognized live spider by method api=%s", api);
+            return live;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean isLocalHost(String host) {
+        return "127.0.0.1".equals(host) || "localhost".equalsIgnoreCase(host);
+    }
+
+    public static boolean isRemoteScript(String api) {
+        if (TextUtils.isEmpty(api)) return false;
+        try {
+            Uri uri = Uri.parse(api.trim());
+            String scheme = uri.getScheme();
+            String path = uri.getPath();
+            if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) || TextUtils.isEmpty(path)) return false;
+            String lower = path.toLowerCase(Locale.ROOT);
+            return lower.endsWith(".py") || lower.endsWith(".js");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static boolean hasLiveMethod(String api, String script) {
+        if (TextUtils.isEmpty(api) || TextUtils.isEmpty(script)) return false;
+        String path;
+        try {
+            path = Uri.parse(api.trim()).getPath();
+        } catch (Exception e) {
+            path = api;
+        }
+        String lower = TextUtils.isEmpty(path) ? api.toLowerCase(Locale.ROOT) : path.toLowerCase(Locale.ROOT);
+        if (lower.endsWith(".py")) return PYTHON_LIVE_METHOD.matcher(script).find();
+        if (lower.endsWith(".js")) return JS_LIVE_METHOD.matcher(script).find();
+        return false;
+    }
+
+    private static boolean hasLiveScriptConvention(String api) {
+        if (TextUtils.isEmpty(api)) return false;
+        String value = api.trim().replace('\\', '/').toLowerCase(Locale.ROOT);
+        boolean script = value.endsWith(".py") || value.endsWith(".js");
+        boolean liveDirectory = value.contains("/py_live/") || value.contains("/js_live/") || value.contains("/live_spider/");
+        if (script && liveDirectory) SpiderDebug.log("custom-csp", "recognized live spider by path convention api=%s", api);
+        return script && liveDirectory;
     }
 
     public static void save(Registry registry) {
         ensureFileAccess();
+        Set<String> before = itemIds(load());
         File file = registryFile();
         String text = App.gson().toJson(registry.normalize());
         Path.write(file, text.getBytes(StandardCharsets.UTF_8));
         ensureWritten(file, text);
+        cleanupRemovedFiles(before, itemIds(registry));
     }
 
     public static void writePage(String id, String code) {
@@ -240,6 +312,48 @@ public class CustomCspSetting {
         File file = file(id, "index.html");
         Path.copy(source, file);
         if (!source.exists() || !file.exists() || !Arrays.equals(Path.readToByte(source), Path.readToByte(file))) throw new IllegalStateException(App.get().getString(R.string.setting_custom_csp_save_failed, file.getAbsolutePath()));
+    }
+
+    public static String copyFile(File source, String id) {
+        ensureFileAccess();
+        if (source == null || !source.isFile()) throw new IllegalStateException(App.get().getString(R.string.setting_custom_csp_save_failed, ""));
+        File file = file(id, source.getName());
+        try {
+            if (!source.getCanonicalPath().equals(file.getCanonicalPath())) Path.copy(source, file);
+        } catch (Exception e) {
+            Path.copy(source, file);
+        }
+        if (!file.exists() || !Arrays.equals(Path.readToByte(source), Path.readToByte(file))) throw new IllegalStateException(App.get().getString(R.string.setting_custom_csp_save_failed, file.getAbsolutePath()));
+        return localUrl(id, source.getName());
+    }
+
+    public static void deleteFiles(String id) {
+        if (TextUtils.isEmpty(id)) return;
+        try {
+            File root = dir().getCanonicalFile();
+            File target = new File(root, id).getCanonicalFile();
+            if (!isInside(root, target)) return;
+            Path.clear(target);
+        } catch (Throwable e) {
+            SpiderDebug.log("custom-csp", "delete files failed id=%s error=%s", id, e.toString());
+        }
+    }
+
+    private static boolean isInside(File root, File target) throws Exception {
+        String rootPath = root.getCanonicalPath();
+        String targetPath = target.getCanonicalPath();
+        return targetPath.equals(rootPath) || targetPath.startsWith(rootPath + File.separator);
+    }
+
+    private static Set<String> itemIds(Registry registry) {
+        Set<String> ids = new HashSet<>();
+        if (registry == null) return ids;
+        for (Item item : registry.getItems()) if (item != null && !TextUtils.isEmpty(item.getId())) ids.add(item.getId());
+        return ids;
+    }
+
+    private static void cleanupRemovedFiles(Set<String> before, Set<String> after) {
+        for (String id : before) if (!after.contains(id)) deleteFiles(id);
     }
 
     private static void ensureFileAccess() {
@@ -651,7 +765,7 @@ public class CustomCspSetting {
 
         public boolean isValid() {
             if (isOther()) return other != null && other.size() > 0;
-            if (isLive()) return !getName().isEmpty() && (!getUrl().isEmpty() || hasLiveGroups());
+            if (isLive()) return !getName().isEmpty() && (!getUrl().isEmpty() || !getApi().isEmpty() || hasLiveGroups());
             return isWebHome() ? !getHomePage().isEmpty() : !getApi().isEmpty();
         }
 

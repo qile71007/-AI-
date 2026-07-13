@@ -1,16 +1,24 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.text.Editable;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
@@ -33,19 +41,17 @@ import java.util.List;
 
 public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickListener {
 
-    private static String selectedGroup = "";
-
     private DialogSiteBinding binding;
     private SiteListener listener;
     private SiteAdapter adapter;
+    private ItemTouchHelper sortTouchHelper;
     private SpaceItemDecoration itemDecoration;
     private List<String> groups;
+    private String selectedGroup = "";
     private boolean search;
     private boolean change;
     private boolean block;
     private int columnCount = 1;
-    // 新增：缓存当前选中的站点
-    private Site mCurrentSite;
 
     public static SiteDialog create() {
         return new SiteDialog();
@@ -73,7 +79,7 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
 
     @Override
     protected MaterialAlertDialogBuilder getBuilder() {
-        return builder().setView(getBinding().getRoot());
+        return new MaterialAlertDialogBuilder(requireActivity(), R.style.ThemeOverlay_WebHTV_LightDialog).setView(getBinding().getRoot());
     }
 
     @Override
@@ -87,11 +93,32 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         filter();
         binding.recycler.setItemAnimator(null);
         binding.recycler.setHasFixedSize(true);
+        attachSortTouchHelper();
+        binding.recycler.post(() -> binding.recycler.scrollToPosition(0));
+    }
 
-        // 【修改】获取当前选中的站点并缓存
-        mCurrentSite = VodConfig.get().getHome();
-        // 滚动到当前选中站点位置（延迟执行以确保 Adapter 已填充数据）
-        binding.recycler.post(() -> scrollToCurrentSite());
+    private void attachSortTouchHelper() {
+        sortTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, 0) {
+            @Override
+            public boolean isLongPressDragEnabled() {
+                return false;
+            }
+
+            @Override
+            public boolean isItemViewSwipeEnabled() {
+                return false;
+            }
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder source, @NonNull RecyclerView.ViewHolder target) {
+                return adapter.drag(source.getBindingAdapterPosition(), target.getBindingAdapterPosition());
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+            }
+        });
+        sortTouchHelper.attachToRecyclerView(binding.recycler);
     }
 
     @Override
@@ -121,8 +148,6 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         setGroupView();
         filter();
         binding.recycler.scrollToPosition(0);
-        // 过滤后重新定位当前站点
-        binding.recycler.post(() -> scrollToCurrentSite());
     }
 
     private void onColumnToggle(View view) {
@@ -174,9 +199,9 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         button.setInsetTop(0);
         button.setInsetBottom(0);
         button.setPadding(ResUtil.dp2px(14), ResUtil.dp2px(6), ResUtil.dp2px(14), ResUtil.dp2px(6));
-        button.setTextColor(ContextCompat.getColorStateList(requireContext(), R.color.selector_control));
-        button.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.selector_button));
-        button.setStrokeColor(ContextCompat.getColorStateList(requireContext(), R.color.selector_stroke));
+        button.setTextColor(ContextCompat.getColorStateList(requireContext(), R.color.dialog_outlined_button_text));
+        button.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.dialog_outlined_button_bg));
+        button.setStrokeColor(ContextCompat.getColorStateList(requireContext(), R.color.dialog_outlined_button_stroke));
         button.setOnClickListener(v -> onGroupClick(group, button));
         return button;
     }
@@ -187,8 +212,6 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         filter();
         binding.recycler.scrollToPosition(0);
         if (!TextUtils.isEmpty(selectedGroup)) centerGroup(view);
-        // 分组过滤后重新定位当前站点
-        binding.recycler.post(() -> scrollToCurrentSite());
     }
 
     private void updateGroupView() {
@@ -206,28 +229,6 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
 
     private void filter() {
         adapter.filter(selectedGroup, binding.keyword.getText().toString());
-    }
-
-    // ==================== 新增：滚动到当前选中站点 ====================
-    private void scrollToCurrentSite() {
-        if (mCurrentSite == null || adapter == null || adapter.getItemCount() == 0) return;
-        // 获取适配器当前的站点列表
-        List<Site> sites = adapter.getItems();
-        if (sites == null || sites.isEmpty()) return;
-        
-        int position = -1;
-        String currentKey = mCurrentSite.getKey();
-        for (int i = 0; i < sites.size(); i++) {
-            Site site = sites.get(i);
-            if (site != null && currentKey.equals(site.getKey())) {
-                position = i;
-                break;
-            }
-        }
-        if (position != -1) {
-            // 平滑滚动到目标位置
-            binding.recycler.smoothScrollToPosition(position);
-        }
     }
 
     @Override
@@ -254,6 +255,14 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     }
 
     @Override
+    public boolean onTextLongClick(SiteAdapter.ViewHolder holder) {
+        if (sortTouchHelper == null || holder.getBindingAdapterPosition() == RecyclerView.NO_POSITION) return false;
+        Util.hideKeyboard(binding.keyword);
+        sortTouchHelper.startDrag(holder);
+        return true;
+    }
+
+    @Override
     public boolean onSearchLongClick(Site item) {
         boolean result = !item.isSearchable();
         adapter.getItems().forEach(site -> site.setSearchable(result).save());
@@ -273,6 +282,22 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     public void onStart() {
         super.onStart();
         if (adapter.getItemCount() == 0 && SiteBlockSetting.filter(VodConfig.get().getSites(), true).isEmpty()) dismiss();
-        else if (ResUtil.isLand(requireContext())) setWidth(0.5f);
+        else configureWindow();
+    }
+
+    private void configureWindow() {
+        if (getDialog() == null || getDialog().getWindow() == null) return;
+        Window window = getDialog().getWindow();
+        WindowManager.LayoutParams params = window.getAttributes();
+        boolean land = ResUtil.isLand(requireContext());
+        int width = Math.min(Math.round(ResUtil.getScreenWidth(requireContext()) * (land ? 0.5f : 0.92f)), ResUtil.dp2px(620));
+        params.width = Math.max(width, ResUtil.dp2px(320));
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.gravity = Gravity.CENTER;
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        window.clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+        window.getDecorView().setPadding(0, 0, 0, 0);
+        window.setAttributes(params);
+        window.setLayout(params.width, WindowManager.LayoutParams.WRAP_CONTENT);
     }
 }

@@ -24,6 +24,9 @@
     <string name="keep">收藏</string>
     <string name="keep_add">已加入收藏</string>
     <string name="keep_del">已取消收藏</string>
+    <string name="exit_confirm_title">确定退出应用？</string>
+    <string name="exit_confirm_message">当前页面将关闭；如果正在播放，会继续留在后台。</string>
+    <string name="exit_confirm_positive">确认退出</string>
 
     <!-- Play -->
     <string name="play">播放</string>
@@ -40,6 +43,15 @@
     <string name="play_speed">1.00</string>
     <string name="play_reset">刷新</string>
     <string name="play_decode">硬解</string>
+    <string name="play_params">播放参数</string>
+    <string name="codec_capability_short">硬解能力</string>
+    <string name="codec_capability_title">硬解能力</string>
+    <string name="codec_capability_search">搜索 codec、mime、decoder、分辨率、音频...</string>
+    <string name="codec_capability_current">当前媒体</string>
+    <string name="codec_capability_all">全部</string>
+    <string name="codec_capability_video">视频</string>
+    <string name="codec_capability_audio">音频</string>
+    <string name="codec_capability_copy">复制</string>
     <string name="play_timer">定时</string>
     <string name="play_title">章节</string>
     <string name="play_scale">原始</string>
@@ -58,6 +70,9 @@
     <string name="play_track_audio">音轨</string>
     <string name="play_track_video">视轨</string>
     <string name="play_track_disable_subtitle">关闭字幕</string>
+    <string name="play_track_disable_secondary_subtitle">关闭第二字幕</string>
+    <string name="play_track_secondary_subtitle">第二字幕</string>
+    <string name="play_track_primary_subtitle">主字幕</string>
     <string name="offset_text">字幕偏移</string>
     <string name="offset_audio">音轨偏移</string>
     <string name="offset_setting">偏移设置</string>
@@ -134,6 +149,7 @@
     <string name="setting_vod">点播</string>
     <string name="setting_live">直播</string>
     <string name="setting_wall">壁纸</string>
+    <string name="setting_config_dialog_title">%1$s%2$s</string>
     <string name="setting_builtin_wall">内置壁纸</string>
     <string name="setting_player">播放设置</string>
     <string name="setting_danmaku">弹幕设置</string>
@@ -357,7 +373,13 @@
     <string name="site_health_clear_done">站点健康记录已清空</string>
     <string name="setting_web_home_extension">WebHome 扩展</string>
     <string name="setting_web_home_fullscreen">WebHome 主页全屏</string>
-    <string name="setting_csp_warmup">CSP init 预热</string>
+    <string name="setting_csp_warmup">CSP预热</string>
+    <string name="setting_csp_warmup_default">默认</string>
+    <string name="setting_csp_warmup_custom">自定义</string>
+    <string name="setting_csp_warmup_custom_count">自定义 · %1$d 个</string>
+    <string name="setting_csp_warmup_select_site">选择 CSP 站点</string>
+    <string name="setting_csp_warmup_no_site">没有可用的 Jar CSP 站点</string>
+    <string name="setting_csp_warmup_select_required">请至少选择一个 CSP 站点</string>
     <string name="setting_playback_artwork_wall">播放界面剧照</string>
     <string name="setting_viewing_record_sync">观影记录同步</string>
     <string name="viewing_record_sync_entry_summary">%1$s · 远端 %2$d/%3$d · Webhook %4$d/%5$d</string>
@@ -564,6 +586,7 @@
     <string name="setting_custom_csp_extensions_toggle">扩展</string>
     <string name="setting_custom_csp_extensions">扩展 URL / JSON</string>
     <string name="setting_custom_csp_extensions_file">文件</string>
+    <string name="setting_custom_csp_files">文件</string>
     <string name="setting_custom_csp_extensions_example">https://example.com/site.js</string>
     <string name="setting_custom_csp_extensions_invalid">extensions JSON 格式无效</string>
     <string name="setting_custom_csp_permission_required">站点注入需要文件访问权限。</string>
@@ -641,6 +664,7 @@
     <string name="setting_theme_color">主题色彩</string>
     <string name="setting_auto">自动</string>
     <string name="setting_custom">自定义</string>
+    <string name="setting_language">语言</string>
     <string name="setting_size">图片尺寸</string>
     <string name="setting_ui_scale">界面大小</string>
     <string name="setting_doh">DoH</string>
@@ -663,7 +687,7 @@
     <string name="about_title">关于 WebHomeTV</string>
     <string name="about_free_badge">完全免费</string>
     <string name="about_version">版本 %1$s · %2$s/%3$s</string>
-    <string name="about_disclaimer">WebHomeTV 是基于开源生态二次开发的技术学习与研究项目，软件本体完全免费，不提供任何付费服务、影视内容、直播源、接口源、资源存储或内容分发能力。\n\nAI助手功能支持4款大模型，① 豆包火山，② 通义千问，③ 智谱清言，④ DeepSeek。\n一键转到浏览器申请免费Key密钥，添加Key密钥后与AI助手对话获取配置，获取配置后一键加载到App中使用。\n\n重要提示说明：所有AI助手提供的配置均来源AI模型搜索互联网上获取，非本App提供。本AI助手功能仅用于学习代码和演示，不可用于私自商用获利，如已使用AI助手就证明已看到本说明，如有私自使用获的利益者与AI助手无关，不承担任何责任，现已说明，请尽快卸载停止使用。\n\n本软件仅供技术学习、研究和个人测试使用，请在下载、安装或试用后 24 小时内自行卸载。继续使用本软件所产生的一切行为及后果，由使用者自行承担。\n\n本软件不内置、不售卖、不传播任何影视资源，不对用户自行添加的接口、站源、插件、脚本、链接、网盘资源或第三方服务内容负责。使用者应遵守所在地法律法规，尊重版权方和内容提供方的合法权益，不得将本软件用于任何侵权、盗版、传播非法内容或其他违法违规用途。\n\n严禁任何个人或组织以本软件名义进行售卖、引流、收费维护、会员服务、广告变现、盒子预装、电视盒子捆绑销售或其他任何形式的获益行为。对于将本软件内置于电视盒子、机顶盒、付费套餐或商业服务中进行销售、推广的行为，项目方明确反对并予以谴责。\n\n如你不同意以上声明，请立即停止使用并卸载本软件。</string>
+    <string name="about_disclaimer">WebHomeTV 是基于开源生态二次开发的技术学习与研究项目，软件本体完全免费，不提供任何付费服务、影视内容、直播源、接口源、资源存储或内容分发能力。\n\n本软件仅供技术学习、研究和个人测试使用，请在下载、安装或试用后 24 小时内自行卸载。继续使用本软件所产生的一切行为及后果，由使用者自行承担。\n\n本软件不内置、不售卖、不传播任何影视资源，不对用户自行添加的接口、站源、插件、脚本、链接、网盘资源或第三方服务内容负责。使用者应遵守所在地法律法规，尊重版权方和内容提供方的合法权益，不得将本软件用于任何侵权、盗版、传播非法内容或其他违法违规用途。\n\n严禁任何个人或组织以本软件名义进行售卖、引流、收费维护、会员服务、广告变现、盒子预装、电视盒子捆绑销售或其他任何形式的获益行为。对于将本软件内置于电视盒子、机顶盒、付费套餐或商业服务中进行销售、推广的行为，项目方明确反对并予以谴责。\n\n如你不同意以上声明，请立即停止使用并卸载本软件。</string>
     <string name="about_check_update">检查更新</string>
     <string name="about_acknowledge">我已知悉</string>
 
@@ -777,17 +801,43 @@
     <string name="player_render">渲染方式</string>
     <string name="player_button_config">播放器按钮</string>
     <string name="player_button_config_summary">显示 %1$d/%2$d</string>
+    <string name="player_pad_live">平板直播</string>
     <string name="player_button_up">上移</string>
     <string name="player_button_down">下移</string>
     <string name="play_episodes">选集</string>
-    <string name="player_exo_4k_compat">EXO增强模式</string>
+    <string name="player_exo_4k_compat">播放性能</string>
+    <string name="player_performance">播放性能</string>
+    <string name="player_performance_recommended">推荐</string>
+    <string name="player_performance_compatible">兼容</string>
+    <string name="player_performance_lightweight">轻量</string>
+    <string name="player_performance_help">说明</string>
+    <string name="player_performance_help_title">播放性能参数说明</string>
+    <string name="player_performance_help_close">关闭</string>
     <string name="player_kernel">播放器内核</string>
     <string name="player_scale">缩放比例</string>
     <string name="player_lut">LUT 调色</string>
+    <string name="player_mpv_config">MPV 配置管理</string>
+    <string name="player_mpv_render">MPV 渲染后端</string>
+    <string name="mpv_render_native_unavailable">当前不可用</string>
+    <string name="mpv_config_target">%1$s · %2$s</string>
+    <string name="mpv_config_default">默认</string>
+    <string name="mpv_config_local">本地 mpv.conf</string>
+    <string name="mpv_config_url">URL mpv.conf</string>
+    <string name="mpv_config_name_hint">名称（可选）</string>
+    <string name="mpv_config_history">历史</string>
+    <string name="mpv_config_history_empty">暂无 MPV 配置历史</string>
+    <string name="mpv_config_script_hint">脚本 URL 或选择本地脚本</string>
+    <string name="mpv_config_scripts_count">%1$d 个脚本</string>
+    <string name="mpv_config_saved">MPV 配置已保存，重新进入播放后生效</string>
+    <string name="mpv_config_empty">MPV 配置为空</string>
+    <string name="mpv_config_file_invalid">mpv.conf 文件无效</string>
+    <string name="mpv_config_url_invalid">mpv.conf URL 无效</string>
+    <string name="mpv_config_download_empty">下载到的 mpv.conf 为空</string>
     <string name="player_libass">字幕渲染</string>
     <string name="player_caption">字幕样式</string>
     <string name="player_background">后台播放</string>
     <string name="player_audio_decode">音频软解</string>
+    <string name="player_audio_passthrough">音频直通</string>
     <string name="player_video_decode">视频软解</string>
     <string name="player_aac_track">AAC优先</string>
     <string name="player_adblock">智能去广</string>
@@ -802,6 +852,7 @@
     <string name="player_preload_size">预载容量</string>
     <string name="player_preload_time">预载时间</string>
     <string name="player_preload_time_value">%1$d 秒</string>
+    <string name="player_auto_play">自动播放</string>
     <string name="player_auto_change">自动换源</string>
     <string name="player_speed">长按倍速</string>
     <string name="player_ua">User-Agent</string>
@@ -875,6 +926,15 @@
     <string name="error_play_parse">播放地址解析失败</string>
     <string name="error_play_drm">此设备不支持所需的 DRM scheme</string>
     <string name="error_play_url">播放地址加载失败</string>
+    <string name="error_play_mpv_hls_unsupported">MPV 播放此 HLS 失败，请手动切换播放器或更换线路</string>
+    <string name="error_play_mpv_load_failed">MPV 加载媒体失败，请检查网络或更换线路</string>
+    <string name="error_play_mpv_network_failed">MPV 网络加载失败，请检查网络、请求头或更换线路</string>
+    <string name="error_play_mpv_drm_unsupported">MPV 不支持此 DRM 保护媒体，请手动切换播放器或更换线路</string>
+    <string name="error_play_mpv_unexpected_image">MPV 加载到了图片而不是视频，请更换线路</string>
+    <string name="error_play_mpv_no_av">MPV 没有读取到可播放的音视频数据</string>
+    <string name="error_play_mpv_invalid_data">MPV 识别到异常媒体数据，请更换线路或手动切换播放器</string>
+    <string name="error_play_mpv_decode_failed">MPV 解码失败，请尝试切换软硬解或更换线路</string>
+    <string name="error_play_mpv_video_output">MPV 视频输出初始化失败，请尝试切换解码或重新进入播放</string>
     <string name="error_play_flag">暂无线路数据</string>
     <string name="error_play_timeout">连接超时</string>
     <string name="error_play_tvbus">错误代码：<xliff:g name="name">%s</xliff:g></string>
@@ -961,6 +1021,11 @@
     <string-array name="select_player_kernel">
         <item>EXO</item>
         <item>IJK</item>
+        <item>MPV</item>
+    </string-array>
+    <string-array name="select_mpv_render">
+        <item>OpenGL</item>
+        <item>Vulkan</item>
     </string-array>
     <string-array name="select_buffer_bytes">
         <item>自动</item>
@@ -998,6 +1063,12 @@
         <item>更小</item>
     </string-array>
 
+    <string-array name="select_language">
+        <item>跟随系统</item>
+        <item>简体中文</item>
+        <item>繁体中文</item>
+    </string-array>
+
     <string-array name="select_scale">
         <item>原始</item>
         <item>16:9</item>
@@ -1031,22 +1102,6 @@
         <item>选择视轨</item>
         <item>选择字幕</item>
     </string-array>
-    
-    <!-- Reset App -->
-<string name="setting_reset_app">重置应用</string>
-<string name="setting_reset_app_confirm">确认重置应用吗？这将清除所有数据和设置，应用将重启。</string>
+    <string name="select_secondary_subtitle_track">选择第二字幕</string>
 
-<string name="download">下载</string>
-
-    <string-array name="model_names">
-        <item>豆包火山</item>
-        <item>通义千问</item>
-        <item>智谱清言</item>
-        <item>DeepSeek</item>
-    </string-array>
-
-<string name="add_config">添加配置</string>
-
-<string name="nav_chat">云配置</string>
-    
 </resources>

@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
@@ -8,7 +9,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.ViewGroup;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 
 import com.fongmi.android.tv.BuildConfig;
@@ -16,7 +16,6 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.DialogAboutBinding;
 import com.fongmi.android.tv.utils.AppVersion;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public final class AboutDialog {
 
@@ -28,21 +27,16 @@ public final class AboutDialog {
         binding.version.setText(activity.getString(R.string.about_version, AppVersion.fullName(), BuildConfig.FLAVOR_mode, BuildConfig.FLAVOR_abi));
         configureContentHeight(activity, binding);
 
-        AlertDialog dialog = new MaterialAlertDialogBuilder(activity, R.style.ThemeOverlay_WebHTV_LightDialog)
-                .setView(binding.getRoot())
-                .create();
+        Dialog dialog = LightDialog.create(activity, null, binding.getRoot());
         binding.confirm.setOnClickListener(v -> dialog.dismiss());
         binding.checkUpdate.setOnClickListener(v -> {
             dialog.dismiss();
             if (updateAction != null) updateAction.run();
         });
         dialog.setCanceledOnTouchOutside(false);
-        boolean configured = configureWindow(activity, dialog);
-        dialog.setOnShowListener(d -> {
-            if (!configured) configureWindow(activity, dialog);
-            binding.confirm.requestFocus();
-        });
         dialog.show();
+        configureWindow(activity, dialog);
+        binding.confirm.requestFocus();
     }
 
     private static void configureContentHeight(FragmentActivity activity, DialogAboutBinding binding) {
@@ -54,7 +48,7 @@ public final class AboutDialog {
         binding.contentScroll.setLayoutParams(params);
     }
 
-    private static boolean configureWindow(FragmentActivity activity, AlertDialog dialog) {
+    private static boolean configureWindow(FragmentActivity activity, Dialog dialog) {
         Window window = dialog.getWindow();
         if (window == null) return false;
         WindowManager.LayoutParams params = window.getAttributes();

@@ -24,21 +24,28 @@ public class PlaySpec {
     private List<Danmaku> danmakus;
     private MediaMetadata metadata;
     private List<Sub> subs;
+    private Result parseResult;
     private String format;
     private String key;
     private String url;
     private Drm drm;
+    private boolean parseSource;
+    private boolean parseUseParse;
 
     public static PlaySpec from(String key, String url, Map<String, String> headers, MediaMetadata metadata) {
         return new PlaySpec(key, url, headers, null, null, null, null, metadata);
     }
 
     public static PlaySpec from(Result result, String key, MediaMetadata metadata) {
-        return new PlaySpec(key, result.getRealUrl(), result.getHeader(), result.getFormat(), result.getDrm(), result.getSubs(), result.getDanmaku(), metadata);
+        return new PlaySpec(key, result.getRealUrl(), result.getHeader(), result.getFormat(), result.getDrm(), result.getSubs(), result.getDanmaku(), metadata).setSource(result, false, false);
     }
 
     public static PlaySpec fromParse(Result result, String key, MediaMetadata metadata) {
-        return new PlaySpec(key, null, null, result.getFormat(), result.getDrm(), result.getSubs(), result.getDanmaku(), metadata);
+        return fromParse(result, key, metadata, false);
+    }
+
+    public static PlaySpec fromParse(Result result, String key, MediaMetadata metadata, boolean useParse) {
+        return new PlaySpec(key, null, null, result.getFormat(), result.getDrm(), result.getSubs(), result.getDanmaku(), metadata).setSource(result, true, useParse);
     }
 
     private PlaySpec(String key, String url, Map<String, String> headers, String format, Drm drm, List<Sub> subs, List<Danmaku> danmakus, MediaMetadata metadata) {
@@ -88,6 +95,10 @@ public class PlaySpec {
         this.format = format;
     }
 
+    public PlaySpec copyWithFormat(String format) {
+        return new PlaySpec(key, url, headers, format, drm, subs, danmakus, metadata).setSource(parseResult, parseSource, parseUseParse);
+    }
+
     public Drm getDrm() {
         return drm;
     }
@@ -106,6 +117,29 @@ public class PlaySpec {
 
     public void setMetadata(MediaMetadata metadata) {
         this.metadata = metadata;
+    }
+
+    public Result getParseResult() {
+        return parseResult;
+    }
+
+    public boolean isParseUseParse() {
+        return parseUseParse;
+    }
+
+    public boolean isParseSource() {
+        return parseSource;
+    }
+
+    public boolean canReparse() {
+        return parseResult != null;
+    }
+
+    private PlaySpec setSource(Result result, boolean parseSource, boolean useParse) {
+        this.parseResult = result;
+        this.parseSource = parseSource;
+        this.parseUseParse = useParse;
+        return this;
     }
 
     public PlaySpec checkUa() {
