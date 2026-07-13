@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Collect;
@@ -37,6 +38,7 @@ import com.fongmi.android.tv.ui.adapter.CollectAdapter;
 import com.fongmi.android.tv.ui.adapter.SearchAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
+import com.fongmi.android.tv.utils.MobileWindow;
 import com.fongmi.android.tv.utils.ResUtil;
 
 import java.util.ArrayList;
@@ -46,7 +48,6 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
 
     private static final int GRID_ITEM_MARGIN_DP = 4;
     private static final int GRID_TOP_PADDING_DP = 8;
-    private static final int RESULT_END_PADDING_DP = 8;
 
     private FragmentCollectBinding mBinding;
     private CollectAdapter mCollectAdapter;
@@ -134,6 +135,7 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
         mBinding.recycler.addOnScrollListener(mScroller);
         mBinding.recycler.setAdapter(mSearchAdapter = new SearchAdapter(this));
         setResultLayout(false);
+        mBinding.recycler.post(() -> setResultLayout(false));
     }
 
     private void setViewModel() {
@@ -181,19 +183,38 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
         return getCount() == 2;
     }
 
+    private int getSpanCount() {
+        if (!isGrid()) return 1;
+        if (!MobileWindow.isWide(requireActivity())) return 2;
+        int column = Product.getColumn(requireActivity());
+        int targetWidth = Product.getSpec(requireActivity(), column)[0];
+        int available = getResultWidth() - getResultPadding();
+        int span = targetWidth > 0 ? available / targetWidth : 2;
+        return Math.max(2, Math.min(column, span));
+    }
+
+    private int getResultWidth() {
+        int width = mBinding.recycler.getWidth();
+        return width > 0 ? width : ResUtil.getScreenWidth(requireActivity()) - collectWidth;
+    }
+
+    private int getResultPadding() {
+        return mBinding.recycler.getPaddingStart() + mBinding.recycler.getPaddingEnd();
+    }
+
     private int[] getGridSize() {
-        int span = getCount();
+        int span = getSpanCount();
         int margin = ResUtil.dp2px(GRID_ITEM_MARGIN_DP);
-        int space = ResUtil.dp2px(RESULT_END_PADDING_DP) + margin * 2 * span;
-        int width = (ResUtil.getScreenWidth(requireActivity()) - collectWidth - space) / span;
+        int space = getResultPadding() + margin * 2 * span;
+        int width = (getResultWidth() - space) / span;
         width = Math.max(ResUtil.dp2px(96), width);
         return new int[]{width, (int) (width / 0.75f), margin};
     }
 
     private void setResultLayout(boolean scrollTop) {
         setWidth();
-        int count = getCount();
-        ((GridLayoutManager) (mBinding.recycler.getLayoutManager())).setSpanCount(count);
+        int span = getSpanCount();
+        ((GridLayoutManager) (mBinding.recycler.getLayoutManager())).setSpanCount(span);
         setResultPadding();
         mSearchAdapter.setGrid(isGrid(), getGridSize());
         if (scrollTop) mBinding.recycler.scrollToPosition(0);

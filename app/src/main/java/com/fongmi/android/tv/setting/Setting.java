@@ -9,6 +9,7 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.LocaleList;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 
@@ -20,9 +21,29 @@ import com.fongmi.android.tv.bean.Update;
 import com.fongmi.android.tv.utils.WebViewUtil;
 import com.github.catvod.crawler.DebugLogStore;
 import com.github.catvod.crawler.SpiderDebug;
+import com.github.catvod.utils.Trans;
 import com.github.catvod.utils.Prefers;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
 
 public class Setting {
+
+    private static final Type STRING_LIST = new TypeToken<List<String>>() {}.getType();
+
+    public static final int LANGUAGE_FOLLOW_SYSTEM = 0;
+    public static final int LANGUAGE_SIMPLIFIED = 1;
+    public static final int LANGUAGE_TRADITIONAL = 2;
+    private static final int[] LANGUAGE_OPTIONS = {LANGUAGE_FOLLOW_SYSTEM, LANGUAGE_SIMPLIFIED, LANGUAGE_TRADITIONAL};
+
+    public static final int CSP_WARMUP_DISABLED = 0;
+    public static final int CSP_WARMUP_DEFAULT = 1;
+    public static final int CSP_WARMUP_CUSTOM = 2;
 
     public static final int UI_SCALE_FOLLOW_SYSTEM = 0;
     public static final int UI_SCALE_STANDARD = 1;
@@ -131,10 +152,9 @@ public class Setting {
         Prefers.put("ua", ua);
     }
 
-    // ★★★ 修改默认壁纸：从 WALL_DREAM_PURPLE 改为 WALL_SKY_MINT ★★★
     public static int getWall() {
-        int wall = Prefers.getInt("wall", WALL_SKY_MINT);
-        return wall == WALL_GREEN || isLegacyColorWall(wall) ? WALL_SKY_MINT : wall;
+        int wall = Prefers.getInt("wall", WALL_DREAM_PURPLE);
+        return wall == WALL_GREEN || isLegacyColorWall(wall) ? WALL_DREAM_PURPLE : wall;
     }
 
     public static void putWall(int wall) {
@@ -243,7 +263,7 @@ public class Setting {
         if (wall == WALL_MIDNIGHT_MOON) return "午夜月影";
         if (wall == WALL_CYAN_CRYSTAL) return "水晶青蓝";
         if (wall == WALL_LAVENDER_CRYSTAL) return "薰衣水晶";
-        return "雾青薄荷";
+        return "梦幻紫霞";
     }
 
     public static String getWallDesc(String desc) {
@@ -328,6 +348,57 @@ public class Setting {
 
     public static void putIncognito(boolean incognito) {
         Prefers.put("incognito", incognito);
+    }
+
+    public static int getLanguage() {
+        int language = Prefers.getInt("language", LANGUAGE_FOLLOW_SYSTEM);
+        return isLanguage(language) ? language : LANGUAGE_FOLLOW_SYSTEM;
+    }
+
+    public static void putLanguage(int language) {
+        int value = isLanguage(language) ? language : LANGUAGE_FOLLOW_SYSTEM;
+        Prefers.put("language", value);
+        applyLanguage(value);
+    }
+
+    public static void applyLanguage() {
+        applyLanguage(getLanguage());
+    }
+
+    public static int getLanguageIndex() {
+        int language = getLanguage();
+        for (int i = 0; i < LANGUAGE_OPTIONS.length; i++) if (LANGUAGE_OPTIONS[i] == language) return i;
+        return LANGUAGE_FOLLOW_SYSTEM;
+    }
+
+    public static void putLanguageIndex(int index) {
+        putLanguage(index >= 0 && index < LANGUAGE_OPTIONS.length ? LANGUAGE_OPTIONS[index] : LANGUAGE_FOLLOW_SYSTEM);
+    }
+
+    private static boolean isLanguage(int language) {
+        for (int option : LANGUAGE_OPTIONS) if (option == language) return true;
+        return false;
+    }
+
+    private static void applyLanguage(int language) {
+        if (language == LANGUAGE_SIMPLIFIED) Trans.setTraditional(false);
+        else if (language == LANGUAGE_TRADITIONAL) Trans.setTraditional(true);
+        else Trans.setTraditional(null);
+    }
+
+    public static Context wrapDisplay(Context context) {
+        return wrapUiScale(wrapLanguage(context));
+    }
+
+    public static Context wrapLanguage(Context context) {
+        int language = getLanguage();
+        applyLanguage(language);
+        if (language == LANGUAGE_FOLLOW_SYSTEM) return context;
+        Locale locale = language == LANGUAGE_TRADITIONAL ? Locale.TRADITIONAL_CHINESE : Locale.SIMPLIFIED_CHINESE;
+        Configuration config = new Configuration(context.getResources().getConfiguration());
+        config.setLocale(locale);
+        config.setLocales(new LocaleList(locale));
+        return context.createConfigurationContext(config);
     }
 
     public static int getUiScale() {
@@ -442,11 +513,53 @@ public class Setting {
     }
 
     public static boolean isCspWarmup() {
-        return Prefers.getBoolean("csp_warmup");
+        return getCspWarmupMode() != CSP_WARMUP_DISABLED;
     }
 
     public static void putCspWarmup(boolean warmup) {
-        Prefers.put("csp_warmup", warmup);
+        if (warmup) {
+            Prefers.put("csp_warmup", true);
+            if (getCspWarmupSelectedMode() == CSP_WARMUP_DISABLED) Prefers.put("csp_warmup_mode", CSP_WARMUP_DEFAULT);
+        } else {
+            Prefers.put("csp_warmup", false);
+        }
+    }
+
+    public static int getCspWarmupMode() {
+        if (!Prefers.getBoolean("csp_warmup")) return CSP_WARMUP_DISABLED;
+        return getCspWarmupSelectedMode();
+    }
+
+    public static int getCspWarmupSelectedMode() {
+        int mode = Prefers.getInt("csp_warmup_mode", CSP_WARMUP_DEFAULT);
+        return mode == CSP_WARMUP_CUSTOM ? CSP_WARMUP_CUSTOM : CSP_WARMUP_DEFAULT;
+    }
+
+    public static void putCspWarmupMode(int mode) {
+        if (mode == CSP_WARMUP_DISABLED) {
+            Prefers.put("csp_warmup", false);
+        } else {
+            Prefers.put("csp_warmup", true);
+            Prefers.put("csp_warmup_mode", mode == CSP_WARMUP_CUSTOM ? CSP_WARMUP_CUSTOM : CSP_WARMUP_DEFAULT);
+        }
+    }
+
+    public static List<String> getCspWarmupSites() {
+        try {
+            List<String> keys = App.gson().fromJson(Prefers.getString("csp_warmup_sites", "[]"), STRING_LIST);
+            if (keys == null) return Collections.emptyList();
+            List<String> result = new ArrayList<>();
+            for (String key : keys) if (key != null && !key.trim().isEmpty() && !result.contains(key.trim())) result.add(key.trim());
+            return result;
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    public static void putCspWarmupSites(List<String> keys) {
+        LinkedHashSet<String> result = new LinkedHashSet<>();
+        if (keys != null) for (String key : keys) if (key != null && !key.trim().isEmpty()) result.add(key.trim());
+        Prefers.put("csp_warmup_sites", App.gson().toJson(result));
     }
 
     public static int getSearchColumn() {
@@ -594,30 +707,5 @@ public class Setting {
     public static boolean hasFileManager() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return false;
         return new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:" + App.get().getPackageName())).resolveActivity(App.get().getPackageManager()) != null || new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION).resolveActivity(App.get().getPackageManager()) != null;
-    }
-
-    // ========== WebDAV 配置 ==========
-    public static String getWebdavUrl() {
-        return Prefers.getString("webdav_url", "");
-    }
-
-    public static void putWebdavUrl(String url) {
-        Prefers.put("webdav_url", url);
-    }
-
-    public static String getWebdavUser() {
-        return Prefers.getString("webdav_user", "");
-    }
-
-    public static void putWebdavUser(String user) {
-        Prefers.put("webdav_user", user);
-    }
-
-    public static String getWebdavPass() {
-        return Prefers.getString("webdav_pass", "");
-    }
-
-    public static void putWebdavPass(String pass) {
-        Prefers.put("webdav_pass", pass);
     }
 }

@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -30,7 +31,6 @@ import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.core.content.ContextCompat;
@@ -55,7 +55,9 @@ import com.fongmi.android.tv.ui.custom.SettingClipboardOverlay;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.Task;
 import com.fongmi.android.tv.utils.Util;
+import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -71,7 +73,9 @@ import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CustomCspDialog extends BaseAlertDialog {
 
@@ -88,6 +92,10 @@ public class CustomCspDialog extends BaseAlertDialog {
     private ItemTouchHelper sortTouchHelper;
     private CustomCspSetting.Item pendingImport;
     private boolean pendingExtensionImport;
+    private boolean pendingFilesImport;
+    private TextInputEditText pendingFileTarget;
+    private Set<String> initialItemIds = new HashSet<>();
+    private final Set<String> pendingDeleteIds = new HashSet<>();
     private CspEditor editor;
     private TextInputEditText recognizeInput;
     private CustomCspSetting.Item editingItem;
@@ -101,6 +109,7 @@ public class CustomCspDialog extends BaseAlertDialog {
     private boolean reverseOrder;
     private boolean saved;
     private boolean jsonDirty = true;
+    private boolean recognizing;
     private long lastAddTime;
     private String cachedJsonText;
     private SettingClipboardOverlay clipboardOverlay;
@@ -169,6 +178,7 @@ public class CustomCspDialog extends BaseAlertDialog {
     @Override
     protected void initView() {
         registry = CustomCspSetting.load();
+        initialItemIds = itemIds(registry.getItems());
         adapter = new CspAdapter(new ArrayList<>(registry.getItems()));
         enabled = registry.isEnabled();
         updateEnabledText();
@@ -461,30 +471,26 @@ public class CustomCspDialog extends BaseAlertDialog {
         TextInputEditText input = createInput(true);
         TextInputLayout valueLayout = createOtherValueLayout(input);
         MaterialButton fieldButton = createOtherFieldButton(selectedField[0]);
-        fieldButton.setOnClickListener(view -> new MaterialAlertDialogBuilder(requireActivity(), R.style.ThemeOverlay_WebHTV_LightDialog)
-                .setTitle(R.string.setting_custom_csp_other_fields)
-                .setItems(fields.toArray(new String[0]), (dialog, which) -> {
-                    if (TextUtils.equals(selectedField[0], fields.get(which))) return;
-                    selectedField[0] = fields.get(which);
-                    selectedValue[0] = CustomCspSetting.defaultOtherValue(selectedField[0]);
-                    fieldButton.setText(selectedField[0]);
-                    updateOtherInput(input, valueLayout, selectedField[0], selectedValue[0]);
-                })
-                .show());
+        fieldButton.setOnClickListener(view -> ChoiceDialog.showSingle(this, R.string.setting_custom_csp_other_fields, fields.toArray(new String[0]), fields.indexOf(selectedField[0]), which -> {
+            if (TextUtils.equals(selectedField[0], fields.get(which))) return;
+            selectedField[0] = fields.get(which);
+            selectedValue[0] = CustomCspSetting.defaultOtherValue(selectedField[0]);
+            fieldButton.setText(selectedField[0]);
+            updateOtherInput(input, valueLayout, selectedField[0], selectedValue[0]);
+        }));
         updateOtherInput(input, valueLayout, selectedField[0], selectedValue[0]);
-        showManualCloseDialog(new MaterialAlertDialogBuilder(requireActivity(), R.style.ThemeOverlay_WebHTV_LightDialog)
-                .setTitle(R.string.setting_custom_csp_other)
-                .setView(createOtherEditPanel(fieldButton, valueLayout))
-                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
-                    try {
-                        editing.setOther(selectedField[0], parseOtherInput(selectedField[0], input.getText().toString()));
-                        if (position >= 0) adapter.replace(position, editing);
-                        else adapter.add(editing);
-                    } catch (Exception e) {
-                        Notify.show(R.string.setting_custom_csp_json_invalid);
-                    }
-                })
-                .setNegativeButton(R.string.dialog_negative, null));
+        final Dialog[] holder = new Dialog[1];
+        holder[0] = LightDialog.create(requireContext(), getString(R.string.setting_custom_csp_other), createOtherEditPanel(fieldButton, valueLayout), getString(R.string.dialog_positive), view -> {
+            try {
+                editing.setOther(selectedField[0], parseOtherInput(selectedField[0], input.getText().toString()));
+                if (position >= 0) adapter.replace(position, editing);
+                else adapter.add(editing);
+                holder[0].dismiss();
+            } catch (Exception e) {
+                Notify.show(R.string.setting_custom_csp_json_invalid);
+            }
+        }, getString(R.string.dialog_negative), null);
+        showManualCloseDialog(holder[0]);
     }
 
     private boolean saveEdit() {
@@ -547,6 +553,7 @@ public class CustomCspDialog extends BaseAlertDialog {
         registry.setItems(new ArrayList<>(adapter.getItems()));
         try {
             CustomCspSetting.save(registry);
+            cleanupDeletedFiles(registry);
         } catch (Exception e) {
             Notify.show(e.getMessage());
             return false;
@@ -630,29 +637,34 @@ public class CustomCspDialog extends BaseAlertDialog {
     }
 
     private boolean saveRecognize() {
-        if (recognizeInput == null) return false;
-        if (!importRecognizedText(recognizeInput.getText() == null ? "" : recognizeInput.getText().toString())) return false;
-        showList();
-        return true;
-    }
-
-    private boolean importRecognizedText(String text) {
+        if (recognizeInput == null || recognizing) return false;
+        String text = recognizeInput.getText() == null ? "" : recognizeInput.getText().toString();
         if (TextUtils.isEmpty(text) || TextUtils.isEmpty(text.trim())) {
             Notify.show(R.string.setting_custom_csp_recognize_empty);
             return false;
         }
-        List<CustomCspSetting.Item> items;
-        try {
-            items = recognizedItems(text);
-        } catch (Exception e) {
+        recognizing = true;
+        binding.positive.setEnabled(false);
+        Task.execute(() -> {
+            try {
+                List<CustomCspSetting.Item> items = recognizedItems(text);
+                App.post(() -> finishRecognize(items, null));
+            } catch (Exception e) {
+                App.post(() -> finishRecognize(Collections.emptyList(), e));
+            }
+        });
+        return true;
+    }
+
+    private void finishRecognize(List<CustomCspSetting.Item> items, Exception error) {
+        if (!isAdded() || binding == null) return;
+        recognizing = false;
+        binding.positive.setEnabled(true);
+        if (error != null || items.isEmpty()) {
             Notify.show(R.string.setting_custom_csp_recognize_invalid);
-            return false;
+            return;
         }
-        if (items.isEmpty()) {
-            Notify.show(R.string.setting_custom_csp_recognize_invalid);
-            return false;
-        }
-        if (textMode && !syncFormFromJson(true)) return false;
+        if (textMode && !syncFormFromJson(true)) return;
         else if (!textMode) syncAllVisibleRows();
         List<CustomCspSetting.Item> next = new ArrayList<>(adapter.getItems());
         int firstAdded = next.size();
@@ -661,7 +673,7 @@ public class CustomCspDialog extends BaseAlertDialog {
         if (textMode) syncJsonFromForm(false);
         scrollToItem(adapter.displayPosition(reverseOrder ? next.size() - 1 : firstAdded));
         Notify.show(getString(R.string.setting_custom_csp_recognize_done, items.size()));
-        return true;
+        showList();
     }
 
     private void markJsonDirty() {
@@ -696,6 +708,7 @@ public class CustomCspDialog extends BaseAlertDialog {
             try {
                 CustomCspSetting.Registry parsed = CustomCspSetting.parse(candidate);
                 List<CustomCspSetting.Item> items = new ArrayList<>(parsed.getItems());
+                if (allowsRemoteLiveRecognition(candidate)) recognizeRemoteLive(items);
                 items.removeIf(item -> item == null || !item.isValid());
                 if (!items.isEmpty()) return items;
             } catch (Exception e) {
@@ -704,6 +717,48 @@ public class CustomCspDialog extends BaseAlertDialog {
         }
         if (failure != null) throw failure;
         return Collections.emptyList();
+    }
+
+    private boolean allowsRemoteLiveRecognition(String candidate) {
+        try {
+            JsonElement element = CustomCspSetting.parseFlexible(candidate);
+            if (hasExplicitKind(element)) return false;
+            if (!element.isJsonObject()) return true;
+            JsonObject object = element.getAsJsonObject();
+            if (object.has("sites") || object.has("items")) return false;
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean hasExplicitKind(JsonElement element) {
+        if (element == null || element.isJsonNull()) return false;
+        if (element.isJsonObject()) {
+            JsonObject object = element.getAsJsonObject();
+            if (object.has("kind") && object.get("kind").isJsonPrimitive() && !TextUtils.isEmpty(object.get("kind").getAsString())) return true;
+            if (object.has("items") && hasExplicitKind(object.get("items"))) return true;
+            return false;
+        }
+        if (!element.isJsonArray()) return false;
+        for (JsonElement child : element.getAsJsonArray()) if (hasExplicitKind(child)) return true;
+        return false;
+    }
+
+    private void recognizeRemoteLive(List<CustomCspSetting.Item> items) {
+        for (CustomCspSetting.Item item : items) {
+            if (item == null || item.isLive() || item.isWebHome() || item.isOther()) continue;
+            String api = item.getApi();
+            if (!CustomCspSetting.isRemoteScript(api)) continue;
+            String script = OkHttp.string(api, 8000);
+            if (!CustomCspSetting.hasLiveMethod(api, script)) continue;
+            String ext = item.getExt();
+            String jar = item.getJar();
+            item.setKind(KIND_LIVE);
+            item.setApi(api);
+            item.setExt(ext);
+            item.setJar(jar);
+        }
     }
 
     private void addRecognizeCandidate(List<String> candidates, String value) {
@@ -785,18 +840,34 @@ public class CustomCspDialog extends BaseAlertDialog {
         if (!TextUtils.equals(view.getText(), text)) view.setText(text);
     }
 
+    private void clearPendingFlags() {
+        pendingExtensionImport = false;
+        pendingFilesImport = false;
+        pendingFileTarget = null;
+    }
+
     private void chooseFile(CustomCspSetting.Item item) {
         syncAllVisibleRows();
         pendingImport = item;
-        pendingExtensionImport = false;
+        clearPendingFlags();
         FileChooser.from(launcher).show("text/html", new String[]{"text/html", "text/*", "application/octet-stream"});
     }
 
     private void chooseExtensionFile(CustomCspSetting.Item item) {
         syncAllVisibleRows();
         pendingImport = item;
+        clearPendingFlags();
         pendingExtensionImport = true;
         FileChooser.from(launcher).show("text/*", new String[]{"text/javascript", "application/javascript", "application/json", "text/css", "text/*", "application/octet-stream"});
+    }
+
+    private void chooseLocalFiles(CustomCspSetting.Item item) {
+        syncAllVisibleRows();
+        pendingImport = item;
+        clearPendingFlags();
+        pendingFilesImport = true;
+        pendingFileTarget = editor == null ? null : editor.getFileTarget();
+        FileChooser.from(launcher).show("*/*", new String[]{"text/javascript", "application/javascript", "application/json", "application/java-archive", "application/octet-stream", "text/*", "*/*"}, true);
     }
 
     private void editCode(CustomCspSetting.Item item) {
@@ -806,31 +877,30 @@ public class CustomCspDialog extends BaseAlertDialog {
         input.setMaxLines(14);
         input.setText(Path.read(CustomCspSetting.file(item.getId(), "index.html")));
         setupScrollableText(input);
-        showManualCloseDialog(new MaterialAlertDialogBuilder(requireActivity(), R.style.ThemeOverlay_WebHTV_LightDialog)
-                .setTitle(R.string.setting_custom_csp_code)
-                .setView(createInputPanel(R.string.setting_custom_csp_code, input))
-                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> saveCode(item, input.getText().toString()))
-                .setNegativeButton(R.string.dialog_negative, null));
+        final Dialog[] holder = new Dialog[1];
+        holder[0] = LightDialog.create(requireContext(), getString(R.string.setting_custom_csp_code), createInputPanel(R.string.setting_custom_csp_code, input), getString(R.string.dialog_positive), view -> {
+            saveCode(item, input.getText().toString());
+            holder[0].dismiss();
+        }, getString(R.string.dialog_negative), null);
+        showManualCloseDialog(holder[0]);
     }
 
     private void editLink(CustomCspSetting.Item item) {
         syncAllVisibleRows();
         TextInputEditText input = createInput(false);
         input.setText(item.getHomePage());
-        showManualCloseDialog(new MaterialAlertDialogBuilder(requireActivity(), R.style.ThemeOverlay_WebHTV_LightDialog)
-                .setTitle(R.string.setting_custom_csp_link)
-                .setView(createInputPanel(R.string.setting_custom_csp_link, input))
-                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
-                    item.setHomePage(input.getText().toString().trim());
-                    markJsonDirty();
-                    if (editMode && editor != null && item == editingItem) editor.updateHomePage();
-                    else adapter.notifyDataSetChanged();
-                })
-                .setNegativeButton(R.string.dialog_negative, null));
+        final Dialog[] holder = new Dialog[1];
+        holder[0] = LightDialog.create(requireContext(), getString(R.string.setting_custom_csp_link), createInputPanel(R.string.setting_custom_csp_link, input), getString(R.string.dialog_positive), view -> {
+            item.setHomePage(input.getText().toString().trim());
+            markJsonDirty();
+            if (editMode && editor != null && item == editingItem) editor.updateHomePage();
+            else adapter.notifyDataSetChanged();
+            holder[0].dismiss();
+        }, getString(R.string.dialog_negative), null);
+        showManualCloseDialog(holder[0]);
     }
 
-    private void showManualCloseDialog(MaterialAlertDialogBuilder builder) {
-        AlertDialog dialog = builder.create();
+    private void showManualCloseDialog(Dialog dialog) {
         dialog.setCancelable(false);
         dialog.setCanceledOnTouchOutside(false);
         dialog.show();
@@ -847,16 +917,13 @@ public class CustomCspDialog extends BaseAlertDialog {
                 getString(R.string.setting_custom_csp_sort_bottom),
                 getString(R.string.setting_custom_csp_sort_move_to)
         };
-        new MaterialAlertDialogBuilder(requireActivity(), R.style.ThemeOverlay_WebHTV_LightDialog)
-                .setTitle(R.string.setting_custom_csp_sort_more)
-                .setItems(actions, (dialog, which) -> {
-                    if (which == 0) moveSortItem(index, 0);
-                    else if (which == 1) moveSortItem(index, index - 5);
-                    else if (which == 2) moveSortItem(index, index + 5);
-                    else if (which == 3) moveSortItem(index, adapter.getItemCount() - 1);
-                    else showMoveToPosition(index);
-                })
-                .show();
+        ChoiceDialog.showSingle(this, R.string.setting_custom_csp_sort_more, actions, -1, which -> {
+            if (which == 0) moveSortItem(index, 0);
+            else if (which == 1) moveSortItem(index, index - 5);
+            else if (which == 2) moveSortItem(index, index + 5);
+            else if (which == 3) moveSortItem(index, adapter.getItemCount() - 1);
+            else showMoveToPosition(index);
+        });
     }
 
     private void showMoveToPosition(int index) {
@@ -865,12 +932,12 @@ public class CustomCspDialog extends BaseAlertDialog {
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
         input.setText(String.valueOf(index + 1));
         input.selectAll();
-        new MaterialAlertDialogBuilder(requireActivity(), R.style.ThemeOverlay_WebHTV_LightDialog)
-                .setTitle(R.string.setting_custom_csp_sort_move_to_title)
-                .setView(createInputPanel(getString(R.string.setting_custom_csp_sort_move_to_hint, adapter.getItemCount()), input))
-                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> moveSortItem(index, parseInt(input.getText().toString(), index + 1) - 1))
-                .setNegativeButton(R.string.dialog_negative, null)
-                .show();
+        final Dialog[] holder = new Dialog[1];
+        holder[0] = LightDialog.create(requireContext(), getString(R.string.setting_custom_csp_sort_move_to_title), createInputPanel(getString(R.string.setting_custom_csp_sort_move_to_hint, adapter.getItemCount()), input), getString(R.string.dialog_positive), view -> {
+            moveSortItem(index, parseInt(input.getText().toString(), index + 1) - 1);
+            holder[0].dismiss();
+        }, getString(R.string.dialog_negative), null);
+        holder[0].show();
     }
 
     private void moveSortItem(int fromIndex, int toIndex) {
@@ -965,7 +1032,19 @@ public class CustomCspDialog extends BaseAlertDialog {
     private JsonElement parseOtherInput(String field, String text) {
         String value = text == null ? "" : text.trim();
         if (CustomCspSetting.isOtherStringField(field)) return new JsonPrimitive(value);
-        return TextUtils.isEmpty(value) ? CustomCspSetting.defaultOtherValue(field) : JsonParser.parseString(value);
+        return TextUtils.isEmpty(value) ? CustomCspSetting.defaultOtherValue(field) : extractOtherField(field, CustomCspSetting.parseFlexible(value));
+    }
+
+    private JsonElement extractOtherField(String field, JsonElement element) {
+        if (element != null && element.isJsonObject()) {
+            JsonObject object = element.getAsJsonObject();
+            if (object.has(field)) return object.get(field).deepCopy();
+            if (object.has("other") && object.get("other").isJsonObject()) {
+                JsonObject other = object.getAsJsonObject("other");
+                if (other.has(field)) return other.get(field).deepCopy();
+            }
+        }
+        return element;
     }
 
     private void saveCode(CustomCspSetting.Item item, String code) {
@@ -981,29 +1060,57 @@ public class CustomCspDialog extends BaseAlertDialog {
     }
 
     private final ActivityResultLauncher<Intent> launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-        if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null || result.getData().getData() == null || pendingImport == null) return;
-        String path = FileChooser.getPathFromUri(result.getData().getData());
-        if (TextUtils.isEmpty(path)) return;
+        if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null || pendingImport == null) return;
+        List<String> paths = FileChooser.getPathsFromIntent(result.getData());
+        if (paths.isEmpty()) return;
+        String path = paths.get(0);
         try {
             if (pendingExtensionImport) {
                 importExtensionFile(pendingImport, path);
-                pendingImport = null;
-                pendingExtensionImport = false;
+                clearPendingImport();
+                return;
+            }
+            if (pendingFilesImport) {
+                importLocalFiles(pendingImport, paths);
+                clearPendingImport();
                 return;
             }
             CustomCspSetting.copyPage(Path.local(path), pendingImport.getId());
             pendingImport.setHomePage(CustomCspSetting.localUrl(pendingImport.getId(), "index.html"));
             markJsonDirty();
             boolean editingImport = editMode && editor != null && pendingImport == editingItem;
-            pendingImport = null;
-            pendingExtensionImport = false;
+            clearPendingImport();
             if (editingImport) editor.updateHomePage();
             else adapter.notifyDataSetChanged();
         } catch (Exception e) {
-            pendingExtensionImport = false;
+            clearPendingImport();
             Notify.show(e.getMessage());
         }
     });
+
+    private void clearPendingImport() {
+        pendingImport = null;
+        clearPendingFlags();
+    }
+
+    private void importLocalFiles(CustomCspSetting.Item item, List<String> paths) {
+        List<String> urls = new ArrayList<>();
+        for (String path : paths) {
+            String url = CustomCspSetting.copyFile(Path.local(path), item.getId());
+            urls.add(url);
+            SettingClipboardOverlay.record(url);
+        }
+        if (!urls.isEmpty() && pendingFileTarget != null) {
+            setText(pendingFileTarget, urls.get(0));
+            pendingFileTarget.setSelection(pendingFileTarget.length());
+            pendingFileTarget.requestFocus();
+            if (editor != null) editor.sync();
+        }
+        markJsonDirty();
+        if (editMode && editor != null && item == editingItem) editor.updateValidity();
+        else adapter.notifyDataSetChanged();
+        Notify.show("已加入快捷粘贴板 " + urls.size() + " 条");
+    }
 
     private void importExtensionFile(CustomCspSetting.Item item, String path) throws Exception {
         String content = Path.read(Path.local(path));
@@ -1042,6 +1149,22 @@ public class CustomCspDialog extends BaseAlertDialog {
         String base = (item == null ? "" : item.getKey()) + "-" + name;
         String value = base.toLowerCase().replaceAll("[^a-z0-9_-]+", "-").replaceAll("^-+|-+$", "");
         return TextUtils.isEmpty(value) ? "local-extension" : value;
+    }
+
+    private Set<String> itemIds(List<CustomCspSetting.Item> items) {
+        Set<String> ids = new HashSet<>();
+        if (items == null) return ids;
+        for (CustomCspSetting.Item item : items) if (item != null && !TextUtils.isEmpty(item.getId())) ids.add(item.getId());
+        return ids;
+    }
+
+    private void cleanupDeletedFiles(CustomCspSetting.Registry current) {
+        Set<String> currentIds = itemIds(current.getItems());
+        Set<String> deleted = new HashSet<>(pendingDeleteIds);
+        for (String id : initialItemIds) if (!currentIds.contains(id)) deleted.add(id);
+        for (String id : deleted) CustomCspSetting.deleteFiles(id);
+        initialItemIds = currentIds;
+        pendingDeleteIds.clear();
     }
 
     private String pretty(JsonElement element) {
@@ -1284,6 +1407,7 @@ public class CustomCspDialog extends BaseAlertDialog {
             focusBeforeRemove(removed);
             CustomCspSetting.Item item = items.remove(index);
             if (!item.isLive() && item.site().getKey().equals(registry.getHomeKey())) registry.setHomeKey("");
+            if (!TextUtils.isEmpty(item.getId())) pendingDeleteIds.add(item.getId());
             markJsonDirty();
             notifyDataSetChanged();
         }
@@ -1444,6 +1568,7 @@ public class CustomCspDialog extends BaseAlertDialog {
         private boolean autoName;
         private boolean autoKey;
         private boolean otherInvalid;
+        private TextInputEditText fileTarget;
 
         CspEditor(@NonNull AdapterCustomCspBinding binding) {
             this.binding = binding;
@@ -1475,11 +1600,13 @@ public class CustomCspDialog extends BaseAlertDialog {
             binding.changeable.setOnCheckedChangeListener((button, checked) -> sync());
             binding.quickSearch.setOnCheckedChangeListener((button, checked) -> sync());
             binding.importFile.setOnClickListener(view -> chooseFile(item));
+            binding.localFiles.setOnClickListener(view -> chooseLocalFiles(item));
             binding.code.setOnClickListener(view -> editCode(item));
             binding.link.setOnClickListener(view -> editLink(item));
             binding.extensionsToggle.setOnClickListener(view -> toggleExtensions());
             binding.extensionsFile.setOnClickListener(view -> chooseExtensionFile(item));
             binding.otherField.setOnClickListener(view -> showOtherFieldMenu());
+            trackFileTarget(binding.api, binding.ext, binding.jar, binding.homePage, binding.liveUrl, binding.logo, binding.epg, binding.click, binding.playUrl, binding.ua, binding.referer, binding.origin);
             binding.home.setVisibility(View.GONE);
             binding.up.setVisibility(View.GONE);
             binding.down.setVisibility(View.GONE);
@@ -1626,8 +1753,23 @@ public class CustomCspDialog extends BaseAlertDialog {
             binding.liveTunePanel.setVisibility(live ? View.VISIBLE : View.GONE);
             binding.flagsPanel.setVisibility(!webHome && !live && !other ? View.VISIBLE : View.GONE);
             binding.advancedPanel.setVisibility(!webHome && !live && !other ? View.VISIBLE : View.GONE);
+            binding.localFiles.setVisibility(!webHome && !live && !other ? View.VISIBLE : View.GONE);
             binding.playPanel.setVisibility(!webHome && !live && !other ? View.VISIBLE : View.GONE);
             binding.playUrlLayout.setVisibility(live || other ? View.GONE : View.VISIBLE);
+        }
+
+        TextInputEditText getFileTarget() {
+            if (fileTarget != null && fileTarget.isShown() && fileTarget.isEnabled()) return fileTarget;
+            View focus = binding.getRoot().findFocus();
+            return focus instanceof TextInputEditText input ? input : null;
+        }
+
+        private void trackFileTarget(TextInputEditText... inputs) {
+            for (TextInputEditText input : inputs) {
+                input.setOnFocusChangeListener((view, hasFocus) -> {
+                    if (hasFocus) fileTarget = (TextInputEditText) view;
+                });
+            }
         }
 
         void sync() {
@@ -1704,16 +1846,13 @@ public class CustomCspDialog extends BaseAlertDialog {
             List<String> fields = new ArrayList<>(CustomCspSetting.otherFields());
             String initialField = item.getOtherKey();
             if (!fields.contains(initialField)) fields.add(0, initialField);
-            new MaterialAlertDialogBuilder(requireActivity(), R.style.ThemeOverlay_WebHTV_LightDialog)
-                    .setTitle(R.string.setting_custom_csp_other_fields)
-                    .setItems(fields.toArray(new String[0]), (dialog, which) -> {
-                        String field = fields.get(which);
-                        if (TextUtils.equals(item.getOtherKey(), field)) return;
-                        item.setOther(field, CustomCspSetting.defaultOtherValue(field));
-                        updateOtherEditor();
-                        updateValidity();
-                    })
-                    .show();
+            ChoiceDialog.showSingle(CustomCspDialog.this, R.string.setting_custom_csp_other_fields, fields.toArray(new String[0]), fields.indexOf(initialField), which -> {
+                String field = fields.get(which);
+                if (TextUtils.equals(item.getOtherKey(), field)) return;
+                item.setOther(field, CustomCspSetting.defaultOtherValue(field));
+                updateOtherEditor();
+                updateValidity();
+            });
         }
 
         private void ensureOtherValue() {

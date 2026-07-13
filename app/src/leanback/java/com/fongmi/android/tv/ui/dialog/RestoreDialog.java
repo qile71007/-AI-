@@ -1,8 +1,14 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.app.Dialog;
+import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.DialogRestoreBinding;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.impl.Callback;
@@ -32,6 +38,15 @@ public class RestoreDialog extends BaseAlertDialog implements RestoreAdapter.OnC
     }
 
     @Override
+    @NonNull
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        Dialog dialog = LightDialog.create(requireContext(), getString(R.string.restore_select), getBinding().getRoot());
+        initView();
+        initEvent();
+        return dialog;
+    }
+
+    @Override
     protected ViewBinding getBinding() {
         return binding = DialogRestoreBinding.inflate(getLayoutInflater());
     }
@@ -52,13 +67,31 @@ public class RestoreDialog extends BaseAlertDialog implements RestoreAdapter.OnC
 
     @Override
     public void onItemClick(File item) {
-        AppDatabase.restore(item, callback);
+        BackupProgressDialog progress = BackupProgressDialog.open(getParentFragmentManager(), "恢复应用数据");
+        AppDatabase.restore(item, new Callback() {
+            @Override
+            public void success() {
+                progress.finish();
+                if (callback != null) callback.success();
+            }
+
+            @Override
+            public void error() {
+                progress.finish();
+                if (callback != null) callback.error();
+            }
+        }, progress::update);
         dismiss();
     }
 
     @Override
     public void onDeleteClick(File item) {
-        if (adapter.remove(item) == 0) dismiss();
+        int count = adapter.remove(item);
+        if (count == 0) {
+            dismiss();
+            return;
+        }
+        if (count > 0) binding.recycler.post(() -> binding.recycler.scrollToPosition(0));
     }
 
     @Override

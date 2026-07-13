@@ -25,6 +25,19 @@
             android:textSize="16sp"
             tools:text="選擇字幕" />
 
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/secondary"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:paddingHorizontal="12dp"
+            android:text="@string/play_track_secondary_subtitle"
+            android:textColor="@color/white_90"
+            android:textSize="13sp"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/choose"
             android:layout_width="wrap_content"

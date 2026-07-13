@@ -24,6 +24,8 @@ import androidx.media3.extractor.ExtractorsFactory;
 import androidx.media3.extractor.ts.TsExtractor;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.setting.PlaybackPerformanceSetting;
+import com.fongmi.android.tv.setting.PlayerSetting;
 import com.fongmi.android.tv.setting.PreloadSetting;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
@@ -31,6 +33,8 @@ import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
 
 import java.io.File;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MediaSourceFactory implements MediaSource.Factory {
@@ -45,17 +49,17 @@ public class MediaSourceFactory implements MediaSource.Factory {
     private static Cache cache;
 
     private final DefaultMediaSourceFactory defaultMediaSourceFactory;
-    private HttpDataSource.Factory httpDataSourceFactory;
+    private OkHttpDataSource.Factory httpDataSourceFactory;
     private DataSource.Factory dataSourceFactory;
     private ExtractorsFactory extractorsFactory;
 
     public MediaSourceFactory() {
-        defaultMediaSourceFactory = new DefaultMediaSourceFactory(getDataSourceFactory(), getExtractorsFactory());
+        defaultMediaSourceFactory = new DefaultMediaSourceFactory(getDataSourceFactory(), getExtractorsFactory()).setLoadOnlySelectedTracks(PlaybackPerformanceSetting.isLoadOnlySelectedTracksEnabled());
     }
 
     static DataSource.Factory createUpstreamDataSourceFactory(Map<String, String> headers) {
-        HttpDataSource.Factory factory = new OkHttpDataSource.Factory(OkHttp.player());
-        factory.setDefaultRequestProperties(headers);
+        OkHttpDataSource.Factory factory = new OkHttpDataSource.Factory(OkHttp.player());
+        applyHeaders(factory, headers);
         return new DefaultDataSource.Factory(App.get(), factory);
     }
 
@@ -74,7 +78,7 @@ public class MediaSourceFactory implements MediaSource.Factory {
         long usedBytes = FileUtil.getDirectorySize(dir);
         long availableBytes = Math.max(0, FileUtil.getAvailableStorageSpace(dir));
         long storageBudget = (usedBytes + availableBytes) * CACHE_SPACE_PERCENT / 100;
-        return Math.min(PreloadSetting.getPreloadSizeBytes(), storageBudget);
+        return Math.min(PreloadSetting.getPreloadSizeBytes(PlayerSetting.EXO), storageBudget);
     }
 
     static boolean isConcatenatingUrl(String url) {
@@ -102,7 +106,7 @@ public class MediaSourceFactory implements MediaSource.Factory {
     @NonNull
     @Override
     public MediaSource createMediaSource(@NonNull MediaItem mediaItem) {
-        getHttpDataSourceFactory().setDefaultRequestProperties(ExoUtil.extractHeaders(mediaItem));
+        applyHeaders(getHttpDataSourceFactory(), ExoUtil.extractHeaders(mediaItem));
         String url = mediaItem.requestMetadata.mediaUri != null ? mediaItem.requestMetadata.mediaUri.toString() : "";
         if (isConcatenatingUrl(url)) return createConcatenatingMediaSource(mediaItem, url);
         else return defaultMediaSourceFactory.createMediaSource(mediaItem);
@@ -131,8 +135,39 @@ public class MediaSourceFactory implements MediaSource.Factory {
         return new CacheDataSource.Factory().setCache(getCache()).setUpstreamDataSourceFactory(upstreamFactory).setCacheWriteDataSinkFactory(null).setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR);
     }
 
-    private HttpDataSource.Factory getHttpDataSourceFactory() {
+    private OkHttpDataSource.Factory getHttpDataSourceFactory() {
         if (httpDataSourceFactory == null) httpDataSourceFactory = new OkHttpDataSource.Factory(OkHttp.player());
         return httpDataSourceFactory;
+    }
+
+    private static void applyHeaders(OkHttpDataSource.Factory factory, Map<String, String> headers) {
+        Map<String, String> sanitized = sanitizeHeaders(headers);
+        String userAgent = removeUserAgentHeader(sanitized);
+        factory.setUserAgent(userAgent).setDefaultRequestProperties(sanitized);
+    }
+
+    static Map<String, String> sanitizeHeaders(Map<String, String> headers) {
+        Map<String, String> sanitized = new LinkedHashMap<>();
+        if (headers == null || headers.isEmpty()) return sanitized;
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null) continue;
+            String key = entry.getKey().trim();
+            if (key.isEmpty()) continue;
+            sanitized.put(key, entry.getValue().trim());
+        }
+        return sanitized;
+    }
+
+    static String removeUserAgentHeader(Map<String, String> headers) {
+        String userAgent = null;
+        Iterator<Map.Entry<String, String>> iterator = headers.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, String> entry = iterator.next();
+            if (!"User-Agent".equalsIgnoreCase(entry.getKey())) continue;
+            String value = entry.getValue().trim();
+            if (!value.isEmpty()) userAgent = value;
+            iterator.remove();
+        }
+        return userAgent;
     }
 }

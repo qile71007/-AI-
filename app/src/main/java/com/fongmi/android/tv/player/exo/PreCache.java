@@ -11,6 +11,7 @@ import androidx.media3.datasource.DataSource;
 import androidx.media3.exoplayer.source.preload.PreCacheHelper;
 
 import com.fongmi.android.tv.setting.PreloadSetting;
+import com.fongmi.android.tv.setting.PlayerSetting;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -40,7 +41,7 @@ public class PreCache implements Player.Listener {
 
     public void start(Player player, MediaItem mediaItem) {
         stop();
-        if (!PreloadSetting.isPreload() || !canPreCache(mediaItem)) return;
+        if (!PreloadSetting.isPreload(PlayerSetting.EXO) || !canPreCache(mediaItem)) return;
         this.player = player;
         this.handler = new Handler(player.getApplicationLooper());
         this.helper = createHelper(mediaItem);
@@ -63,8 +64,22 @@ public class PreCache implements Player.Listener {
 
     public void release() {
         stop();
-        releaseExecutor();
-        releaseWorker();
+        ExecutorService retiringExecutor = executor;
+        HandlerThread retiringWorker = worker;
+        executor = null;
+        worker = null;
+        threads = 0;
+        if (retiringWorker == null) {
+            shutdownExecutor(retiringExecutor);
+            return;
+        }
+        // PreCacheHelper.release() posts cancellation to this same looper.
+        // Queue resource teardown behind it so SegmentDownloader cannot submit
+        // work to an executor which has already entered SHUTTING_DOWN.
+        new Handler(retiringWorker.getLooper()).post(() -> {
+            shutdownExecutor(retiringExecutor);
+            retiringWorker.quitSafely();
+        });
     }
 
     @Override
@@ -88,7 +103,7 @@ public class PreCache implements Player.Listener {
 
     private boolean update() {
         if (helper == null || player == null) return false;
-        if (!PreloadSetting.isPreload()) {
+        if (!PreloadSetting.isPreload(PlayerSetting.EXO)) {
             stop();
             return false;
         }
@@ -150,11 +165,11 @@ public class PreCache implements Player.Listener {
     private long getLength(long startMs) {
         long durationMs = player.getDuration();
         if (durationMs <= 0) return 0;
-        return Math.min(PreloadSetting.getPreloadDurationMs(), durationMs - startMs);
+        return Math.min(PreloadSetting.getPreloadDurationMs(PlayerSetting.EXO), durationMs - startMs);
     }
 
     private long getStep() {
-        return Math.clamp(PreloadSetting.getPreloadDurationMs() / STEP_DIV, MIN_STEP_MS, MAX_STEP_MS);
+        return Math.clamp(PreloadSetting.getPreloadDurationMs(PlayerSetting.EXO) / STEP_DIV, MIN_STEP_MS, MAX_STEP_MS);
     }
 
     private void markSeek(long startMs) {
@@ -170,17 +185,24 @@ public class PreCache implements Player.Listener {
     }
 
     private Executor getExecutor() {
-        int count = PreloadSetting.getPreloadThreads();
+        int count = PreloadSetting.getPreloadThreads(PlayerSetting.EXO);
         if (executor != null && threads == count) return executor;
-        releaseExecutor();
+        retireExecutor();
         threads = count;
         return executor = Executors.newFixedThreadPool(count);
     }
 
-    private void releaseExecutor() {
+    private void retireExecutor() {
         if (executor == null) return;
-        executor.shutdownNow();
+        ExecutorService retiringExecutor = executor;
         executor = null;
+        if (worker == null) shutdownExecutor(retiringExecutor);
+        else new Handler(worker.getLooper()).post(() -> shutdownExecutor(retiringExecutor));
+    }
+
+    private void shutdownExecutor(ExecutorService target) {
+        if (target == null) return;
+        target.shutdownNow();
     }
 
     private HandlerThread getWorker() {
@@ -188,12 +210,6 @@ public class PreCache implements Player.Listener {
         worker = new HandlerThread("CurrentMediaPreCache");
         worker.start();
         return worker;
-    }
-
-    private void releaseWorker() {
-        if (worker == null) return;
-        worker.quitSafely();
-        worker = null;
     }
 
     private boolean isSeek(int reason) {

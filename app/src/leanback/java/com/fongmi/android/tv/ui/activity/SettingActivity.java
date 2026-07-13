@@ -3,6 +3,7 @@ package com.fongmi.android.tv.ui.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 
 import androidx.viewbinding.ViewBinding;
@@ -32,6 +33,7 @@ import com.fongmi.android.tv.ui.dialog.DohDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.RestoreDialog;
+import com.fongmi.android.tv.ui.dialog.BackupProgressDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.AppVersion;
 import com.fongmi.android.tv.utils.FileUtil;
@@ -51,6 +53,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     private ActivitySettingBinding mBinding;
     private String[] size;
+    private String[] language;
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, SettingActivity.class));
@@ -89,6 +92,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     private void setOtherText() {
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
+        mBinding.languageText.setText((language = ResUtil.getStringArray(R.array.select_language))[Setting.getLanguageIndex()]);
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
     }
 
@@ -108,6 +112,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         mBinding.live.setOnClickListener(this::onLive);
         mBinding.wall.setOnClickListener(this::onWall);
         mBinding.size.setOnClickListener(this::setSize);
+        mBinding.language.setOnClickListener(this::setLanguage);
         mBinding.cache.setOnClickListener(this::onCache);
         mBinding.backup.setOnClickListener(this::onBackup);
         mBinding.enhance.setOnClickListener(this::onEnhance);
@@ -130,7 +135,9 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     @Override
     public void setConfig(Config config) {
-        if (config.getUrl().startsWith("file")) {
+        if (config == null) return;
+        String url = config.getUrl();
+        if (!TextUtils.isEmpty(url) && url.startsWith("file")) {
             PermissionUtil.requestFile(this, allGranted -> load(config));
         } else {
             load(config);
@@ -271,6 +278,12 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         RefreshEvent.size();
     }
 
+    private void setLanguage(View view) {
+        int index = (Setting.getLanguageIndex() + 1) % language.length;
+        Setting.putLanguageIndex(index);
+        RefreshEvent.language();
+    }
+
     private void setDoh(View view) {
         DohDialog.create().index(getDohIndex()).show(this);
     }
@@ -292,17 +305,22 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     }
 
     private void onBackup(View view) {
-        PermissionUtil.requestFile(this, allGranted -> AppDatabase.backup(new Callback() {
+        PermissionUtil.requestFile(this, allGranted -> {
+            BackupProgressDialog progress = BackupProgressDialog.open(getSupportFragmentManager(), "备份应用数据");
+            AppDatabase.backup(new Callback() {
             @Override
             public void success() {
+                progress.finish();
                 Notify.show(R.string.backup_success);
             }
 
             @Override
             public void error() {
+                progress.finish();
                 Notify.show(R.string.backup_fail);
             }
-        }));
+            }, progress::update);
+        });
     }
 
     private void onRestore(View view) {
@@ -311,7 +329,6 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             public void success() {
                 Notify.show(R.string.restore_success);
                 setOtherText();
-                initConfig();
             }
 
             @Override
