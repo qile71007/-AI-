@@ -19,6 +19,7 @@ import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.api.CspWarmup;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.bean.Config;
@@ -42,6 +43,8 @@ import com.fongmi.android.tv.ui.activity.KeepActivity;
 import com.fongmi.android.tv.ui.activity.SearchActivity;
 import com.fongmi.android.tv.ui.adapter.TypeAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
+import com.fongmi.android.tv.ui.dialog.ConfigDialog;
+import com.fongmi.android.tv.ui.dialog.ConfigListDialog;
 import com.fongmi.android.tv.ui.dialog.FilterDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LinkDialog;
@@ -237,7 +240,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
     }
 
     private void onLogo(View view) {
-        HistoryDialog.create().vod().readOnly().show(this);
+        ConfigListDialog.create().type(0).listener(this).show(this);
     }
 
     private void onSite(View view) {
@@ -273,17 +276,35 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         if (mAdapter.getItemCount() > 0) FilterDialog.create().filter(mAdapter.get(mBinding.pager.getCurrentItem()).getFilters()).show(this);
     }
 
-    private boolean onMenuItemClick(MenuItem item) {
-        if (item.getItemId() == R.id.refresh) {
+    // ========== 菜单点击处理 ==========
+    public boolean onMenuItemClick(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.refresh) {
             if (mWeb != null && mWeb.isVisible()) mWeb.reload();
             else homeContent();
-        } else if (item.getItemId() == R.id.keep) KeepActivity.start(requireActivity());
-        else if (item.getItemId() == R.id.search) SearchActivity.start(requireActivity());
-        else if (item.getItemId() == R.id.history) HistoryActivity.start(requireActivity());
-        else if (item.getItemId() == R.id.sync) OneKeySyncDialog.create().show(requireActivity());
-        else if (item.getItemId() == R.id.enhance && homeActivity() != null) homeActivity().openEnhanceFromVod();
-        else if (item.getItemId() == R.id.web_home_fullscreen) onWebHomeFullscreen();
-        else return false;
+        } else if (id == R.id.keep) {
+            KeepActivity.start(requireActivity());
+        } else if (id == R.id.search) {
+            SearchActivity.start(requireActivity());
+        } else if (id == R.id.history) {
+            HistoryActivity.start(requireActivity());
+        } else if (id == R.id.sync) {
+            OneKeySyncDialog.create().show(requireActivity());
+        } else if (id == R.id.enhance && homeActivity() != null) {
+            homeActivity().openEnhanceFromVod();
+        } else if (id == R.id.web_home_fullscreen) {
+            onWebHomeFullscreen();
+        } else if (id == R.id.action_add_config) {
+            // 修改：若当前配置存在则进入编辑模式，否则进入添加模式
+            ConfigDialog dialog = ConfigDialog.create().vod();
+            if (getConfig() != null) {
+                dialog.edit();
+            }
+            dialog.show(this);
+            return true;
+        } else {
+            return false;
+        }
         return true;
     }
 
@@ -345,6 +366,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         Site home = getHome();
         WebHomeChromeStartup.remember(getConfig(), home);
         setTitle();
+        if (home.hasHomePage()) CspWarmup.schedule("mobile-interface");
         if (mWeb != null && mWeb.load(home)) {
             clearPagerTypes();
             hideProgress();

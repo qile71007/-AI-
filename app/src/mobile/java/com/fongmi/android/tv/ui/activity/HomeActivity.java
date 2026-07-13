@@ -42,8 +42,9 @@ import com.fongmi.android.tv.ui.fragment.SettingDanmakuFragment;
 import com.fongmi.android.tv.ui.fragment.SettingFragment;
 import com.fongmi.android.tv.ui.fragment.SettingPlayerFragment;
 import com.fongmi.android.tv.ui.fragment.VodFragment;
+import com.fongmi.android.tv.ui.fragment.ChatFragment;
+import com.fongmi.android.tv.ui.fragment.FileManagerFragment;
 import com.fongmi.android.tv.utils.FileChooser;
-import com.fongmi.android.tv.utils.MobileWindow;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
@@ -66,7 +67,7 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     private ActivityHomeBinding mBinding;
     private WebHomeChromeController mChrome;
     private Config mStartupConfig;
-    private boolean wideWindow;
+    private int orientation;
     private int currentPosition;
     private boolean returnVodFromEnhance;
 
@@ -89,16 +90,22 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        wideWindow = MobileWindow.isWide(this);
+        orientation = getResources().getConfiguration().orientation;
         returnVodFromEnhance = savedInstanceState != null && savedInstanceState.getBoolean(STATE_RETURN_VOD_FROM_ENHANCE);
         currentPosition = savedInstanceState == null ? 0 : savedInstanceState.getInt(STATE_CURRENT_POSITION, 0);
         mStartupConfig = Config.vod();
         mChrome = new WebHomeChromeController(this, mBinding, this, savedInstanceState, WebHomeChromeStartup.restore(mStartupConfig));
-        mBinding.getRoot().addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> checkWindowShape(right - left, bottom - top));
         mBinding.navigation.setOnItemSelectedListener(this);
         PermissionUtil.requestFile(this, allGranted -> PermissionUtil.requestNotify(this));
         initFragment(savedInstanceState);
-        initConfig();
+
+        // ★ 防御性捕获配置加载异常，防止启动崩溃
+        try {
+            initConfig();
+        } catch (Throwable e) {
+            e.printStackTrace();
+            Notify.show("配置加载异常，请检查网络或重试");
+        }
     }
 
     @Override
@@ -143,6 +150,8 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
             case 2 -> SettingPlayerFragment.newInstance();
             case 3 -> SettingEnhanceFragment.newInstance();
             case 4 -> SettingDanmakuFragment.newInstance();
+            case 5 -> ChatFragment.newInstance();
+            case 6 -> FileManagerFragment.newInstance();
             default -> null;
         });
         if (savedInstanceState == null) change(0);
@@ -170,7 +179,10 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
 
             @Override
             public void error(String msg) {
-                resetVodChrome();
+                // ★ 避免 mChrome 为空导致二次异常
+                if (mChrome != null) {
+                    resetVodChrome();
+                }
                 checkAction(getIntent());
                 StateEvent.empty();
                 Notify.show(msg);
@@ -190,6 +202,8 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     private void setNavigation() {
         mBinding.navigation.getMenu().findItem(R.id.vod).setVisible(true);
         mBinding.navigation.getMenu().findItem(R.id.setting).setVisible(true);
+        mBinding.navigation.getMenu().findItem(R.id.chat).setVisible(true);
+        mBinding.navigation.getMenu().findItem(R.id.file).setVisible(true);
         mBinding.navigation.getMenu().findItem(R.id.live).setVisible(LiveConfig.hasUrl());
         syncNavigationSelection();
     }
@@ -256,6 +270,12 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         returnVodFromEnhance = false;
         setNavigationVisible(true);
+        if (item.getItemId() == R.id.file) {
+            return changeFragment(6);
+        }
+        if (item.getItemId() == R.id.chat) {
+            return changeFragment(5);
+        }
         if (item.getItemId() == R.id.setting) return changeFragment(1);
         if (item.getItemId() == R.id.vod) return changeFragment(0);
         if (item.getItemId() == R.id.live) return openLive();
@@ -387,7 +407,14 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (mChrome != null) mChrome.onConfigurationChanged();
-        App.post(this::checkWindowShape, 100);
+        App.post(() -> checkOrientation(newConfig), 100);
+    }
+
+    private void checkOrientation(Configuration newConfig) {
+        if (orientation != newConfig.orientation) {
+            orientation = newConfig.orientation;
+            RefreshEvent.home();
+        }
     }
 
     @Override
@@ -396,21 +423,34 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
         if (mChrome != null) mChrome.onWindowFocusChanged(hasFocus);
     }
 
-    private void checkWindowShape() {
-        checkWindowShape(MobileWindow.getWidth(this), MobileWindow.getHeight(this));
-    }
-
-    private void checkWindowShape(int width, int height) {
-        if (width <= 0 || height <= 0) return;
-        boolean wide = width > height;
-        if (wideWindow != wide) {
-            wideWindow = wide;
-            RefreshEvent.home();
-        }
-    }
-
     @Override
     protected void onBackInvoked() {
+        // 优先处理 ChatFragment 的返回
+        try {
+            androidx.fragment.app.Fragment fragment = mManager.getFragment(5);
+            if (fragment instanceof ChatFragment) {
+                ChatFragment chatFragment = (ChatFragment) fragment;
+                if (chatFragment.onBackPressed()) {
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // 处理 FileManagerFragment 的返回
+        try {
+            androidx.fragment.app.Fragment fragment = mManager.getFragment(6);
+            if (fragment instanceof FileManagerFragment) {
+                FileManagerFragment fileFragment = (FileManagerFragment) fragment;
+                if (fileFragment.onBackPressed()) {
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         if (mChrome != null && mChrome.consumeBack()) {
             return;
         } else if (!mBinding.navigation.getMenu().findItem(R.id.vod).isVisible()) {

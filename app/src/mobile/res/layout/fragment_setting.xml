@@ -27,6 +27,7 @@
             android:paddingEnd="16dp"
             android:paddingBottom="16dp">
 
+            <!-- 点播配置 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -82,6 +83,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
+            <!-- 直播配置 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -138,6 +140,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
+            <!-- 壁纸配置 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -194,6 +197,36 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
+            <!-- ========== AI 助手入口（新增） ========== -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/aiAssistant"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/shape_item"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:text="AI助手"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/tv_ai_assistant_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:text="智能搜索添加配置"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    tools:text="智能搜索添加配置" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <!-- 增强功能 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/enhance"
                 android:layout_width="match_parent"
@@ -211,6 +244,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
+            <!-- 播放器设置 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/player"
                 android:layout_width="match_parent"
@@ -228,6 +262,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
+            <!-- 弹幕设置 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/danmaku"
                 android:layout_width="match_parent"
@@ -245,6 +280,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
+            <!-- UI缩放 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/uiScale"
                 android:layout_width="match_parent"
@@ -272,33 +308,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/language"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/shape_item"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_language"
-                    android:textColor="@color/white"
-                    android:textSize="16sp" />
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/languageText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    tools:text="Simplified Chinese" />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-
+            <!-- 无痕模式 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/incognito"
                 android:layout_width="match_parent"
@@ -326,6 +336,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
+            <!-- 主题颜色 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/themeColor"
                 android:layout_width="match_parent"
@@ -353,6 +364,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
+            <!-- 画质大小 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/size"
                 android:layout_width="match_parent"
@@ -380,6 +392,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
+            <!-- DNS -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/doh"
                 android:layout_width="match_parent"
@@ -407,6 +420,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
+            <!-- 缓存 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/cache"
                 android:layout_width="match_parent"
@@ -434,6 +448,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
+            <!-- 备份恢复 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -473,6 +488,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
+            <!-- 版本 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/version"
                 android:layout_width="match_parent"
@@ -497,8 +513,27 @@
                     android:textColor="@color/white"
                     android:textSize="16sp"
                     tools:text="1.2.1" />
+</androidx.appcompat.widget.LinearLayoutCompat>
+
+            <!-- 新增：重置应用 -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/resetApp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/shape_item"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:text="@string/setting_reset_app"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
+
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.core.widget.NestedScrollView>
 </androidx.appcompat.widget.LinearLayoutCompat>
