@@ -2,6 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!-- 新增加号按钮：添加/编辑配置 -->
+    <item
+        android:id="@+id/action_add_config"
+        android:icon="@drawable/ic_add"
+        android:title="@string/add_config"
+        app:iconTint="@color/white"
+        app:showAsAction="always" />
+
     <item
         android:id="@+id/search"
         android:icon="@drawable/ic_action_search"
