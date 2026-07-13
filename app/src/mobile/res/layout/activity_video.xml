@@ -229,6 +229,7 @@
 
                     </androidx.appcompat.widget.LinearLayoutCompat>
 
+                    <!-- 操作按钮行（修改：添加下载按钮） -->
                     <androidx.appcompat.widget.LinearLayoutCompat
                         android:id="@+id/actionRow"
                         android:layout_width="match_parent"
@@ -259,6 +260,15 @@
                             android:layout_marginEnd="8dp"
                             android:text="@string/play_cast"
                             app:drawableTopCompat="@drawable/ic_control_cast_shadow" />
+
+                        <!-- 新增下载按钮 -->
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/downloadAction"
+                            style="@style/VideoActionButton"
+                            android:layout_marginEnd="8dp"
+                            android:text="下载"
+                            android:onClick="onDownload"
+                            app:drawableTopCompat="@drawable/ic_download" />
 
                         <com.google.android.material.textview.MaterialTextView
                             android:id="@+id/settingAction"
