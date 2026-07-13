@@ -8,9 +8,8 @@
     </integer-array>
 
     <string-array name="select_pad_live_mode">
-        <item>@string/pad_live_mode_default</item>
-        <item>@string/pad_live_mode_fullscreen</item>
-        <item>@string/pad_live_mode_landscape</item>
+        <item>Fullscreen</item>
+        <item>Standard</item>
     </string-array>
 
 </resources>
