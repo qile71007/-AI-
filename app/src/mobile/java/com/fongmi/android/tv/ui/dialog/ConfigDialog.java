@@ -218,17 +218,21 @@ public class ConfigDialog extends BaseAlertDialog {
             ((ConfigListener) requireParentFragment()).setConfig(config);
             Notify.show("当前配置已更新");
         } else {
-            // 添加新配置：检查是否已存在
+            // ========== 添加新配置（自动加载） ==========
+            // 检查是否已存在相同 URL 的配置
             Config exists = AppDatabase.get().getConfigDao().find(url, type);
             if (exists != null) {
-                Notify.show("配置已存在，已忽略添加");
+                // 如果已存在，直接切换到该配置（加载它）
+                ((ConfigListener) requireParentFragment()).setConfig(exists);
+                Notify.show("配置已存在，已切换");
                 dismiss();
                 return;
             }
+            // 不存在则新建
             config = Config.create(type).url(url).name(name).update();
-            EventBus.getDefault().post(new ConfigEvent(ConfigEvent.Type.COMMON));
-            Notify.show("新配置已添加");
-            // 不调用 setConfig，保持当前配置不变
+            // ★ 新增配置后自动加载使用 ★
+            ((ConfigListener) requireParentFragment()).setConfig(config);
+            Notify.show("新配置已添加并加载");
         }
         dismiss();
     }
@@ -254,16 +258,17 @@ public class ConfigDialog extends BaseAlertDialog {
         String path = FileChooser.getPathFromUri(result.getData().getData());
         if (TextUtils.isEmpty(path)) return;
         String url = "file:/" + path.replace(Path.rootPath(), "");
-        // 文件选择器默认当作添加
+        // 文件选择器默认当作添加（也自动加载）
         Config exists = AppDatabase.get().getConfigDao().find(url, type);
         if (exists != null) {
-            Notify.show("配置已存在，已忽略添加");
+            ((ConfigListener) requireParentFragment()).setConfig(exists);
+            Notify.show("配置已存在，已切换");
             dismiss();
             return;
         }
         Config config = Config.create(type).url(url).name(name).update();
-        EventBus.getDefault().post(new ConfigEvent(ConfigEvent.Type.COMMON));
-        Notify.show("新配置已添加");
+        ((ConfigListener) requireParentFragment()).setConfig(config);
+        Notify.show("新配置已添加并加载");
         dismiss();
     });
 }
