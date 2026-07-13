@@ -60,6 +60,11 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
         return mItems.size();
     }
 
+    public Config getItem(int position) {
+        if (position < 0 || position >= mItems.size()) return null;
+        return mItems.get(position);
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

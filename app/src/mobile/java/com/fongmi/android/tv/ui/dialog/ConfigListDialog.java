@@ -1,15 +1,11 @@
 package com.fongmi.android.tv.ui.dialog;
 
-import android.graphics.drawable.ColorDrawable;
 import android.os.Parcelable;
 import android.text.Editable;
 import android.view.inputmethod.EditorInfo;
 
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
@@ -71,20 +67,28 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
 
     @Override
     protected void initView() {
+        Config current = getCurrentConfig();
         adapter = new ConfigAdapter(this);
-        adapter.addAll(type);
+        adapter.addAll(type, current);
         binding.recycler.setAdapter(adapter);
         binding.recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.recycler.setItemAnimator(null);
         binding.recycler.setHasFixedSize(true);
 
-        // 添加分割线
-        DividerItemDecoration divider = new DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL);
-        divider.setDrawable(new ColorDrawable(ContextCompat.getColor(requireContext(), android.R.color.darker_gray)));
-        binding.recycler.addItemDecoration(divider);
-
-        // 高亮当前选中的配置
-        Config current = getCurrentConfig();
+        // 自动定位到当前已选配置
+        if (current != null) {
+            String currentUrl = current.getUrl();
+            binding.recycler.post(() -> {
+                for (int i = 0; i < adapter.getItemCount(); i++) {
+                    Config item = adapter.getItem(i);
+                    if (item != null && currentUrl != null && currentUrl.equals(item.getUrl())) {
+                        LinearLayoutManager lm = (LinearLayoutManager) binding.recycler.getLayoutManager();
+                        if (lm != null) lm.scrollToPositionWithOffset(i, 0);
+                        break;
+                    }
+                }
+            });
+        }
 
         // 恢复上次保存的滚动位置
         if (savedState != null) {
