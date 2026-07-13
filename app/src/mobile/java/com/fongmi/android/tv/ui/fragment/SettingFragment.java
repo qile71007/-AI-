@@ -69,6 +69,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private FragmentSettingBinding mBinding;
     private String[] size;
     private String[] uiScale;
+    private String[] language;
     private Dialog webDavDialog;
 
     public static SettingFragment newInstance() {
@@ -138,6 +139,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private void setOtherText() {
         mBinding.themeColorText.setText(getThemeText());
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
+        mBinding.languageText.setText((language = ResUtil.getStringArray(R.array.select_language))[Setting.getLanguageIndex()]);
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
         mBinding.uiScaleText.setText((uiScale = ResUtil.getStringArray(R.array.select_ui_scale))[Setting.getUiScaleIndex()]);
@@ -162,6 +164,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.wall.setOnLongClickListener(this::onWallEdit);
 
         mBinding.doh.setOnClickListener(this::setDoh);
+        mBinding.language.setOnClickListener(this::setLanguage);
         mBinding.size.setOnClickListener(this::setSize);
         mBinding.uiScale.setOnClickListener(this::setUiScale);
         mBinding.cache.setOnClickListener(this::onCache);
@@ -338,6 +341,17 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     private void setIncognito(View view) {
         Setting.putIncognito(!Setting.isIncognito());
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
+    }
+
+    private void setLanguage(View view) {
+        new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.setting_language).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(language, Setting.getLanguageIndex(), (dialog, which) -> {
+            if (which != Setting.getLanguageIndex()) {
+                mBinding.languageText.setText(language[which]);
+                Setting.putLanguageIndex(which);
+                RefreshEvent.language();
+            }
+            dialog.dismiss();
+        }).show();
     }
 
     private void setSize(View view) {
