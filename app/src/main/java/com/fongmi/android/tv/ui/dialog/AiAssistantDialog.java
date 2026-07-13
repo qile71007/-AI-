@@ -218,7 +218,7 @@ public class AiAssistantDialog extends DialogFragment {
     }
 
     private void showModelSelectDialog() {
-        String[] modelNames = getResources().getStringArray(R.array.model_names);
+        String[] modelNames = {"豆包火山", "通义千问", "智谱清言", "DeepSeek"};
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), android.R.style.Theme_Material_Dialog_Alert);
         builder.setTitle("选择模型");
         builder.setSingleChoiceItems(modelNames, currentModel, (dialog, which) -> {
