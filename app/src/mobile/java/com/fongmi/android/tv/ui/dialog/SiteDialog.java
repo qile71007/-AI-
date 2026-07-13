@@ -94,7 +94,15 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         binding.recycler.setItemAnimator(null);
         binding.recycler.setHasFixedSize(true);
         attachSortTouchHelper();
-        binding.recycler.post(() -> binding.recycler.scrollToPosition(0));
+        binding.recycler.post(() -> {
+            int pos = adapter.getSelectedPosition();
+            if (pos > 0) {
+                LinearLayoutManager lm = (LinearLayoutManager) binding.recycler.getLayoutManager();
+                if (lm != null) lm.scrollToPositionWithOffset(pos, 0);
+            } else {
+                binding.recycler.scrollToPosition(0);
+            }
+        });
     }
 
     private void attachSortTouchHelper() {
