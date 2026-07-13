@@ -708,4 +708,30 @@ public class Setting {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return false;
         return new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:" + App.get().getPackageName())).resolveActivity(App.get().getPackageManager()) != null || new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION).resolveActivity(App.get().getPackageManager()) != null;
     }
+
+    // ==================== WebDAV 备份 ====================
+
+    public static String getWebdavUrl() {
+        return Prefers.getString("webdav_url", "");
+    }
+
+    public static void putWebdavUrl(String url) {
+        Prefers.put("webdav_url", url);
+    }
+
+    public static String getWebdavUser() {
+        return Prefers.getString("webdav_user", "");
+    }
+
+    public static void putWebdavUser(String user) {
+        Prefers.put("webdav_user", user);
+    }
+
+    public static String getWebdavPass() {
+        return Prefers.getString("webdav_pass", "");
+    }
+
+    public static void putWebdavPass(String pass) {
+        Prefers.put("webdav_pass", pass);
+    }
 }

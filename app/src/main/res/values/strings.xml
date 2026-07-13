@@ -25,9 +25,6 @@
     <string name="keep">Keep</string>
     <string name="keep_add">Added</string>
     <string name="keep_del">Removed</string>
-    <string name="exit_confirm_title">Exit app?</string>
-    <string name="exit_confirm_message">The current page will close. Background playback will continue if it is running.</string>
-    <string name="exit_confirm_positive">Exit</string>
 
     <!-- Play -->
     <string name="play">Play</string>
@@ -44,15 +41,6 @@
     <string name="play_speed">1.00</string>
     <string name="play_reset">Reset</string>
     <string name="play_decode">Hard</string>
-    <string name="play_params">Playback params</string>
-    <string name="codec_capability_short">Codec caps</string>
-    <string name="codec_capability_title">Hardware codec capabilities</string>
-    <string name="codec_capability_search">Search codec, mime, decoder, resolution, audio...</string>
-    <string name="codec_capability_current">Current</string>
-    <string name="codec_capability_all">All</string>
-    <string name="codec_capability_video">Video</string>
-    <string name="codec_capability_audio">Audio</string>
-    <string name="codec_capability_copy">Copy</string>
     <string name="play_timer">Timer</string>
     <string name="play_title">Chapter</string>
     <string name="play_scale">Default</string>
@@ -71,9 +59,6 @@
     <string name="play_track_audio">Audio</string>
     <string name="play_track_video">Video</string>
     <string name="play_track_disable_subtitle">Subtitle off</string>
-    <string name="play_track_disable_secondary_subtitle">Secondary subtitle off</string>
-    <string name="play_track_secondary_subtitle">Secondary</string>
-    <string name="play_track_primary_subtitle">Main</string>
     <string name="offset_text">Text offset</string>
     <string name="offset_audio">Audio offset</string>
     <string name="offset_setting">Offset settings</string>
@@ -151,7 +136,6 @@
     <string name="setting_vod">Vod</string>
     <string name="setting_live">Live</string>
     <string name="setting_wall">Wallpaper</string>
-    <string name="setting_config_dialog_title">%1$s %2$s</string>
     <string name="setting_builtin_wall">Built-in wallpapers</string>
     <string name="setting_player">Player setting</string>
     <string name="setting_danmaku">Danmaku setting</string>
@@ -375,13 +359,7 @@
     <string name="site_health_clear_done">Site health data cleared</string>
     <string name="setting_web_home_extension">WebHome extensions</string>
     <string name="setting_web_home_fullscreen">WebHome homepage fullscreen</string>
-    <string name="setting_csp_warmup">CSP warmup</string>
-    <string name="setting_csp_warmup_default">Default</string>
-    <string name="setting_csp_warmup_custom">Custom</string>
-    <string name="setting_csp_warmup_custom_count">Custom · %1$d sites</string>
-    <string name="setting_csp_warmup_select_site">Select CSP sites</string>
-    <string name="setting_csp_warmup_no_site">No jar CSP site available</string>
-    <string name="setting_csp_warmup_select_required">Select at least one CSP site</string>
+    <string name="setting_csp_warmup">CSP init warmup</string>
     <string name="setting_playback_artwork_wall">Playback stills</string>
     <string name="setting_viewing_record_sync">Viewing record sync</string>
     <string name="viewing_record_sync_entry_summary">%1$s · Remote %2$d/%3$d · Webhook %4$d/%5$d</string>
@@ -588,7 +566,6 @@
     <string name="setting_custom_csp_extensions_toggle">Extensions</string>
     <string name="setting_custom_csp_extensions">Extension URL / JSON</string>
     <string name="setting_custom_csp_extensions_file">File</string>
-    <string name="setting_custom_csp_files">Files</string>
     <string name="setting_custom_csp_extensions_example">https://example.com/site.js</string>
     <string name="setting_custom_csp_extensions_invalid">Invalid extensions JSON</string>
     <string name="setting_custom_csp_permission_required">Site injection needs file access permission.</string>
@@ -666,7 +643,6 @@
     <string name="setting_theme_color">Theme color</string>
     <string name="setting_auto">Auto</string>
     <string name="setting_custom">Custom</string>
-    <string name="setting_language">Language</string>
     <string name="setting_size">Image size</string>
     <string name="setting_ui_scale">Interface size</string>
     <string name="setting_doh">DoH</string>
@@ -689,7 +665,7 @@
     <string name="about_title">About WebHomeTV</string>
     <string name="about_free_badge">Free</string>
     <string name="about_version">Version %1$s · %2$s/%3$s</string>
-    <string name="about_disclaimer">WebHomeTV is a technical learning and research project based on open source ecosystems. The software itself is completely free and does not provide paid services, video content, live sources, API sources, resource storage, or content distribution.\n\nThis software is only for technical learning, research, and personal testing. Please uninstall it within 24 hours after downloading, installing, or trying it. All behavior and consequences arising from continued use are borne by the user.\n\nThis software does not embed, sell, or distribute any video resources, and is not responsible for interfaces, sources, plugins, scripts, links, cloud-drive resources, or third-party service content added by users. Users must comply with local laws and regulations, respect the rights of copyright owners and content providers, and must not use this software for infringement, piracy, illegal content distribution, or other illegal purposes.\n\nAny individual or organization is strictly prohibited from selling, traffic diversion, paid maintenance, membership services, advertising monetization, box preinstallation, TV box bundle sales, or any other form of profit-making in the name of this software. The project clearly opposes and condemns selling or promoting this software as part of TV boxes, set-top boxes, paid packages, or commercial services.\n\nIf you do not agree with this statement, please stop using and uninstall this software immediately.</string>
+    <string name="about_disclaimer">WebHomeTV is a technical learning and research project based on secondary development of open-source ecosystems. The software itself is completely free and does not provide any paid services, video content, live sources, API sources, resource storage, or content distribution capabilities.\n\nThe AI assistant supports 4 major models: ① Doubao Volcano, ② Tongyi Qianwen, ③ Zhipu Qingyan, ④ DeepSeek. With one click, you can go to your browser to apply for a free API key. After adding the API key, chat with the AI assistant to obtain the configuration, and then load it into the App with one click for use.\n\nImportant note: All configurations provided by the AI assistant are sourced from AI models searching the internet; they are not provided by this App. This AI assistant function is only for learning code and demonstration purposes, and must not be used for unauthorized commercial profit. If you have used the AI assistant, it means you have read this notice. Any profits obtained from unauthorized commercial use have no relation to this AI assistant, and we bear no responsibility. This has been stated clearly; please uninstall and cease use immediately.\n\nThis software is only for technical learning, research, and personal testing. Please uninstall it within 24 hours after downloading, installing, or trying it out. Any actions and consequences arising from continued use of this software shall be borne solely by the user.\n\nThis software does not embed, sell, or distribute any video resources. It is not responsible for any interfaces, sources, plugins, scripts, links, cloud storage resources, or third-party service content added by users. Users shall comply with local laws and regulations, and respect the legal rights of copyright holders and content providers. This software must not be used for any infringement, piracy, dissemination of illegal content, or other illegal or unlawful purposes.\n\nIt is strictly prohibited for any individual or organization to use the name of this software for selling, traffic diversion, paid maintenance, membership services, ad monetization, pre-installation on boxes, bundled sales with TV boxes, or any other form of profit-making activities. The project team explicitly opposes and condemns any behavior that involves embedding this software into TV boxes, set-top boxes, paid packages, or commercial services for sale or promotion.\n\nIf you do not agree to the above statements, please immediately stop using and uninstall this software.</string>
     <string name="about_check_update">Check updates</string>
     <string name="about_acknowledge">I understand</string>
 
@@ -803,43 +779,17 @@
     <string name="player_render">Render</string>
     <string name="player_button_config">Player buttons</string>
     <string name="player_button_config_summary">%1$d/%2$d shown</string>
-    <string name="player_pad_live">Tablet live</string>
     <string name="player_button_up">Up</string>
     <string name="player_button_down">Down</string>
     <string name="play_episodes">Episodes</string>
-    <string name="player_exo_4k_compat">Playback performance</string>
-    <string name="player_performance">Playback performance</string>
-    <string name="player_performance_recommended">Recommended</string>
-    <string name="player_performance_compatible">Compatible</string>
-    <string name="player_performance_lightweight">Light</string>
-    <string name="player_performance_help">Guide</string>
-    <string name="player_performance_help_title">Playback performance guide</string>
-    <string name="player_performance_help_close">Close</string>
+    <string name="player_exo_4k_compat">EXO enhanced mode</string>
     <string name="player_kernel">Player engine</string>
     <string name="player_scale">Scale</string>
     <string name="player_lut">LUT color</string>
-    <string name="player_mpv_config">MPV config manager</string>
-    <string name="player_mpv_render">MPV renderer</string>
-    <string name="mpv_render_native_unavailable">Unavailable</string>
-    <string name="mpv_config_target">%1$s · %2$s</string>
-    <string name="mpv_config_default">Default</string>
-    <string name="mpv_config_local">Local mpv.conf</string>
-    <string name="mpv_config_url">URL mpv.conf</string>
-    <string name="mpv_config_name_hint">Name (optional)</string>
-    <string name="mpv_config_history">History</string>
-    <string name="mpv_config_history_empty">No MPV config history</string>
-    <string name="mpv_config_script_hint">Script URL or choose local script</string>
-    <string name="mpv_config_scripts_count">%1$d scripts</string>
-    <string name="mpv_config_saved">MPV config saved. Reopen playback to apply it.</string>
-    <string name="mpv_config_empty">MPV config is empty</string>
-    <string name="mpv_config_file_invalid">Invalid mpv.conf file</string>
-    <string name="mpv_config_url_invalid">Invalid mpv.conf URL</string>
-    <string name="mpv_config_download_empty">Downloaded mpv.conf is empty</string>
     <string name="player_libass">libass</string>
     <string name="player_caption">Caption style</string>
     <string name="player_background">Background play</string>
     <string name="player_audio_decode">Audio software decode</string>
-    <string name="player_audio_passthrough">Audio passthrough</string>
     <string name="player_video_decode">Video software decode</string>
     <string name="player_aac_track">Prefer aac track</string>
     <string name="player_adblock">Remove ads</string>
@@ -854,7 +804,6 @@
     <string name="player_preload_size">Preload size</string>
     <string name="player_preload_time">Preload time</string>
     <string name="player_preload_time_value">%1$d seconds</string>
-    <string name="player_auto_play">Auto play</string>
     <string name="player_auto_change">Auto source change</string>
     <string name="player_speed">Press speed</string>
     <string name="player_ua">User-Agent</string>
@@ -929,15 +878,6 @@
     <string name="error_play_parse">Unable to parse url</string>
     <string name="error_play_drm">This device does not support the required DRM scheme</string>
     <string name="error_play_url">Unable to load url</string>
-    <string name="error_play_mpv_hls_unsupported">MPV failed to play this HLS stream. Switch player manually or choose another line.</string>
-    <string name="error_play_mpv_load_failed">MPV failed to load media. Check the network or choose another line.</string>
-    <string name="error_play_mpv_network_failed">MPV network loading failed. Check the network, headers, or choose another line.</string>
-    <string name="error_play_mpv_drm_unsupported">MPV does not support this DRM protected media. Switch player manually or choose another line.</string>
-    <string name="error_play_mpv_unexpected_image">MPV loaded an image instead of video. Choose another line.</string>
-    <string name="error_play_mpv_no_av">MPV did not find playable audio or video data.</string>
-    <string name="error_play_mpv_invalid_data">MPV found invalid media data. Choose another line or switch player manually.</string>
-    <string name="error_play_mpv_decode_failed">MPV failed to decode this media. Try switching soft/hard decode or choose another line.</string>
-    <string name="error_play_mpv_video_output">MPV failed to initialize video output. Try switching decode mode or reopen playback.</string>
     <string name="error_play_flag">No flag data</string>
     <string name="error_play_timeout">Timed out</string>
     <string name="error_play_tvbus">Error code: <xliff:g name="name">%s</xliff:g></string>
@@ -1029,11 +969,6 @@
     <string-array name="select_player_kernel">
         <item>EXO</item>
         <item>IJK</item>
-        <item>MPV</item>
-    </string-array>
-    <string-array name="select_mpv_render">
-        <item>OpenGL</item>
-        <item>Vulkan</item>
     </string-array>
     <string-array name="select_buffer_bytes">
         <item>Auto</item>
@@ -1071,12 +1006,6 @@
         <item>Smaller</item>
     </string-array>
 
-    <string-array name="select_language">
-        <item>Follow system</item>
-        <item>Simplified Chinese</item>
-        <item>Traditional Chinese</item>
-    </string-array>
-
     <string-array name="select_scale">
         <item>Default</item>
         <item>16:9</item>
@@ -1110,6 +1039,27 @@
         <item>Select video track</item>
         <item>Select subtitle track</item>
     </string-array>
-    <string name="select_secondary_subtitle_track">Select secondary subtitle</string>
+    
+    <!-- Reset App -->
+<string name="setting_reset_app">Reset App</string>
+<string name="setting_reset_app_confirm">Reset this app? All data and settings will be cleared, and the app will restart.</string>
+
+<string name="download">download</string>
+
+
+    <string-array name="model_names">
+        <item>Beanbao volcano</item>
+        <item>Tongyi Qianwen</item>
+        <item>Clear words of wisdom</item>
+        <item>DeepSeek</item>
+    </string-array>
+
+    <string name="add_config">Add Configuration</string>
+
+    <string name="nav_chat">云配置</string>
+
+    <string name="pad_live_mode_default">Default</string>
+    <string name="pad_live_mode_fullscreen">Fullscreen</string>
+    <string name="pad_live_mode_landscape">Landscape</string>
 
 </resources>
