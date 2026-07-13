@@ -85,3 +85,11 @@
 
 # Zxing
 -keep class com.google.zxing.** { *; }
+
+# 七乐版独有功能 (Qile exclusive)
+-keep class com.fongmi.android.tv.ui.dialog.AiAssistantDialog { *; }
+-keep class com.fongmi.android.tv.ui.dialog.ConfigListDialog { *; }
+-keep class com.fongmi.android.tv.ui.fragment.ChatFragment { *; }
+-keep class com.fongmi.android.tv.ui.fragment.FileManagerFragment { *; }
+-keep class com.fongmi.android.tv.ui.activity.ImagePreviewActivity { *; }
+-keep class com.fongmi.android.tv.utils.WebdavUtil { *; }
