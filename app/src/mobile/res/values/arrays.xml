@@ -7,9 +7,4 @@
         <item>@drawable/ic_sync_download</item>
     </integer-array>
 
-    <string-array name="select_pad_live_mode">
-        <item>Fullscreen</item>
-        <item>Standard</item>
-    </string-array>
-
 </resources>
