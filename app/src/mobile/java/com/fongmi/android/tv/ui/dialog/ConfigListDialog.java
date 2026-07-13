@@ -105,6 +105,9 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
         binding.keyword.addTextChangedListener(new CustomTextListener() {
             @Override
             public void afterTextChanged(Editable s) {
+                // 实际过滤配置列表
+                String keyword = s == null ? "" : s.toString();
+                if (adapter != null) adapter.filter(keyword);
                 // 搜索后滚动到顶部
                 binding.recycler.scrollToPosition(0);
                 savedState = null;
@@ -145,6 +148,7 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
     @Override
     public void onStart() {
         super.onStart();
-        if (adapter.getItemCount() == 0) dismiss();
+        // 仅在无任何配置时关闭，避免搜索无结果时误关弹窗
+        if (adapter.getAllItemCount() == 0) dismiss();
     }
 }

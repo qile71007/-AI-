@@ -11,12 +11,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.databinding.AdapterConfigBinding;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder> {
 
     private final OnClickListener listener;
-    private List<Config> mItems;
+    private List<Config> mItems;          // 完整数据
+    private List<Config> mFiltered;       // 过滤后展示的数据
+    private String mKeyword = "";         // 当前过滤关键词
     private boolean readOnly;
 
     public ConfigAdapter(OnClickListener listener) {
@@ -43,26 +46,67 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
         mItems = Config.getAll(type);
         String currentUrl = current == null ? null : current.getUrl();
         if (!readOnly && !TextUtils.isEmpty(currentUrl)) mItems.removeIf(item -> TextUtils.equals(item.getUrl(), currentUrl));
+        // 应用当前关键词（如果有）刷新显示列表
+        applyFilter();
         return this;
     }
 
     public int remove(Config item) {
-        int position = mItems.indexOf(item);
-        if (position == -1) return -1;
+        int position = mFiltered.indexOf(item);
+        int rawPosition = mItems.indexOf(item);
+        if (rawPosition == -1) return -1;
         item.delete();
-        mItems.remove(position);
-        notifyItemRemoved(position);
+        mItems.remove(rawPosition);
+        if (position != -1) {
+            mFiltered.remove(position);
+            notifyItemRemoved(position);
+        }
         return getItemCount();
+    }
+
+    /**
+     * 根据关键词过滤配置列表（不区分大小写，匹配名称或URL）
+     */
+    public void filter(String keyword) {
+        this.mKeyword = keyword == null ? "" : keyword.trim();
+        applyFilter();
+    }
+
+    private void applyFilter() {
+        if (mItems == null) {
+            mFiltered = new ArrayList<>();
+        } else if (TextUtils.isEmpty(mKeyword)) {
+            mFiltered = new ArrayList<>(mItems);
+        } else {
+            String lower = mKeyword.toLowerCase();
+            mFiltered = new ArrayList<>();
+            for (Config item : mItems) {
+                String desc = item.getDesc();
+                String url = item.getUrl();
+                if ((desc != null && desc.toLowerCase().contains(lower))
+                        || (url != null && url.toLowerCase().contains(lower))) {
+                    mFiltered.add(item);
+                }
+            }
+        }
+        notifyDataSetChanged();
     }
 
     @Override
     public int getItemCount() {
-        return mItems.size();
+        return mFiltered == null ? 0 : mFiltered.size();
+    }
+
+    /**
+     * 返回未过滤的完整配置数量（用于判断是否真的没有任何配置可显示）
+     */
+    public int getAllItemCount() {
+        return mItems == null ? 0 : mItems.size();
     }
 
     public Config getItem(int position) {
-        if (position < 0 || position >= mItems.size()) return null;
-        return mItems.get(position);
+        if (mFiltered == null || position < 0 || position >= mFiltered.size()) return null;
+        return mFiltered.get(position);
     }
 
     @NonNull
@@ -73,7 +117,7 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Config item = mItems.get(position);
+        Config item = mFiltered.get(position);
         holder.binding.text.setText(item.getDesc());
         holder.binding.text.setOnClickListener(v -> listener.onTextClick(item));
         holder.binding.delete.setVisibility(readOnly ? View.GONE : View.VISIBLE);

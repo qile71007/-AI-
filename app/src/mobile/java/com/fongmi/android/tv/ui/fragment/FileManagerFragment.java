@@ -39,6 +39,7 @@ import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.event.ConfigEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.activity.ImagePreviewActivity;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.utils.Notify;
@@ -593,7 +594,13 @@ public class FileManagerFragment extends Fragment {
             switch (currentConfigType) {
                 case "vod":
                     Config.find(url, 0);
-                    VodConfig.get().load(null);
+                    // ★ 修复崩溃：使用有效 callback，失败时给出可读提示
+                    VodConfig.get().load(new Callback() {
+                        @Override
+                        public void error(String msg) {
+                            if (isAdded()) Notify.show(TextUtils.isEmpty(msg) ? "点播配置加载失败" : msg);
+                        }
+                    });
                     Notify.show("点播配置已更新");
                     break;
                 case "live":
