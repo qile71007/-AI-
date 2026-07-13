@@ -451,6 +451,8 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         VodConfig.load(config, new Callback() {
             @Override
             public void start() {
+                // ★ 防御性检查：Fragment 不在 / 已保存状态时跳过
+                if (!isAdded() || isStateSaved()) return;
                 showProgress();
                 hideContent();
                 setTitle();
@@ -458,7 +460,16 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
             }
 
             @Override
+            public void success() {
+                // ★ 修复：原版缺少 success 实现，导致进度条不消失、内容不显示
+                if (!isAdded() || isStateSaved()) return;
+                hideProgress();
+                showContent();
+            }
+
+            @Override
             public void error(String msg) {
+                if (!isAdded() || isStateSaved()) return;
                 Notify.dismiss();
                 Notify.show(msg);
                 showContent();

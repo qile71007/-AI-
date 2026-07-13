@@ -174,11 +174,18 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
         return new Callback() {
             @Override
             public void success() {
+                // ★ 防御性检查：Activity 已销毁/正在保存状态时跳过，避免 onSaveInstanceState 后启动 Fragment 导致 IllegalStateException
+                if (isFinishing() || isDestroyed()) return;
                 checkAction(getIntent());
             }
 
             @Override
             public void error(String msg) {
+                // ★ 防御性检查：避免在 onSaveInstanceState 之后再次操作 Fragment
+                if (isFinishing() || isDestroyed()) {
+                    Notify.show(msg);
+                    return;
+                }
                 // ★ 避免 mChrome 为空导致二次异常
                 if (mChrome != null) {
                     resetVodChrome();

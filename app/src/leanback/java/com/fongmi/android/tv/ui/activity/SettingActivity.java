@@ -163,18 +163,24 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         return new Callback() {
             @Override
             public void start() {
+                // ★ 防御性检查：Activity 销毁/结束时不再显示 ProgressDialog
+                if (isFinishing() || isDestroyed()) return;
                 Notify.progress(getActivity());
             }
 
             @Override
             public void success() {
                 Notify.dismiss();
+                // ★ 防御性检查：避免 onSaveInstanceState 后操作 Fragment
+                if (isFinishing() || isDestroyed()) return;
                 setCacheText();
             }
 
             @Override
             public void error(String msg) {
                 Notify.dismiss();
+                // ★ 防御性检查：避免 onSaveInstanceState 后再提示
+                if (isFinishing() || isDestroyed()) return;
                 Notify.show(msg);
             }
         };

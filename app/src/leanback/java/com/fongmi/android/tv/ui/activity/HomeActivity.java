@@ -331,12 +331,18 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             @Override
             public void success() {
                 SpiderDebug.log("startup", "config load success cost=%sms", System.currentTimeMillis() - App.time());
+                // ★ 防御性检查：避免在 onSaveInstanceState 之后操作 Fragment
+                if (isFinishing() || isDestroyed()) return;
                 showContent();
             }
 
             @Override
             public void error(String msg) {
                 SpiderDebug.log("startup", "config load error cost=%sms msg=%s", System.currentTimeMillis() - App.time(), msg);
+                if (isFinishing() || isDestroyed()) {
+                    Notify.show(msg);
+                    return;
+                }
                 Notify.show(msg);
                 showContent();
             }

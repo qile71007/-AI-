@@ -92,7 +92,8 @@ abstract class BaseConfig {
         int id = taskId.incrementAndGet();
         if (future != null && !future.isDone()) future.cancel(true);
         future = Task.submit(() -> loadConfig(id, config, callback));
-        callback.start();
+        // ★ 防御性判空：callback 可能为 null（如 FileManagerFragment 中 applyConfig）
+        if (callback != null) callback.start();
     }
 
     protected void loadConfig(int id, Config config, Callback callback) {
@@ -104,11 +105,17 @@ abstract class BaseConfig {
             if (config.equals(this.config)) config.update();
             onLoadSuccess();
             App.post(() -> Notify.show(config.getNotice()));
-            App.post(callback::success);
+            // ★ 防御性判空：避免 callback 为 null 时 NPE
+            if (callback != null) App.post(callback::success);
         } catch (Throwable e) {
             e.printStackTrace();
             if (isCanceled(e)) return;
             if (taskId.get() != id) return;
+            // ★ 防御性判空：避免 callback 为 null 时 NPE（堆栈1根因）
+            if (callback == null) {
+                App.post(() -> Notify.show(Notify.getError(R.string.error_config_get, e)));
+                return;
+            }
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
         } finally {
