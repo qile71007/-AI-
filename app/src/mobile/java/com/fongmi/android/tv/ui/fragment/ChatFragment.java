@@ -354,6 +354,9 @@ public class ChatFragment extends Fragment {
 
     // ==================== Fragment 生命周期 ====================
 
+    // 保存网页 accept 参数供校验使用（必须在 filePickerLauncher 之前声明，避免前向引用编译错误）
+    private String[] lastAcceptTypes = null;
+
     // 文件选择器（上传）
     private final ActivityResultLauncher<Intent> filePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -379,9 +382,6 @@ public class ChatFragment extends Fragment {
                         filePathCallback = null;
                         lastAcceptTypes = null;
                     });
-
-    // 保存网页 accept 参数供校验使用
-    private String[] lastAcceptTypes = null;
 
     public static ChatFragment newInstance() {
         return new ChatFragment();
