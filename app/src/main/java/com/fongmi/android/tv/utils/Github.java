@@ -61,4 +61,8 @@ public class Github {
     public static String getTagsApi() {
         return GITHUB_API + "/tags";
     }
+
+    public static String getReleaseAssetApi(long id) {
+        return GITHUB_API + "/releases/assets/" + id;
+    }
 }
