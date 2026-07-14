@@ -1125,5 +1125,9 @@
     <string name="stats_recent_watched">Recently Watched</string>
     <string name="stats_entry">Viewing Statistics</string>
     <string name="stats_no_data">No viewing records yet</string>
+    <string name="site_speed_title">Site Speed Test</string>
+    <string name="site_speed_testing">Testing %1$d/%2$d</string>
+    <string name="site_speed_done">Test complete</string>
+    <string name="site_speed_entry">Site Speed Test</string>
 
 </resources>

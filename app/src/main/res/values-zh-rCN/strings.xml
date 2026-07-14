@@ -1117,5 +1117,9 @@
     <string name="stats_recent_watched">最近观看</string>
     <string name="stats_entry">观影统计</string>
     <string name="stats_no_data">暂无观看记录</string>
+    <string name="site_speed_title">站源测速</string>
+    <string name="site_speed_testing">正在测试 %1$d/%2$d</string>
+    <string name="site_speed_done">测试完成</string>
+    <string name="site_speed_entry">站源测速</string>
 
 </resources>
