@@ -17,6 +17,7 @@ import android.widget.ScrollView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -99,14 +100,14 @@ public final class PlaybackPerformanceDialog extends DialogFragment {
 
         MaterialButton reset = actionButton(R.string.dialog_reset, view -> reset());
         reset.setTextSize(13);
-        LinearLayout.LayoutParams resetParams = new LinearLayout.LayoutParams(dp(72), dp(38));
+        LinearLayout.LayoutParams resetParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(36));
         resetParams.leftMargin = dp(8);
         titleBar.addView(reset, resetParams);
 
         MaterialButton help = actionButton(R.string.player_performance_help, view -> showHelpDialog());
         help.setTextSize(13);
         help.setContentDescription(getString(R.string.player_performance_help_title));
-        LinearLayout.LayoutParams helpParams = new LinearLayout.LayoutParams(dp(72), dp(38));
+        LinearLayout.LayoutParams helpParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(36));
         helpParams.leftMargin = dp(8);
         titleBar.addView(help, helpParams);
         root.addView(titleBar, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(40)));
@@ -154,11 +155,10 @@ public final class PlaybackPerformanceDialog extends DialogFragment {
         title.setGravity(Gravity.CENTER_VERTICAL);
         titleBar.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
-        MaterialButton close = actionButton(R.string.player_performance_help_close, view -> {
+        MaterialButton close = closeButton(view -> {
             if (helpDialog != null) helpDialog.dismiss();
         });
-        close.setTextSize(13);
-        LinearLayout.LayoutParams closeParams = new LinearLayout.LayoutParams(dp(72), dp(38));
+        LinearLayout.LayoutParams closeParams = new LinearLayout.LayoutParams(dp(42), dp(42));
         closeParams.leftMargin = dp(12);
         titleBar.addView(close, closeParams);
         root.addView(titleBar, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(40)));
@@ -264,9 +264,13 @@ public final class PlaybackPerformanceDialog extends DialogFragment {
         button.setSingleLine(true);
         button.setGravity(Gravity.CENTER);
         button.setTextSize(14);
-        button.setMinWidth(0);
+        button.setMinWidth(dp(64));
         button.setMinimumWidth(0);
-        button.setMinHeight(dp(38));
+        button.setMinHeight(dp(36));
+        button.setMinimumHeight(dp(36));
+        button.setPaddingRelative(dp(10), 0, dp(10), 0);
+        button.setInsetLeft(0);
+        button.setInsetRight(0);
         button.setInsetTop(0);
         button.setInsetBottom(0);
         button.setFocusable(true);
@@ -281,6 +285,28 @@ public final class PlaybackPerformanceDialog extends DialogFragment {
         return button;
     }
 
+    private MaterialButton closeButton(View.OnClickListener listener) {
+        MaterialButton button = new MaterialButton(requireContext());
+        button.setText("×");
+        button.setTextSize(20);
+        button.setContentDescription(getString(R.string.player_performance_help_close));
+        button.setMinWidth(0);
+        button.setMinimumWidth(0);
+        button.setMinHeight(dp(32));
+        button.setMinimumHeight(dp(32));
+        button.setPadding(dp(6), 0, dp(6), 0);
+        button.setInsetLeft(0);
+        button.setInsetRight(0);
+        button.setInsetTop(0);
+        button.setInsetBottom(0);
+        button.setFocusable(true);
+        button.setFocusableInTouchMode(Util.isLeanback());
+        button.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.dialog_outlined_button_bg));
+        button.setTextColor(Color.parseColor("#5F6368"));
+        button.setOnClickListener(listener);
+        return button;
+    }
+
     private void styleAction(MaterialButton button, boolean focused) {
         button.setTextColor(ColorStateList.valueOf(Color.parseColor(focused ? "#FFFFFF" : "#174EA6")));
         button.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor(focused ? "#1A73E8" : "#FFFFFF")));
@@ -289,7 +315,7 @@ public final class PlaybackPerformanceDialog extends DialogFragment {
     }
 
     private LinearLayout.LayoutParams actionParams(boolean first) {
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(36));
         params.leftMargin = first ? 0 : dp(8);
         return params;
     }
