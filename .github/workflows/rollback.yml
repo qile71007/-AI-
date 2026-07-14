@@ -1,0 +1,44 @@
+name: 一键回退到指定日期
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: '请输入要回退到的日期（格式：YYYY-MM-DD）'
+        required: true
+        default: '2026-07-13'
+        type: string
+
+# ⭐ 关键：授予写入权限
+permissions:
+  contents: write
+
+env:
+  BRANCH: "main"   # 您的默认分支名，如果是 master 请改这里
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 查找目标提交
+        id: find_commit
+        run: |
+          COMMIT=$(git rev-list -n 1 --before="${{ github.event.inputs.target_date }} 23:59:59" ${{ env.BRANCH }})
+          if [ -z "$COMMIT" ]; then
+            echo "❌ 未找到 ${{ github.event.inputs.target_date }} 当天的提交记录"
+            exit 1
+          fi
+          echo "commit=$COMMIT" >> $GITHUB_OUTPUT
+          echo "✅ 找到提交: $COMMIT"
+
+      - name: 强制重置分支到目标提交
+        run: |
+          git checkout ${{ env.BRANCH }}
+          git reset --hard ${{ steps.find_commit.outputs.commit }}
+          git push --force origin ${{ env.BRANCH }}
+          echo "✅ 已成功回退到 ${{ github.event.inputs.target_date }} 的最新提交"
