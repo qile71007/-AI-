@@ -625,21 +625,7 @@ public final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObs
             applyAudioOffset();
             applySubtitleStyle();
             currentPlayableUri = playableUri(mediaItem);
-            logSourceDiagnostics(mediaItem, currentPlayableUri, headers);
             boolean declaredIso = isLikelyIso(mediaItem, currentPlayableUri);
-            if (!declaredIso && isOpaqueLocalProxy(currentPlayableUri)) {
-                String probingUri = currentPlayableUri;
-                IsoSessionManager.probeAndCreateAsync(probingUri, headers, isoUri -> mainHandler.post(() -> {
-                    if (released || stopping || !TextUtils.equals(currentPlayableUri, probingUri)) {
-                        IsoSessionManager.closeUri(isoUri);
-                        return;
-                    }
-                    currentIsoUri = isoUri;
-                    if (currentIsoUri != null) currentPlayableUri = currentIsoUri;
-                    continueOpenCurrent(headers);
-                }));
-                return;
-            }
             if (declaredIso) currentIsoUri = IsoSessionManager.create(currentPlayableUri, headers);
             if (currentIsoUri != null) currentPlayableUri = currentIsoUri;
             continueOpenCurrent(headers);
