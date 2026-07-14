@@ -80,7 +80,7 @@ public class HistorySyncUtil {
                     return;
                 }
 
-                String json = com.github.catvod.utils.Json.read(dest);
+                String json = readFile(dest);
                 if (json == null || json.isEmpty()) {
                     postError(callback, "云端记录为空");
                     return;
@@ -139,5 +139,13 @@ public class HistorySyncUtil {
             Notify.show(msg);
             if (callback != null) callback.onError(msg);
         });
+    }
+
+    private static String readFile(File file) {
+        try {
+            return new String(java.nio.file.Files.readAllBytes(file.toPath()), "UTF-8");
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
