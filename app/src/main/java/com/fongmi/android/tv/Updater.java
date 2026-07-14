@@ -276,7 +276,7 @@ public class Updater implements Download.Callback, UpdateListener {
         dismiss();
         Notify.dismissToast();
         // 只显示单一版本，不提供通道切换
-        dialog = UpdateDialog.create().update(updateInfo).listener(this).show(activity);
+        dialog = UpdateDialog.create().stable(updateInfo).selected(Update.CHANNEL_STABLE).listener(this).show(activity);
     }
 
     @Override
