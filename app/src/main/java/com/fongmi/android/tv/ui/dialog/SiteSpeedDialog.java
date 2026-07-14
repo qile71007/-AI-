@@ -121,7 +121,7 @@ public final class SiteSpeedDialog {
         if (window == null) return;
         WindowManager.LayoutParams params = window.getAttributes();
         params.width = (int) (ResUtil.getScreenWidth(activity) * (ResUtil.isLand(activity) ? 0.62f : 0.92f));
-        params.height = (int) (ResUtil.getScreenHeight(activity) * 0.7);
+        params.height = (int) (ResUtil.getScreenHeight(activity) * 0.8);
         params.gravity = Gravity.CENTER;
         window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         window.setAttributes(params);
@@ -157,8 +157,8 @@ public final class SiteSpeedDialog {
         @Override
         public VH onCreateViewHolder(ViewGroup parent, int viewType) {
             TextView tv = new TextView(parent.getContext());
-            tv.setPadding(ResUtil.dp2px(4), ResUtil.dp2px(6), ResUtil.dp2px(4), ResUtil.dp2px(6));
-            tv.setTextSize(13);
+            tv.setPadding(ResUtil.dp2px(8), ResUtil.dp2px(10), ResUtil.dp2px(8), ResUtil.dp2px(10));
+            tv.setTextSize(15);
             RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT);
             tv.setLayoutParams(lp);
             return new VH(tv);
