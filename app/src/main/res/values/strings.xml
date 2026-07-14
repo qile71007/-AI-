@@ -672,8 +672,8 @@
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>
     <string name="setting_cache">Cache</string>
-    <string name="setting_backup">Backup</string>
-    <string name="setting_restore">Restore</string>
+    <string name="setting_backup">WebDAV Backup</string>
+    <string name="setting_restore">WebDAV Restore</string>
     <string name="setting_about">About</string>
     <string name="setting_version">Version</string>
     <string name="setting_choose">Choose</string>
@@ -1129,7 +1129,7 @@
     <string name="site_speed_testing">Testing %1$d/%2$d</string>
     <string name="site_speed_done">Test complete</string>
     <string name="site_speed_entry">Site Speed Test</string>
-    <string name="sync_upload">Upload History</string>
-    <string name="sync_download">Download History</string>
+    <string name="sync_upload">Upload Watch History</string>
+    <string name="sync_download">Download Watch History</string>
 
 </resources>
