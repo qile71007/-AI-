@@ -1117,5 +1117,13 @@
     <string name="nav_chat">Cloud Config</string>
     <string name="setting_reset_app">Reset App</string>
     <string name="setting_reset_app_confirm">Reset this app? All data and settings will be cleared, and the app will restart.</string>
+    <string name="stats_title">Viewing Statistics</string>
+    <string name="stats_total_count">Total Watched</string>
+    <string name="stats_total_time">Total Time</string>
+    <string name="stats_month_count">This Month</string>
+    <string name="stats_week_count">This Week</string>
+    <string name="stats_recent_watched">Recently Watched</string>
+    <string name="stats_entry">Viewing Statistics</string>
+    <string name="stats_no_data">No viewing records yet</string>
 
 </resources>

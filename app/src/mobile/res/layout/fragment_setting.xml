@@ -81,6 +81,14 @@
                     android:padding="7dp"
                     android:src="@drawable/ic_setting_history" />
 
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/vodStats"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/shape_item"
+                    android:padding="7dp"
+                    android:src="@drawable/ic_setting_stats" />
+
             </androidx.appcompat.widget.LinearLayoutCompat>
 
             <!-- 直播配置 -->

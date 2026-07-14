@@ -1109,5 +1109,13 @@
     <string name="nav_chat">云配置</string>
     <string name="setting_reset_app">重置应用</string>
     <string name="setting_reset_app_confirm">确认重置应用吗？这将清除所有数据和设置，应用将重启。</string>
+    <string name="stats_title">观影统计</string>
+    <string name="stats_total_count">累计观看</string>
+    <string name="stats_total_time">总时长</string>
+    <string name="stats_month_count">本月观看</string>
+    <string name="stats_week_count">本周观看</string>
+    <string name="stats_recent_watched">最近观看</string>
+    <string name="stats_entry">观影统计</string>
+    <string name="stats_no_data">暂无观看记录</string>
 
 </resources>
