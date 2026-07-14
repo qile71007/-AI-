@@ -22,7 +22,6 @@ import com.fongmi.android.tv.utils.Task;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -46,6 +45,9 @@ public class Updater implements Download.Callback, UpdateListener {
     private static final Map<String, String> GITHUB_ASSET_HEADERS = Map.of("Accept", "application/octet-stream", "X-GitHub-Api-Version", "2022-11-28");
     private static final Updater INSTANCE = new Updater();
 
+    // 现在只有一个版本通道，统一用 "release" 标识
+    private static final String CHANNEL_RELEASE = "release";
+
     private final LifecycleEventObserver lifecycleObserver = (source, event) -> {
         if (!(source instanceof FragmentActivity)) return;
         FragmentActivity activity = (FragmentActivity) source;
@@ -55,12 +57,10 @@ public class Updater implements Download.Callback, UpdateListener {
     private WeakReference<FragmentActivity> activityRef;
     private UpdateDialog dialog;
     private Download download;
-    private Update stable;
-    private Update beta;
-    private Update selected;
+    private Update updateInfo;          // 当前获取到的更新信息
     private boolean force;
-    private boolean downloading;
-    private boolean canceled;
+    private volatile boolean downloading;
+    private volatile boolean canceled;
     private int lastProgress = -1;
     private long lastBytes;
     private long lastTotal;
@@ -108,24 +108,24 @@ public class Updater implements Download.Callback, UpdateListener {
 
     private void doInBackground(FragmentActivity activity, boolean forceCheck) {
         long deadline = SystemClock.elapsedRealtime() + UPDATE_CHECK_TIMEOUT_MS;
-        Future<Update> stableFuture = Task.executor().submit(() -> getUpdate(Update.CHANNEL_STABLE));
-        Future<Update> betaFuture = Task.executor().submit(() -> getUpdate(Update.CHANNEL_BETA));
-        stable = awaitUpdate(stableFuture, Update.CHANNEL_STABLE, deadline);
-        beta = awaitUpdate(betaFuture, Update.CHANNEL_BETA, deadline);
-        if (!stable.hasUpdate() && !beta.hasUpdate()) {
-            if (forceCheck && (stable.hasManifest() || beta.hasManifest())) {
-                selected = stable;
-                App.post(() -> show(activity));
-                return;
+        Future<Update> future = Task.executor().submit(this::getUpdate);
+        updateInfo = awaitUpdate(future, deadline);
+        if (!updateInfo.hasUpdate()) {
+            if (forceCheck) {
+                // 强制检查：若有 manifest 但无更新，也显示对话框（告知最新）
+                if (updateInfo.hasManifest()) {
+                    App.post(() -> show(activity));
+                } else {
+                    App.post(() -> Notify.show(TextUtils.isEmpty(updateInfo.error) ? R.string.update_latest : R.string.update_failed));
+                }
             }
-            if (forceCheck) App.post(() -> Notify.show(hasErrorOnly() ? R.string.update_failed : R.string.update_latest));
+            // 非强制且无更新，静默结束
             return;
         }
-        selected = stable;
         App.post(() -> show(activity));
     }
 
-    private Update awaitUpdate(Future<Update> future, String channel, long deadline) {
+    private Update awaitUpdate(Future<Update> future, long deadline) {
         try {
             long remaining = deadline - SystemClock.elapsedRealtime();
             if (remaining <= 0) throw new TimeoutException("Update check timed out");
@@ -133,47 +133,36 @@ public class Updater implements Download.Callback, UpdateListener {
         } catch (Exception e) {
             future.cancel(true);
             e.printStackTrace();
-            Update update = Update.empty(channel);
+            Update update = Update.empty(CHANNEL_RELEASE);
             update.error = e.getMessage();
             return update;
         }
     }
 
-    private Update getUpdate(String channel) {
-        Update cnb = readUpdate(channel, Github.getCnbAsset(getManifestName(channel)), SOURCE_CNB);
-        Update github = Update.CHANNEL_BETA.equals(channel) ? getGithubBetaUpdate(channel) : getGithubStableUpdate(channel);
+    private Update getUpdate() {
+        // 从 CNB（国内）获取
+        Update cnb = readUpdate(CHANNEL_RELEASE, Github.getCnbAsset(getManifestName()), SOURCE_CNB);
+        // 从 GitHub 获取
+        Update github = getGithubReleaseUpdate();
+        // 返回较新的
         return newer(cnb, github);
     }
 
-    private Update getGithubStableUpdate(String channel) {
+    private Update getGithubReleaseUpdate() {
         try {
             JSONObject release = new JSONObject(OkHttp.string(Github.getLatestReleaseApi(), GITHUB_API_HEADERS, GITHUB_REQUEST_TIMEOUT_MS));
-            return readGithubReleaseUpdate(channel, release);
+            return readGithubReleaseUpdate(release);
         } catch (Exception e) {
             e.printStackTrace();
-            return Update.empty(channel);
+            return Update.empty(CHANNEL_RELEASE);
         }
     }
 
-    private Update getGithubBetaUpdate(String channel) {
-        String manifestName = getManifestName(channel);
-        try {
-            JSONArray releases = new JSONArray(OkHttp.string(Github.getReleasesApi(), GITHUB_API_HEADERS, GITHUB_REQUEST_TIMEOUT_MS));
-            for (int i = 0; i < releases.length(); i++) {
-                JSONObject release = releases.optJSONObject(i);
-                if (release == null || !isBetaRelease(release)) continue;
-                if (findAsset(release.optJSONArray("assets"), manifestName) == null) continue;
-                return readGithubReleaseUpdate(channel, release);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return Update.empty(channel);
-    }
-
-    private boolean isBetaRelease(JSONObject release) {
-        String tag = release.optString("tag_name");
-        return release.optBoolean("prerelease") || tag.contains("-beta-");
+    private Update readGithubReleaseUpdate(JSONObject release) {
+        JSONObject asset = findAsset(release.optJSONArray("assets"), getManifestName());
+        long assetId = asset == null ? 0 : asset.optLong("id");
+        if (assetId <= 0) return Update.empty(CHANNEL_RELEASE);
+        return readUpdate(CHANNEL_RELEASE, Github.getReleaseAssetApi(assetId), SOURCE_GITHUB, GITHUB_ASSET_HEADERS, release.optString("body"));
     }
 
     private JSONObject findAsset(JSONArray assets, String name) {
@@ -184,13 +173,6 @@ public class Updater implements Download.Callback, UpdateListener {
             return asset;
         }
         return null;
-    }
-
-    private Update readGithubReleaseUpdate(String channel, JSONObject release) {
-        JSONObject asset = findAsset(release.optJSONArray("assets"), getManifestName(channel));
-        long assetId = asset == null ? 0 : asset.optLong("id");
-        if (assetId <= 0) return Update.empty(channel);
-        return readUpdate(channel, Github.getReleaseAssetApi(assetId), SOURCE_GITHUB, GITHUB_ASSET_HEADERS, release.optString("body"));
     }
 
     private Update readUpdate(String channel, String manifestUrl, String source) {
@@ -206,7 +188,7 @@ public class Updater implements Download.Callback, UpdateListener {
             update.name = object.optString("name");
             update.desc = normalizeText(object.optString("desc"));
             update.notes = normalizeText(object.optString("notes"));
-            update.channel = object.optString("channel", channel);
+            update.channel = object.optString("channel", channel); // 若 manifest 未指定，则用传入的 channel
             update.code = object.optInt("code");
             update.apk = object.optString("apk");
             update.size = object.optLong("size");
@@ -225,7 +207,7 @@ public class Updater implements Download.Callback, UpdateListener {
     }
 
     private Update newer(Update first, Update second) {
-        if (first == null || !first.hasManifest()) return second == null ? Update.empty(Update.CHANNEL_STABLE) : second;
+        if (first == null || !first.hasManifest()) return second == null ? Update.empty(CHANNEL_RELEASE) : second;
         if (second == null || !second.hasManifest()) return first;
         if (second.code != first.code) return second.code > first.code ? second : first;
         return compareName(second.name, first.name) > 0 ? second : first;
@@ -246,23 +228,24 @@ public class Updater implements Download.Callback, UpdateListener {
                 .replace("\\'", "'");
     }
 
-    private String getManifestName(String channel) {
-        return getAssetName(channel, "json");
+    private String getManifestName() {
+        return getName() + ".json";
     }
 
-    private String getDefaultApkName(String channel) {
-        return getAssetName(channel, "apk");
-    }
-
-    private String getAssetName(String channel, String ext) {
-        String suffix = Update.CHANNEL_BETA.equals(channel) ? "-beta" : "";
-        return getName() + suffix + "." + ext;
+    private String getDefaultApkName() {
+        return getName() + ".apk";
     }
 
     private String getApkUrl(Update update, String source) {
-        String apk = TextUtils.isEmpty(update.apk) ? getDefaultApkName(update.channel) : update.apk;
+        String apk = TextUtils.isEmpty(update.apk) ? getDefaultApkName() : update.apk;
         if (apk.startsWith("http://") || apk.startsWith("https://")) return apk;
-        if (SOURCE_GITHUB.equals(source) && !TextUtils.isEmpty(update.name)) return Github.getGithubReleaseAsset(update.name, apk);
+        if (SOURCE_GITHUB.equals(source) && !TextUtils.isEmpty(update.name)) {
+            return Github.getGithubReleaseAsset(update.name, apk);
+        }
+        if (SOURCE_CNB.equals(source) && !TextUtils.isEmpty(update.name)) {
+            return Github.getCnbAsset(update.name, apk);
+        }
+        // fallback: 无 tag 的 CNB
         return Github.getCnbAsset(apk);
     }
 
@@ -285,23 +268,19 @@ public class Updater implements Download.Callback, UpdateListener {
         }
     }
 
-    private boolean hasErrorOnly() {
-        return !stable.hasManifest() && !beta.hasManifest() && (!TextUtils.isEmpty(stable.error) || !TextUtils.isEmpty(beta.error));
-    }
-
     private void show(FragmentActivity activity) {
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
         if (activity.getSupportFragmentManager().isStateSaved()) return;
         bind(activity);
         dismiss();
         Notify.dismissToast();
-        String channel = selected == null ? Update.CHANNEL_STABLE : selected.channel;
-        dialog = UpdateDialog.create().stable(stable).beta(beta).selected(channel).listener(this).show(activity);
+        // 只显示单一版本，不提供通道切换
+        dialog = UpdateDialog.create().update(updateInfo).listener(this).show(activity);
     }
 
     @Override
     public void onConfirm(View view) {
-        if (selected == null || !selected.hasUpdate()) {
+        if (updateInfo == null || !updateInfo.hasUpdate()) {
             Notify.show(R.string.update_latest);
             return;
         }
@@ -310,8 +289,8 @@ public class Updater implements Download.Callback, UpdateListener {
         canceled = false;
         resetProgress();
         Path.clear(getFile());
-        setDialogProgress(0, 0, selected.size, 0, 0);
-        download = Download.create(selected.apkUrl, getFile()).tag(selected.apkUrl);
+        setDialogProgress(0, 0, updateInfo.size, 0, 0);
+        download = Download.create(updateInfo.apkUrl, getFile()).tag(updateInfo.apkUrl);
         download.start(this);
     }
 
@@ -337,10 +316,10 @@ public class Updater implements Download.Callback, UpdateListener {
         dialog = null;
     }
 
+    // 通道切换接口不再需要，但必须实现（空实现）
     @Override
     public void onChannel(String channel) {
-        Setting.putUpdateChannel(channel);
-        selected = Update.CHANNEL_BETA.equals(channel) ? beta : stable;
+        // 无操作
     }
 
     private void dismiss() {
@@ -364,7 +343,7 @@ public class Updater implements Download.Callback, UpdateListener {
 
     private void setDialogProgress(int progress, long bytes, long total, long speed, long elapsed) {
         if (canceled || !downloading) return;
-        long manifestSize = selected == null ? 0 : selected.size;
+        long manifestSize = updateInfo == null ? 0 : updateInfo.size;
         if (total <= 0 && manifestSize > 0) total = manifestSize;
         if (progress < 0 && total > 0 && bytes > 0) progress = (int) (bytes * 100.0 / total);
         lastProgress = progress;
@@ -390,7 +369,7 @@ public class Updater implements Download.Callback, UpdateListener {
     public void success(File file) {
         if (canceled) return;
         download = null;
-        Update target = selected;
+        Update target = updateInfo;
         Task.execute(() -> {
             String error = validate(file, target);
             App.post(() -> {
@@ -410,7 +389,7 @@ public class Updater implements Download.Callback, UpdateListener {
     }
 
     private void restoreDialog(FragmentActivity activity) {
-        if (!downloading || selected == null) return;
+        if (!downloading || updateInfo == null) return;
         show(activity);
         setDialogProgress(lastProgress, lastBytes, lastTotal, lastSpeed, lastElapsed);
     }
@@ -451,6 +430,13 @@ public class Updater implements Download.Callback, UpdateListener {
         if (current != activity) return;
         activity.getLifecycle().removeObserver(lifecycleObserver);
         activityRef = null;
+        if (downloading && download != null) {
+            download.cancel();
+            download = null;
+            downloading = false;
+            canceled = true;
+            resetProgress();
+        }
         if (!downloading) dialog = null;
     }
 
