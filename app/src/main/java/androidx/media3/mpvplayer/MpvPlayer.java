@@ -625,27 +625,9 @@ public final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObs
             applyAudioOffset();
             applySubtitleStyle();
             currentPlayableUri = playableUri(mediaItem);
-            boolean declaredIso = isLikelyIso(mediaItem, currentPlayableUri);
-            if (declaredIso) currentIsoUri = IsoSessionManager.create(currentPlayableUri, headers);
-            if (currentIsoUri != null) currentPlayableUri = currentIsoUri;
-            continueOpenCurrent(headers);
-        } catch (Throwable e) {
-            fail(classifyLoadError(e, e.getMessage()), PlaybackException.ERROR_CODE_IO_UNSPECIFIED);
-        }
-    }
-
-    private void continueOpenCurrent(Map<String, String> headers) {
-        try {
-            if (currentIsoUri != null) {
-                currentLikelyHls = false;
-                currentLikelyDash = false;
-                hlsProxy.clear();
-                Log.i(TAG, "load remote optical-disc ISO session");
-            } else {
-                currentLikelyHls = isLikelyHls(mediaItem, currentPlayableUri);
-                currentLikelyDash = isLikelyDash(mediaItem, currentPlayableUri);
-            }
-            if (currentIsoUri == null && shouldProxyHls(currentPlayableUri, currentLikelyHls)) {
+            currentLikelyHls = isLikelyHls(mediaItem, currentPlayableUri);
+            currentLikelyDash = isLikelyDash(mediaItem, currentPlayableUri);
+            if (shouldProxyHls(currentPlayableUri, currentLikelyHls)) {
                 String originalUri = currentPlayableUri;
                 currentPlayableUri = hlsProxy.proxy(originalUri, headers);
                 SpiderDebug.log("mpv", "hls proxy enabled original=%s proxy=%s", originalUri, currentPlayableUri);
@@ -653,8 +635,8 @@ public final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObs
                 hlsProxy.clear();
             }
             applyShaderPipeline(true);
-            Log.d(TAG, "load scheme=" + safeScheme(currentPlayableUri) + " urlLen=" + (currentPlayableUri == null ? 0 : currentPlayableUri.length()) + " hls=" + currentLikelyHls + " dash=" + currentLikelyDash);
-            SpiderDebug.log("mpv", "load scheme=%s urlLen=%d hls=%s dash=%s surface=%s attached=%s hwdec=%s vo=%s gpuContext=%s gpuApi=%s", safeScheme(currentPlayableUri), currentPlayableUri == null ? 0 : currentPlayableUri.length(), currentLikelyHls, currentLikelyDash, surface != null && surface.isValid(), surfaceAttached, config.hwdec(), config.vo(), config.gpuContext(), config.gpuApi());
+            Log.d(TAG, "load uri=" + currentPlayableUri + " hls=" + currentLikelyHls + " dash=" + currentLikelyDash);
+            SpiderDebug.log("mpv", "load uri=%s hls=%s dash=%s surface=%s attached=%s hwdec=%s vo=%s gpuContext=%s gpuApi=%s", currentPlayableUri, currentLikelyHls, currentLikelyDash, surface != null && surface.isValid(), surfaceAttached, config.hwdec(), config.vo(), config.gpuContext(), config.gpuApi());
             loadCurrentUri();
             scheduleLoadStartRetry();
             invalidateState();
