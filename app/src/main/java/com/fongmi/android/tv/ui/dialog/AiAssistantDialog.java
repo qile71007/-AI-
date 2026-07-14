@@ -170,6 +170,17 @@ public class AiAssistantDialog extends DialogFragment {
         binding.rvMessages.setAdapter(adapter);
 
         binding.toolbar.setNavigationOnClickListener(v -> dismiss());
+        binding.toolbar.setTitle("AI 助手");
+        binding.toolbar.inflateMenu(R.menu.menu_ai);
+        binding.toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_clear_chat) {
+                messages.clear();
+                adapter.notifyDataSetChanged();
+                saveMessages();
+                return true;
+            }
+            return false;
+        });
 
         setupModelSelector();
 
@@ -572,6 +583,16 @@ public class AiAssistantDialog extends DialogFragment {
             systemMsg.put("role", "system");
             systemMsg.put("content", systemPrompt);
             messagesArray.put(systemMsg);
+
+            // 加入最近的历史对话上下文（最多保留最近10轮，避免超出 token 限制）
+            int histStart = Math.max(0, messages.size() - 20);
+            for (int i = histStart; i < messages.size(); i++) {
+                Message m = messages.get(i);
+                JSONObject histMsg = new JSONObject();
+                histMsg.put("role", m.isUser ? "user" : "assistant");
+                histMsg.put("content", m.content);
+                messagesArray.put(histMsg);
+            }
 
             JSONObject userMsg = new JSONObject();
             userMsg.put("role", "user");
