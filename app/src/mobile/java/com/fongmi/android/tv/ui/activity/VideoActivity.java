@@ -1809,7 +1809,8 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         if (Setting.isIncognito() && mHistory.getKey().equals(getHistoryKey())) mHistory.delete();
         mBinding.control.action.opening.setText(mHistory.getOpening() <= 0 ? getString(R.string.play_op) : Util.timeMs(mHistory.getOpening()));
         mBinding.control.action.ending.setText(mHistory.getEnding() <= 0 ? getString(R.string.play_ed) : Util.timeMs(mHistory.getEnding()));
-        mBinding.control.action.speed.setText(player().setSpeed(PlayerSetting.getDefaultSpeed()));
+        float savedSpeed = mHistory.getSpeed() > 0 ? mHistory.getSpeed() : PlayerSetting.getDefaultSpeed();
+        mBinding.control.action.speed.setText(player().setSpeed(savedSpeed));
         mHistory.setSpeed(player().getSpeed());
         mHistory.setVodName(item.getName());
         PlaybackEventCollector.get().updateHistory(mHistory);
