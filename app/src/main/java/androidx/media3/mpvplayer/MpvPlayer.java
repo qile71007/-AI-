@@ -138,8 +138,6 @@ public final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObs
     private MpvLutShader lutShader;
     private String currentPlayableUri;
     private String currentIsoUri;
-    private boolean isoProbed;
-    private PlaybackException pendingError;
     private String appliedLutShaderPath;
     private PlaybackParameters playbackParameters;
     private PlaybackException playerError;
@@ -610,8 +608,6 @@ public final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObs
             cachedCacheDurationMs = 0;
             resetRuntimeDiagnostics();
             resetFailureSignals();
-            isoProbed = false;
-            pendingError = null;
             recentLogs.clear();
             mainHandler.removeCallbacks(endFileValidationRunnable);
             closeContentFds();
@@ -2647,7 +2643,6 @@ public final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObs
     }
 
     private void fail(Throwable e, int errorCode) {
-        if (tryIsoFallback(e, errorCode)) return;
         playerError = new PlaybackException(e.getMessage(), e, errorCode);
         playbackState = Player.STATE_IDLE;
         loading = false;
@@ -2657,42 +2652,6 @@ public final class MpvPlayer extends SimpleBasePlayer implements MPVLib.EventObs
         stopStateRefresh();
         SpiderDebug.log("mpv", "fail code=%d message=%s diagnostics=%s", errorCode, e.getMessage(), diagnosticSummary());
         invalidateState();
-    }
-
-    /**
-     * 播放失败时的 ISO fallback：如果当前 URI 是本地代理且还没探测过是否为 ISO，
-     * 异步探测一次。如果是 ISO 则重新加载；如果不是 ISO 则报出原始播放错误。
-     */
-    private boolean tryIsoFallback(Throwable e, int errorCode) {
-        if (isoProbed || released || stopping) return false;
-        if (currentIsoUri != null || !isOpaqueLocalProxy(currentPlayableUri)) return false;
-        isoProbed = true;
-        pendingError = new PlaybackException(e.getMessage(), e, errorCode);
-        playbackState = Player.STATE_BUFFERING;
-        String probingUri = currentPlayableUri;
-        Map<String, String> probeHeaders = applyMediaOptions(mediaItem);
-        Log.i(TAG, "playback failed, probing opaque local proxy for ISO signature");
-        IsoSessionManager.probeAndCreateAsync(probingUri, probeHeaders, isoUri -> mainHandler.post(() -> {
-            if (released || stopping || !TextUtils.equals(currentPlayableUri, probingUri)) {
-                if (isoUri != null) IsoSessionManager.closeUri(isoUri);
-                return;
-            }
-            if (isoUri == null) {
-                Log.i(TAG, "ISO probe negative, reporting original playback failure");
-                playerError = pendingError;
-                pendingError = null;
-                playbackState = Player.STATE_IDLE;
-                loading = false;
-                invalidateState();
-                return;
-            }
-            Log.i(TAG, "ISO probe positive, retrying with ISO session");
-            pendingError = null;
-            currentIsoUri = isoUri;
-            currentPlayableUri = isoUri;
-            continueOpenCurrent(probeHeaders);
-        }));
-        return true;
     }
 
     private String diagnosticSummary() {
