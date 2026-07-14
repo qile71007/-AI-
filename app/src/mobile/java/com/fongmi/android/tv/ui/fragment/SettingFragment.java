@@ -50,6 +50,7 @@ import com.fongmi.android.tv.ui.dialog.StatsDialog;
 import com.fongmi.android.tv.ui.dialog.ThemeDialog;
 import com.fongmi.android.tv.utils.AppVersion;
 import com.fongmi.android.tv.utils.FileUtil;
+import com.fongmi.android.tv.utils.HistorySyncUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -175,6 +176,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.player.setOnClickListener(this::onPlayer);
         mBinding.danmaku.setOnClickListener(this::onDanmaku);
         mBinding.restore.setOnClickListener(this::onRestore);
+        mBinding.historySyncUpload.setOnClickListener(this::onSyncUpload);
+        mBinding.historySyncDownload.setOnClickListener(this::onSyncDownload);
         mBinding.version.setOnClickListener(this::onVersion);
         mBinding.vodHome.setOnClickListener(this::onVodHome);
         mBinding.liveHome.setOnClickListener(this::onLiveHome);
@@ -659,6 +662,14 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
                 Notify.show(R.string.restore_fail);
             }
         }));
+    }
+
+    private void onSyncUpload(View view) {
+        HistorySyncUtil.upload(requireContext(), null);
+    }
+
+    private void onSyncDownload(View view) {
+        HistorySyncUtil.download(requireContext(), null);
     }
 
     private void initConfig() {

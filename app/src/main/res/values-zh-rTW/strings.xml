@@ -1105,5 +1105,7 @@
     <string name="site_speed_testing">正在測試 %1$d/%2$d</string>
     <string name="site_speed_done">測試完成</string>
     <string name="site_speed_entry">站源測速</string>
+    <string name="sync_upload">上傳進度</string>
+    <string name="sync_download">下載進度</string>
 
 </resources>
