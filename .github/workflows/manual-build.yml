@@ -1,4 +1,4 @@
-name: Manual APK Build & Release
+name: 手动APK构建和发布
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ on:
         required: false
         default: '影视'
       release_tag:
-        description: 'Release Tag（留空则使用项目原有版本名，示例：v1.0.0）'
+        description: 'Release Tag（留空则自动使用版本名，示例：v5.5.7）'
         required: false
         default: 'v5.5.7'
       release_notes:
@@ -91,7 +91,6 @@ jobs:
           echo "Found APK files:"
           echo "$APK_LIST"
 
-          # 复制所有 APK 并保留原始文件名
           for apk in $APK_LIST; do
             fname=$(basename "$apk")
             cp "$apk" "release_assets/$fname"
@@ -110,23 +109,34 @@ jobs:
           # 提取版本信息
           VERSION_NAME=$(grep 'versionName' app/build.gradle | head -1 | sed 's/.*"\(.*\)".*/\1/')
           VERSION_CODE=$(grep 'versionCode' app/build.gradle | head -1 | sed 's/[^0-9]*\([0-9]*\)/\1/')
-          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
-          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_OUTPUT
 
-          # 生成 manifest.json（供更新检查使用）
+          # 获取 APK 信息（假设只有一个 APK）
+          APK_FILE=$(ls release_assets/*.apk | head -1)
+          APK_NAME=$(basename "$APK_FILE")
+          APK_SIZE=$(stat -c%s "$APK_FILE")
+          APK_SHA256=$(sha256sum "$APK_FILE" | cut -d' ' -f1)
+
+          # 处理 release notes
           DESC="${{ github.event.inputs.release_notes }}"
           DESC_JSON=$(echo "$DESC" | sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/"/\\"/g')
+
+          # 生成完整的 manifest.json（含 Updater 所需所有字段）
           cat > release_assets/manifest.json <<EOF
           {
-            "version": "${VERSION_NAME}",
+            "name": "${VERSION_NAME}",
+            "desc": "${DESC_JSON}",
+            "notes": "${DESC_JSON}",
+            "channel": "stable",
             "code": ${VERSION_CODE},
-            "desc": "${DESC_JSON}"
+            "apk": "${APK_NAME}",
+            "size": ${APK_SIZE},
+            "sha256": "${APK_SHA256}"
           }
           EOF
-          echo "Generated manifest.json"
-
-          echo "Final contents:"
-          ls -la release_assets/
+          echo "Generated manifest.json:"
+          cat release_assets/manifest.json
 
       - name: Upload APKs as Artifacts
         uses: actions/upload-artifact@v4
@@ -138,8 +148,8 @@ jobs:
         if: ${{ github.event.inputs.create_release == 'true' }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.release_tag != '' && github.event.inputs.release_tag || format('v{0}', env.VERSION_NAME) }}
-          name: ${{ github.event.inputs.release_tag != '' && github.event.inputs.release_tag || format('Release {0}', env.VERSION_NAME) }}
+          tag_name: ${{ github.event.inputs.release_tag != '' && github.event.inputs.release_tag || (steps.prepare.outputs.VERSION_NAME != '' && format('v{0}', steps.prepare.outputs.VERSION_NAME) || 'v5.5.7') }}
+          name: ${{ github.event.inputs.release_tag != '' && github.event.inputs.release_tag || (steps.prepare.outputs.VERSION_NAME != '' && format('Release {0}', steps.prepare.outputs.VERSION_NAME) || 'Release v5.5.7') }}
           body: ${{ github.event.inputs.release_notes }}
           files: |
             release_assets/*.apk
