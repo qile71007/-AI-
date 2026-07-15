@@ -78,6 +78,7 @@
             android:padding="10dp" />
     </LinearLayout>
 
+    <!-- ========== 全屏编辑器容器（重构） ========== -->
     <FrameLayout
         android:id="@+id/fullscreen_editor_container"
         android:layout_width="match_parent"
@@ -85,6 +86,7 @@
         android:visibility="gone"
         android:background="#FFFFFF">
 
+        <!-- 顶部工具栏 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -125,27 +127,45 @@
                 android:tint="@android:color/white" />
         </LinearLayout>
 
-        <!-- 修改点：增加滚动条相关属性，增大触摸区域，禁止淡出 -->
-        <EditText
-            android:id="@+id/fullscreen_editor"
+        <!-- 编辑区：文本编辑框 + 右侧垂直快速滑块 -->
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="64dp"
-            android:background="@null"
-            android:textColor="#000000"
-            android:textColorHint="#999999"
-            android:textSize="14sp"
-            android:lineSpacingExtra="4dp"
-            android:padding="16dp"
-            android:scrollbars="vertical"
-            android:isScrollContainer="true"
-            android:gravity="top|start"
-            android:inputType="textMultiLine|textNoSuggestions"
-            android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
-            android:scrollbarSize="12dp"
-            android:scrollbarFadeDuration="0"
-            android:scrollbarDefaultDelayBeforeFade="0" />
+            android:layout_marginTop="64dp">
+
+            <EditText
+                android:id="@+id/fullscreen_editor"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@+id/scroll_seekbar"
+                android:background="@null"
+                android:textColor="#000000"
+                android:textColorHint="#999999"
+                android:textSize="14sp"
+                android:lineSpacingExtra="4dp"
+                android:padding="16dp"
+                android:paddingEnd="8dp"
+                android:scrollbars="vertical"
+                android:isScrollContainer="true"
+                android:gravity="top|start"
+                android:inputType="textMultiLine|textNoSuggestions" />
+
+            <!-- 垂直 SeekBar：旋转 270° 使其竖立 -->
+            <SeekBar
+                android:id="@+id/scroll_seekbar"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:rotation="270"
+                android:max="1000"
+                android:thumb="@drawable/scrollbar_thumb"
+                android:progressDrawable="@android:drawable/progress_horizontal" />
+
+        </RelativeLayout>
 
     </FrameLayout>
+    <!-- ========== 全屏编辑器容器结束 ========== -->
 
 </RelativeLayout>
