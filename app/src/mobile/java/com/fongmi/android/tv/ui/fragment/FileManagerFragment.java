@@ -165,7 +165,7 @@ public class FileManagerFragment extends Fragment {
         return view;
     }
 
-    // ===================== 修改的方法 =====================
+    // ===================== 核心修改 =====================
     private void setupFullscreenEditor() {
         if (fullscreenEditorContainer == null) return;
 
@@ -175,6 +175,7 @@ public class FileManagerFragment extends Fragment {
         btnSaveEditor = fullscreenEditorContainer.findViewById(R.id.btn_save_editor);
         scrollSeekbar = fullscreenEditorContainer.findViewById(R.id.scroll_seekbar);
 
+        // 设置编辑框
         if (fullscreenEditor != null) {
             fullscreenEditor.setTypeface(android.graphics.Typeface.MONOSPACE);
             fullscreenEditor.setScrollbarFadingEnabled(false);
@@ -182,7 +183,9 @@ public class FileManagerFragment extends Fragment {
             fullscreenEditor.setFocusableInTouchMode(true);
         }
 
+        // 配置滑块
         if (scrollSeekbar != null) {
+            // 绝对禁止滑块获取焦点
             scrollSeekbar.setFocusable(false);
             scrollSeekbar.setFocusableInTouchMode(false);
 
@@ -190,6 +193,7 @@ public class FileManagerFragment extends Fragment {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     if (fromUser && fullscreenEditor.getLayout() != null) {
+                        // 计算可滚动范围
                         int totalHeight = fullscreenEditor.getLayout().getHeight();
                         int visibleHeight = fullscreenEditor.getHeight();
                         int maxScroll = Math.max(0, totalHeight - visibleHeight);
@@ -200,26 +204,14 @@ public class FileManagerFragment extends Fragment {
                 @Override public void onStartTrackingTouch(SeekBar seekBar) {}
                 @Override public void onStopTrackingTouch(SeekBar seekBar) {}
             });
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                fullscreenEditor.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-                    if (fullscreenEditor.getLayout() != null) {
-                        int totalHeight = fullscreenEditor.getLayout().getHeight();
-                        int visibleHeight = fullscreenEditor.getHeight();
-                        int maxScroll = Math.max(0, totalHeight - visibleHeight);
-                        if (maxScroll > 0) {
-                            int progress = (int) ((long) scrollY * 1000 / maxScroll);
-                            scrollSeekbar.setProgress(progress);
-                        }
-                    }
-                });
-            }
         }
 
+        // 关闭按钮
         if (btnCloseEditor != null) {
             btnCloseEditor.setOnClickListener(v -> closeFullscreenEditor());
         }
 
+        // 保存按钮
         if (btnSaveEditor != null) {
             btnSaveEditor.setOnClickListener(v -> {
                 if (fullscreenEditor != null && currentConfigFile != null) {
@@ -240,6 +232,7 @@ public class FileManagerFragment extends Fragment {
 
         fullscreenTitle.setText(title);
         fullscreenEditor.setText(content);
+        // 打开时滚动到顶部，滑块复位
         fullscreenEditor.post(() -> {
             fullscreenEditor.scrollTo(0, 0);
             if (scrollSeekbar != null) {
@@ -256,7 +249,7 @@ public class FileManagerFragment extends Fragment {
         }
     }
 
-    // ===================== 以下所有方法保持不变 =====================
+    // ===================== 以下所有方法保持原样（无任何改动） =====================
     private void closeFullscreenEditor() {
         if (fullscreenEditorContainer != null) {
             fullscreenEditorContainer.setVisibility(View.GONE);
