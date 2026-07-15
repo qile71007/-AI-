@@ -120,7 +120,6 @@
                 android:ellipsize="middle"
                 android:layout_marginStart="12dp" />
 
-            <!-- 搜索按钮 -->
             <ImageButton
                 android:id="@+id/btn_search_editor"
                 android:layout_width="40dp"
@@ -131,7 +130,6 @@
                 android:tint="@android:color/white"
                 android:layout_marginEnd="8dp" />
 
-            <!-- 跳转按钮（按行号） -->
             <ImageButton
                 android:id="@+id/btn_jump_editor"
                 android:layout_width="40dp"
@@ -162,6 +160,7 @@
             android:padding="8dp"
             android:visibility="gone">
 
+            <!-- 修改：添加 imeOptions 和 singleLine，确保键盘显示搜索按钮 -->
             <EditText
                 android:id="@+id/search_edit_text"
                 android:layout_width="0dp"
@@ -169,6 +168,8 @@
                 android:layout_weight="1"
                 android:hint="输入关键词..."
                 android:inputType="text"
+                android:imeOptions="actionSearch"
+                android:singleLine="true"
                 android:padding="8dp"
                 android:background="@android:drawable/edit_text"
                 android:textSize="14sp" />
@@ -210,7 +211,6 @@
                 android:tint="#333" />
         </LinearLayout>
 
-        <!-- 编辑器 EditText -->
         <EditText
             android:id="@+id/fullscreen_editor"
             android:layout_width="match_parent"
