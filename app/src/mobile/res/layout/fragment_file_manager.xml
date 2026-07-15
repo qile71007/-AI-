@@ -4,7 +4,6 @@
     android:layout_height="match_parent"
     android:background="?android:attr/windowBackground">
 
-    <!-- 顶部工具栏 -->
     <LinearLayout
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -54,7 +53,6 @@
             android:tint="@android:color/white" />
     </LinearLayout>
 
-    <!-- 文件列表 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
@@ -62,7 +60,6 @@
         android:layout_below="@id/toolbar"
         android:padding="4dp" />
 
-    <!-- 浮动编辑按钮 -->
     <LinearLayout
         android:id="@+id/button_container"
         android:layout_width="wrap_content"
@@ -81,7 +78,6 @@
             android:padding="10dp" />
     </LinearLayout>
 
-    <!-- ====== 全屏编辑器 ====== -->
     <FrameLayout
         android:id="@+id/fullscreen_editor_container"
         android:layout_width="match_parent"
@@ -89,7 +85,6 @@
         android:visibility="gone"
         android:background="#FFFFFF">
 
-        <!-- 顶部工具栏 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -130,46 +125,22 @@
                 android:tint="@android:color/white" />
         </LinearLayout>
 
-        <!-- 编辑区域：EditText + 右侧垂直滑块 -->
-        <RelativeLayout
+        <EditText
+            android:id="@+id/fullscreen_editor"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="64dp">
-
-            <EditText
-                android:id="@+id/fullscreen_editor"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_alignParentStart="true"
-                android:layout_toStartOf="@+id/scroll_seekbar"
-                android:background="@null"
-                android:textColor="#000000"
-                android:textColorHint="#999999"
-                android:textSize="14sp"
-                android:lineSpacingExtra="4dp"
-                android:padding="16dp"
-                android:paddingEnd="8dp"
-                android:scrollbars="vertical"
-                android:isScrollContainer="true"
-                android:gravity="top|start"
-                android:inputType="textMultiLine|textNoSuggestions"
-                android:focusable="true"
-                android:focusableInTouchMode="true" />
-
-            <!-- 垂直滑块：固定宽度，贴右，不获取焦点 -->
-            <SeekBar
-                android:id="@+id/scroll_seekbar"
-                android:layout_width="24dp"
-                android:layout_height="match_parent"
-                android:layout_alignParentEnd="true"
-                android:rotation="270"
-                android:max="1000"
-                android:thumb="@drawable/scrollbar_thumb"
-                android:progressDrawable="@android:drawable/progress_horizontal"
-                android:focusable="false"
-                android:focusableInTouchMode="false" />
-
-        </RelativeLayout>
+            android:layout_marginTop="64dp"
+            android:background="@null"
+            android:textColor="#000000"
+            android:textColorHint="#999999"
+            android:textSize="14sp"
+            android:lineSpacingExtra="4dp"
+            android:padding="16dp"
+            android:scrollbars="vertical"
+            android:isScrollContainer="true"
+            android:gravity="top|start"
+            android:inputType="textMultiLine|textNoSuggestions" />
 
     </FrameLayout>
+
 </RelativeLayout>
