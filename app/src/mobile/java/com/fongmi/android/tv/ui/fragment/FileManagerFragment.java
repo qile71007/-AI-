@@ -290,9 +290,9 @@ public class FileManagerFragment extends Fragment {
         }
         SpannableStringBuilder spannable = new SpannableStringBuilder(text);
         for (int pos : matchPositions) {
-            // 修复：使用 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            spannable.setSpan(new BackgroundColorSpan(Color.YELLOW), pos, pos + keyword.length(),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            // 高亮颜色：半透明亮黄色（白底黑字下极为醒目）
+            spannable.setSpan(new BackgroundColorSpan(Color.argb(200, 255, 235, 59)),
+                    pos, pos + keyword.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         isPerformingSearch = true;
         fullscreenEditor.setText(spannable);
