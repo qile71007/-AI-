@@ -125,6 +125,7 @@
                 android:tint="@android:color/white" />
         </LinearLayout>
 
+        <!-- 修改点：增加滚动条相关属性，增大触摸区域，禁止淡出 -->
         <EditText
             android:id="@+id/fullscreen_editor"
             android:layout_width="match_parent"
@@ -139,7 +140,11 @@
             android:scrollbars="vertical"
             android:isScrollContainer="true"
             android:gravity="top|start"
-            android:inputType="textMultiLine|textNoSuggestions" />
+            android:inputType="textMultiLine|textNoSuggestions"
+            android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
+            android:scrollbarSize="12dp"
+            android:scrollbarFadeDuration="0"
+            android:scrollbarDefaultDelayBeforeFade="0" />
 
     </FrameLayout>
 
