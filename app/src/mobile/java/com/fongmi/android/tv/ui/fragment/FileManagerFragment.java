@@ -20,6 +20,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -89,6 +90,7 @@ public class FileManagerFragment extends Fragment {
     private EditText fullscreenEditor;
     private TextView fullscreenTitle;
     private ImageButton btnCloseEditor, btnSaveEditor;
+    private SeekBar scrollSeekbar; // 新增：垂直快速滑块
 
     private File currentConfigFile = null;
     private String currentConfigType = "";
@@ -159,7 +161,7 @@ public class FileManagerFragment extends Fragment {
         setupFullscreenEditor();
         detectCurrentConfig();
 
-        checkPermissionsAndLoad(); // 调用权限检查和加载
+        checkPermissionsAndLoad();
         return view;
     }
 
@@ -170,15 +172,47 @@ public class FileManagerFragment extends Fragment {
         fullscreenTitle = fullscreenEditorContainer.findViewById(R.id.fullscreen_title);
         btnCloseEditor = fullscreenEditorContainer.findViewById(R.id.btn_close_editor);
         btnSaveEditor = fullscreenEditorContainer.findViewById(R.id.btn_save_editor);
+        scrollSeekbar = fullscreenEditorContainer.findViewById(R.id.scroll_seekbar);
 
         if (fullscreenEditor != null) {
             fullscreenEditor.setTypeface(android.graphics.Typeface.MONOSPACE);
-            // ========== 新增：优化滚动条触摸体验 ==========
-            fullscreenEditor.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+            // 关闭系统默认的滚动条淡出，保留视觉指示
             fullscreenEditor.setScrollbarFadingEnabled(false);
-            fullscreenEditor.setFocusable(true);
-            fullscreenEditor.setFocusableInTouchMode(true);
-            // ===========================================
+        }
+
+        // ========== 配置垂直快速滑块 ==========
+        if (scrollSeekbar != null) {
+            scrollSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    // 只有用户拖拽时才触发跳转
+                    if (fromUser && fullscreenEditor.getLayout() != null) {
+                        int totalHeight = fullscreenEditor.getLayout().getHeight();
+                        int visibleHeight = fullscreenEditor.getHeight();
+                        int maxScroll = Math.max(0, totalHeight - visibleHeight);
+                        int scrollY = (int) ((long) maxScroll * progress / 1000);
+                        fullscreenEditor.scrollTo(0, scrollY);
+                    }
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+
+            // 监听 EditText 的手动滑动，反向同步 SeekBar 的位置
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                fullscreenEditor.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+                    if (fullscreenEditor.getLayout() != null) {
+                        int totalHeight = fullscreenEditor.getLayout().getHeight();
+                        int visibleHeight = fullscreenEditor.getHeight();
+                        int maxScroll = Math.max(0, totalHeight - visibleHeight);
+                        if (maxScroll > 0) {
+                            int progress = (int) ((long) scrollY * 1000 / maxScroll);
+                            // 防止循环触发
+                            scrollSeekbar.setProgress(progress);
+                        }
+                    }
+                });
+            }
         }
 
         if (btnCloseEditor != null) {
@@ -205,10 +239,13 @@ public class FileManagerFragment extends Fragment {
 
         fullscreenTitle.setText(title);
         fullscreenEditor.setText(content);
-
+        // 重置滚动位置到顶部
         fullscreenEditor.post(() -> {
-            fullscreenEditor.setSelection(0);
             fullscreenEditor.scrollTo(0, 0);
+            // 重置滑块进度
+            if (scrollSeekbar != null) {
+                scrollSeekbar.setProgress(0);
+            }
         });
 
         fullscreenEditorContainer.setVisibility(View.VISIBLE);
@@ -602,7 +639,6 @@ public class FileManagerFragment extends Fragment {
 
     // ==================== 核心配置加载方法 ====================
     private void applyConfig(String filePath) {
-        // 检查文件是否存在且可读
         File configFile = new File(filePath);
         if (!configFile.exists() || !configFile.canRead()) {
             Toast.makeText(getContext(), "配置文件不存在或无法读取", Toast.LENGTH_LONG).show();
@@ -610,7 +646,6 @@ public class FileManagerFragment extends Fragment {
         }
 
         try {
-            // 预读文件内容，简单验证
             String content = readFileFirstLines(configFile, 10);
             if (TextUtils.isEmpty(content)) {
                 Toast.makeText(getContext(), "配置文件内容为空", Toast.LENGTH_LONG).show();
