@@ -14,6 +14,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.Layout;
 import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.BackgroundColorSpan;
@@ -113,7 +114,7 @@ public class FileManagerFragment extends Fragment {
     private List<Integer> matchPositions = new ArrayList<>();
     private int currentMatchIndex = -1;
     private String lastSearchKeyword = null;
-    private boolean isPerformingSearch = false;  // 修复：防止文本变化监听器干扰搜索
+    private boolean isPerformingSearch = false;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(),
@@ -201,14 +202,13 @@ public class FileManagerFragment extends Fragment {
 
         if (fullscreenEditor != null) {
             fullscreenEditor.setTypeface(android.graphics.Typeface.MONOSPACE);
-            // 监听文本变化，清除高亮（但搜索过程中禁用）
             fullscreenEditor.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    if (isPerformingSearch) return; // 修复：搜索过程中不清理
+                    if (isPerformingSearch) return;
                     clearHighlights();
                     matchPositions.clear();
                     currentMatchIndex = -1;
@@ -233,7 +233,6 @@ public class FileManagerFragment extends Fragment {
         btnSearchNext.setOnClickListener(v -> navigateMatch(1));
         btnJump.setOnClickListener(v -> showJumpDialog());
 
-        // 搜索输入框：回车触发搜索
         searchEditText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH ||
                     (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
@@ -291,10 +290,10 @@ public class FileManagerFragment extends Fragment {
         }
         SpannableStringBuilder spannable = new SpannableStringBuilder(text);
         for (int pos : matchPositions) {
+            // 修复：使用 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             spannable.setSpan(new BackgroundColorSpan(Color.YELLOW), pos, pos + keyword.length(),
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        // 设置标志，防止监听器清除高亮
         isPerformingSearch = true;
         fullscreenEditor.setText(spannable);
         isPerformingSearch = false;
@@ -405,7 +404,7 @@ public class FileManagerFragment extends Fragment {
         Toast.makeText(getContext(), "已跳转到第 " + lineNumber + " 行", Toast.LENGTH_SHORT).show();
     }
 
-    // ---------- 其他已有方法（不变） ----------
+    // ---------- 其他已有方法（保持不变） ----------
     private void showFullscreenEditor(String content, String fileName) {
         if (fullscreenEditorContainer == null) return;
         String title = "编辑: " + fileName;
