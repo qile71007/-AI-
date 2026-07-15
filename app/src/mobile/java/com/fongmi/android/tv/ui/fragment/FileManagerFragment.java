@@ -27,7 +27,6 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -74,6 +73,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Stack;
 
 import okhttp3.Call;
@@ -96,7 +96,6 @@ public class FileManagerFragment extends Fragment {
     private Stack<File> backStack = new Stack<>();
     private Stack<File> forwardStack = new Stack<>();
 
-    // 修改：将 FrameLayout 改为 LinearLayout
     private LinearLayout fullscreenEditorContainer;
     private EditText fullscreenEditor;
     private TextView fullscreenTitle;
@@ -116,6 +115,10 @@ public class FileManagerFragment extends Fragment {
     private int currentMatchIndex = -1;
     private String lastSearchKeyword = null;
     private boolean isPerformingSearch = false;
+
+    // 拖拽按钮最大重试次数
+    private static final int MAX_DRAG_SETUP_RETRIES = 10;
+    private int dragSetupRetryCount = 0;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(),
@@ -159,14 +162,16 @@ public class FileManagerFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_file_manager, container, false);
-        recyclerView = view.findViewById(R.id.recyclerView);
-        tvPath = view.findViewById(R.id.tv_path);
-        btnBackDir = view.findViewById(R.id.btn_back_dir);
-        btnForwardDir = view.findViewById(R.id.btn_forward_dir);
-        btnNewFolder = view.findViewById(R.id.btn_new_folder);
-        buttonContainer = view.findViewById(R.id.button_container);
-        btnEdit = view.findViewById(R.id.btn_edit);
-        fullscreenEditorContainer = view.findViewById(R.id.fullscreen_editor_container);
+
+        // 强制非空获取所有 View，布局缺失时会明确报错，避免 NPE
+        recyclerView = Objects.requireNonNull(view.findViewById(R.id.recyclerView), "recyclerView not found");
+        tvPath = Objects.requireNonNull(view.findViewById(R.id.tv_path), "tv_path not found");
+        btnBackDir = Objects.requireNonNull(view.findViewById(R.id.btn_back_dir), "btn_back_dir not found");
+        btnForwardDir = Objects.requireNonNull(view.findViewById(R.id.btn_forward_dir), "btn_forward_dir not found");
+        btnNewFolder = Objects.requireNonNull(view.findViewById(R.id.btn_new_folder), "btn_new_folder not found");
+        buttonContainer = Objects.requireNonNull(view.findViewById(R.id.button_container), "button_container not found");
+        btnEdit = Objects.requireNonNull(view.findViewById(R.id.btn_edit), "btn_edit not found");
+        fullscreenEditorContainer = Objects.requireNonNull(view.findViewById(R.id.fullscreen_editor_container), "fullscreen_editor_container not found");
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new FileAdapter();
@@ -188,18 +193,18 @@ public class FileManagerFragment extends Fragment {
     private void setupFullscreenEditor() {
         if (fullscreenEditorContainer == null) return;
 
-        fullscreenEditor = fullscreenEditorContainer.findViewById(R.id.fullscreen_editor);
-        fullscreenTitle = fullscreenEditorContainer.findViewById(R.id.fullscreen_title);
-        btnCloseEditor = fullscreenEditorContainer.findViewById(R.id.btn_close_editor);
-        btnSaveEditor = fullscreenEditorContainer.findViewById(R.id.btn_save_editor);
-        btnSearchToggle = fullscreenEditorContainer.findViewById(R.id.btn_search_editor);
-        btnJump = fullscreenEditorContainer.findViewById(R.id.btn_jump_editor);
-        searchLayout = fullscreenEditorContainer.findViewById(R.id.search_layout);
-        searchEditText = fullscreenEditorContainer.findViewById(R.id.search_edit_text);
-        searchCount = fullscreenEditorContainer.findViewById(R.id.search_count);
-        btnSearchPrev = fullscreenEditorContainer.findViewById(R.id.btn_search_prev);
-        btnSearchNext = fullscreenEditorContainer.findViewById(R.id.btn_search_next);
-        btnSearchClose = fullscreenEditorContainer.findViewById(R.id.btn_search_close);
+        fullscreenEditor = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.fullscreen_editor), "fullscreen_editor not found");
+        fullscreenTitle = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.fullscreen_title), "fullscreen_title not found");
+        btnCloseEditor = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_close_editor), "btn_close_editor not found");
+        btnSaveEditor = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_save_editor), "btn_save_editor not found");
+        btnSearchToggle = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_search_editor), "btn_search_editor not found");
+        btnJump = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_jump_editor), "btn_jump_editor not found");
+        searchLayout = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.search_layout), "search_layout not found");
+        searchEditText = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.search_edit_text), "search_edit_text not found");
+        searchCount = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.search_count), "search_count not found");
+        btnSearchPrev = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_search_prev), "btn_search_prev not found");
+        btnSearchNext = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_search_next), "btn_search_next not found");
+        btnSearchClose = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_search_close), "btn_search_close not found");
 
         if (fullscreenEditor != null) {
             fullscreenEditor.setTypeface(android.graphics.Typeface.MONOSPACE);
@@ -277,11 +282,15 @@ public class FileManagerFragment extends Fragment {
         lastSearchKeyword = keyword;
         String text = fullscreenEditor.getText().toString();
         matchPositions.clear();
+
+        String lowerText = text.toLowerCase();
+        String lowerKeyword = keyword.toLowerCase();
         int index = 0;
-        while ((index = text.indexOf(keyword, index)) != -1) {
+        while ((index = lowerText.indexOf(lowerKeyword, index)) != -1) {
             matchPositions.add(index);
             index += keyword.length();
         }
+
         if (matchPositions.isEmpty()) {
             Toast.makeText(getContext(), "未找到匹配项", Toast.LENGTH_SHORT).show();
             clearHighlights();
@@ -289,13 +298,16 @@ public class FileManagerFragment extends Fragment {
             updateSearchCount();
             return;
         }
+
         SpannableStringBuilder spannable = new SpannableStringBuilder(text);
         for (int pos : matchPositions) {
             spannable.setSpan(new BackgroundColorSpan(Color.argb(200, 255, 235, 59)),
                     pos, pos + keyword.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
+
         isPerformingSearch = true;
-        fullscreenEditor.setText(spannable);
+        fullscreenEditor.setText(spannable, TextView.BufferType.EDITABLE);
+        fullscreenEditor.invalidate();
         isPerformingSearch = false;
 
         currentMatchIndex = 0;
@@ -353,7 +365,6 @@ public class FileManagerFragment extends Fragment {
         btnSearchNext.setEnabled(total > 1);
     }
 
-    // ---------- 行号跳转 ----------
     private void showJumpDialog() {
         if (fullscreenEditor == null) return;
         if (fullscreenEditor.getLayout() == null) {
@@ -404,7 +415,6 @@ public class FileManagerFragment extends Fragment {
         Toast.makeText(getContext(), "已跳转到第 " + lineNumber + " 行", Toast.LENGTH_SHORT).show();
     }
 
-    // ---------- 其他已有方法（保持不变） ----------
     private void showFullscreenEditor(String content, String fileName) {
         if (fullscreenEditorContainer == null) return;
         String title = "编辑: " + fileName;
@@ -447,9 +457,17 @@ public class FileManagerFragment extends Fragment {
             int parentWidth = parent.getWidth();
             int parentHeight = parent.getHeight();
             if (parentWidth == 0 || parentHeight == 0) {
-                buttonContainer.post(this::setupDragButton);
+                // 防止无限递归：限制重试次数
+                if (dragSetupRetryCount < MAX_DRAG_SETUP_RETRIES) {
+                    dragSetupRetryCount++;
+                    buttonContainer.post(this::setupDragButton);
+                } else {
+                    // 超过最大重试次数，放弃定位，保留默认位置
+                    dragSetupRetryCount = 0;
+                }
                 return;
             }
+            dragSetupRetryCount = 0; // 重置计数
             int leftMargin = parentWidth - buttonContainer.getWidth() - marginRight;
             int topMargin = parentHeight - buttonContainer.getHeight() - marginBottom;
             topMargin = Math.max(0, topMargin);
@@ -666,6 +684,11 @@ public class FileManagerFragment extends Fragment {
     private void readAndEditLocalFile(File file) {
         if (!file.exists() || !file.canRead()) {
             Toast.makeText(getContext(), "文件不存在或无法读取", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // 大文件保护：超过 5MB 禁止编辑
+        if (file.length() > 5 * 1024 * 1024) {
+            Toast.makeText(getContext(), "文件过大（超过5MB），无法在编辑器中打开", Toast.LENGTH_LONG).show();
             return;
         }
         StringBuilder content = new StringBuilder();
@@ -943,13 +966,10 @@ public class FileManagerFragment extends Fragment {
                     fileList.add(f);
                 }
             }
-            Collections.sort(fileList, new Comparator<File>() {
-                @Override
-                public int compare(File o1, File o2) {
-                    if (o1.isDirectory() && !o2.isDirectory()) return -1;
-                    if (!o1.isDirectory() && o2.isDirectory()) return 1;
-                    return o1.getName().compareToIgnoreCase(o2.getName());
-                }
+            Collections.sort(fileList, (o1, o2) -> {
+                if (o1.isDirectory() && !o2.isDirectory()) return -1;
+                if (!o1.isDirectory() && o2.isDirectory()) return 1;
+                return o1.getName().compareToIgnoreCase(o2.getName());
             });
         }
         adapter.notifyDataSetChanged();
@@ -1104,6 +1124,11 @@ public class FileManagerFragment extends Fragment {
             Toast.makeText(getContext(), "无法读取文件", Toast.LENGTH_SHORT).show();
             return;
         }
+        // 大文件保护
+        if (file.length() > 5 * 1024 * 1024) {
+            Toast.makeText(getContext(), "文件过大（超过5MB），无法在编辑器中打开", Toast.LENGTH_LONG).show();
+            return;
+        }
         StringBuilder content = new StringBuilder();
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
@@ -1224,9 +1249,9 @@ public class FileManagerFragment extends Fragment {
             ImageButton ivIcon;
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
-                tvName = itemView.findViewById(R.id.tv_name);
-                tvInfo = itemView.findViewById(R.id.tv_info);
-                ivIcon = itemView.findViewById(R.id.iv_icon);
+                tvName = Objects.requireNonNull(itemView.findViewById(R.id.tv_name), "tv_name not found");
+                tvInfo = Objects.requireNonNull(itemView.findViewById(R.id.tv_info), "tv_info not found");
+                ivIcon = Objects.requireNonNull(itemView.findViewById(R.id.iv_icon), "iv_icon not found");
             }
         }
 
@@ -1313,7 +1338,6 @@ public class FileManagerFragment extends Fragment {
         return "vod";
     }
 
-    // 处理物理返回键（由 Activity 调用）
     public boolean onBackPressed() {
         if (!isAdded()) return false;
         if (fullscreenEditorContainer != null && fullscreenEditorContainer.getVisibility() == View.VISIBLE) {
