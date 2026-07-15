@@ -80,7 +80,8 @@ public final class SiteSpeedDialog {
         recyclerView.setLayoutManager(new LinearLayoutManager(activity));
         ResultAdapter adapter = new ResultAdapter();
         recyclerView.setAdapter(adapter);
-        LinearLayout.LayoutParams rvLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        // 固定列表高度，防止列表过长挤压按钮
+        LinearLayout.LayoutParams rvLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, ResUtil.dp2px(240));
         recyclerView.setLayoutParams(rvLp);
         root.addView(recyclerView);
 
@@ -88,7 +89,9 @@ public final class SiteSpeedDialog {
         TextView copyBtn = new TextView(activity);
         copyBtn.setText("📋 复制测速结果");
         copyBtn.setTextSize(15);
+        copyBtn.setTextColor(Color.BLACK);
         copyBtn.setGravity(Gravity.CENTER);
+        copyBtn.setBackgroundColor(0xFFF0F0F0);
         copyBtn.setPadding(0, ResUtil.dp2px(14), 0, ResUtil.dp2px(4));
         copyBtn.setVisibility(View.GONE);
         root.addView(copyBtn);
@@ -131,8 +134,8 @@ public final class SiteSpeedDialog {
                 results.add(new SpeedResult(site.getName(), site.getKey(), elapsed, success));
 
                 int done = completed.incrementAndGet();
-                adapter.updateResults(new ArrayList<>(results));
                 progress.post(() -> {
+                    adapter.updateResults(new ArrayList<>(results));
                     progress.setProgress(done);
                     status.setText(status.getContext().getString(R.string.site_speed_testing, done, sites.size()));
                     if (done >= sites.size()) {
@@ -150,6 +153,7 @@ public final class SiteSpeedDialog {
         if (window == null) return;
         WindowManager.LayoutParams params = window.getAttributes();
         params.width = (int) (ResUtil.getScreenWidth(activity) * (ResUtil.isLand(activity) ? 0.62f : 0.92f));
+        // 高度自适应，让复制按钮始终可见；最大不超过屏幕 80%
         params.height = (int) (ResUtil.getScreenHeight(activity) * 0.8);
         params.gravity = Gravity.CENTER;
         window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
