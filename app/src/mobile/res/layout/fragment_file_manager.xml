@@ -4,6 +4,7 @@
     android:layout_height="match_parent"
     android:background="?android:attr/windowBackground">
 
+    <!-- 顶部工具栏 -->
     <LinearLayout
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -53,6 +54,7 @@
             android:tint="@android:color/white" />
     </LinearLayout>
 
+    <!-- 文件列表 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
@@ -60,6 +62,7 @@
         android:layout_below="@id/toolbar"
         android:padding="4dp" />
 
+    <!-- 浮动编辑按钮 -->
     <LinearLayout
         android:id="@+id/button_container"
         android:layout_width="wrap_content"
@@ -78,13 +81,16 @@
             android:padding="10dp" />
     </LinearLayout>
 
-    <FrameLayout
+    <!-- 全屏编辑器（包含搜索栏） -->
+    <LinearLayout
         android:id="@+id/fullscreen_editor_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         android:visibility="gone"
         android:background="#FFFFFF">
 
+        <!-- 标题栏 + 搜索/跳转/保存按钮 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -112,8 +118,29 @@
                 android:textSize="16sp"
                 android:singleLine="true"
                 android:ellipsize="middle"
-                android:layout_marginStart="12dp"
-                android:layout_marginEnd="12dp" />
+                android:layout_marginStart="12dp" />
+
+            <!-- 搜索按钮 -->
+            <ImageButton
+                android:id="@+id/btn_search_editor"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_search"
+                android:background="@android:color/transparent"
+                android:contentDescription="查找"
+                android:tint="@android:color/white"
+                android:layout_marginEnd="8dp" />
+
+            <!-- 跳转按钮（按行号） -->
+            <ImageButton
+                android:id="@+id/btn_jump_editor"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_forward"
+                android:background="@android:color/transparent"
+                android:contentDescription="跳转到行"
+                android:tint="@android:color/white"
+                android:layout_marginEnd="8dp" />
 
             <ImageButton
                 android:id="@+id/btn_save_editor"
@@ -125,11 +152,70 @@
                 android:tint="@android:color/white" />
         </LinearLayout>
 
+        <!-- 搜索栏（默认隐藏） -->
+        <LinearLayout
+            android:id="@+id/search_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="#EEEEEE"
+            android:padding="8dp"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/search_edit_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="输入关键词..."
+                android:inputType="text"
+                android:padding="8dp"
+                android:background="@android:drawable/edit_text"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/search_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="8dp"
+                android:textSize="14sp"
+                android:textColor="#333" />
+
+            <ImageButton
+                android:id="@+id/btn_search_prev"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_arrow_up"
+                android:background="@android:color/transparent"
+                android:contentDescription="上一个"
+                android:tint="#333" />
+
+            <ImageButton
+                android:id="@+id/btn_search_next"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_arrow_down"
+                android:background="@android:color/transparent"
+                android:contentDescription="下一个"
+                android:tint="#333" />
+
+            <ImageButton
+                android:id="@+id/btn_search_close"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_close"
+                android:background="@android:color/transparent"
+                android:contentDescription="关闭搜索"
+                android:tint="#333" />
+        </LinearLayout>
+
+        <!-- 编辑器 EditText -->
         <EditText
             android:id="@+id/fullscreen_editor"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="64dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:background="@null"
             android:textColor="#000000"
             android:textColorHint="#999999"
@@ -140,7 +226,6 @@
             android:isScrollContainer="true"
             android:gravity="top|start"
             android:inputType="textMultiLine|textNoSuggestions" />
-
-    </FrameLayout>
+    </LinearLayout>
 
 </RelativeLayout>
