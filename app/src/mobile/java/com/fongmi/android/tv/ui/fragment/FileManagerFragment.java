@@ -20,7 +20,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -90,7 +89,6 @@ public class FileManagerFragment extends Fragment {
     private EditText fullscreenEditor;
     private TextView fullscreenTitle;
     private ImageButton btnCloseEditor, btnSaveEditor;
-    private SeekBar scrollSeekbar; // 新增垂直滑块
 
     private File currentConfigFile = null;
     private String currentConfigType = "";
@@ -161,11 +159,10 @@ public class FileManagerFragment extends Fragment {
         setupFullscreenEditor();
         detectCurrentConfig();
 
-        checkPermissionsAndLoad();
+        checkPermissionsAndLoad(); // 调用权限检查和加载
         return view;
     }
 
-    // ===================== 核心修改 =====================
     private void setupFullscreenEditor() {
         if (fullscreenEditorContainer == null) return;
 
@@ -173,45 +170,15 @@ public class FileManagerFragment extends Fragment {
         fullscreenTitle = fullscreenEditorContainer.findViewById(R.id.fullscreen_title);
         btnCloseEditor = fullscreenEditorContainer.findViewById(R.id.btn_close_editor);
         btnSaveEditor = fullscreenEditorContainer.findViewById(R.id.btn_save_editor);
-        scrollSeekbar = fullscreenEditorContainer.findViewById(R.id.scroll_seekbar);
 
-        // 设置编辑框
         if (fullscreenEditor != null) {
             fullscreenEditor.setTypeface(android.graphics.Typeface.MONOSPACE);
-            fullscreenEditor.setScrollbarFadingEnabled(false);
-            fullscreenEditor.setFocusable(true);
-            fullscreenEditor.setFocusableInTouchMode(true);
         }
 
-        // 配置滑块
-        if (scrollSeekbar != null) {
-            // 绝对禁止滑块获取焦点
-            scrollSeekbar.setFocusable(false);
-            scrollSeekbar.setFocusableInTouchMode(false);
-
-            scrollSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    if (fromUser && fullscreenEditor.getLayout() != null) {
-                        // 计算可滚动范围
-                        int totalHeight = fullscreenEditor.getLayout().getHeight();
-                        int visibleHeight = fullscreenEditor.getHeight();
-                        int maxScroll = Math.max(0, totalHeight - visibleHeight);
-                        int scrollY = (int) ((long) maxScroll * progress / 1000);
-                        fullscreenEditor.scrollTo(0, scrollY);
-                    }
-                }
-                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
-                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
-            });
-        }
-
-        // 关闭按钮
         if (btnCloseEditor != null) {
             btnCloseEditor.setOnClickListener(v -> closeFullscreenEditor());
         }
 
-        // 保存按钮
         if (btnSaveEditor != null) {
             btnSaveEditor.setOnClickListener(v -> {
                 if (fullscreenEditor != null && currentConfigFile != null) {
@@ -232,12 +199,10 @@ public class FileManagerFragment extends Fragment {
 
         fullscreenTitle.setText(title);
         fullscreenEditor.setText(content);
-        // 打开时滚动到顶部，滑块复位
+
         fullscreenEditor.post(() -> {
+            fullscreenEditor.setSelection(0);
             fullscreenEditor.scrollTo(0, 0);
-            if (scrollSeekbar != null) {
-                scrollSeekbar.setProgress(0);
-            }
         });
 
         fullscreenEditorContainer.setVisibility(View.VISIBLE);
@@ -249,7 +214,6 @@ public class FileManagerFragment extends Fragment {
         }
     }
 
-    // ===================== 以下所有方法保持原样（无任何改动） =====================
     private void closeFullscreenEditor() {
         if (fullscreenEditorContainer != null) {
             fullscreenEditorContainer.setVisibility(View.GONE);
@@ -632,6 +596,7 @@ public class FileManagerFragment extends Fragment {
 
     // ==================== 核心配置加载方法 ====================
     private void applyConfig(String filePath) {
+        // 检查文件是否存在且可读
         File configFile = new File(filePath);
         if (!configFile.exists() || !configFile.canRead()) {
             Toast.makeText(getContext(), "配置文件不存在或无法读取", Toast.LENGTH_LONG).show();
@@ -639,6 +604,7 @@ public class FileManagerFragment extends Fragment {
         }
 
         try {
+            // 预读文件内容，简单验证
             String content = readFileFirstLines(configFile, 10);
             if (TextUtils.isEmpty(content)) {
                 Toast.makeText(getContext(), "配置文件内容为空", Toast.LENGTH_LONG).show();
