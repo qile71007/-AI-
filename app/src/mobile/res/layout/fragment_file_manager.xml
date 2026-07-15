@@ -4,6 +4,7 @@
     android:layout_height="match_parent"
     android:background="?android:attr/windowBackground">
 
+    <!-- 顶部工具栏 -->
     <LinearLayout
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -53,6 +54,7 @@
             android:tint="@android:color/white" />
     </LinearLayout>
 
+    <!-- 文件列表 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
@@ -60,6 +62,7 @@
         android:layout_below="@id/toolbar"
         android:padding="4dp" />
 
+    <!-- 浮动编辑按钮 -->
     <LinearLayout
         android:id="@+id/button_container"
         android:layout_width="wrap_content"
@@ -78,7 +81,7 @@
             android:padding="10dp" />
     </LinearLayout>
 
-    <!-- 全屏编辑器容器 -->
+    <!-- ====== 全屏编辑器 ====== -->
     <FrameLayout
         android:id="@+id/fullscreen_editor_container"
         android:layout_width="match_parent"
@@ -127,7 +130,7 @@
                 android:tint="@android:color/white" />
         </LinearLayout>
 
-        <!-- 编辑区域 -->
+        <!-- 编辑区域：EditText + 右侧垂直滑块 -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -153,6 +156,7 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true" />
 
+            <!-- 垂直滑块：固定宽度，贴右，不获取焦点 -->
             <SeekBar
                 android:id="@+id/scroll_seekbar"
                 android:layout_width="24dp"
@@ -168,5 +172,4 @@
         </RelativeLayout>
 
     </FrameLayout>
-
 </RelativeLayout>
