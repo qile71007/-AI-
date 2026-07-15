@@ -239,10 +239,21 @@ public class FileManagerFragment extends Fragment {
         btnSearchNext.setOnClickListener(v -> navigateMatch(1));
         btnJump.setOnClickListener(v -> showJumpDialog());
 
+        // ====== 实时搜索 + 搜索键兼容 ======
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                performSearch(s.toString());
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
         searchEditText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH ||
                     (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
                 performSearch(searchEditText.getText().toString());
+                InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
                 return true;
             }
             return false;
@@ -457,17 +468,15 @@ public class FileManagerFragment extends Fragment {
             int parentWidth = parent.getWidth();
             int parentHeight = parent.getHeight();
             if (parentWidth == 0 || parentHeight == 0) {
-                // 防止无限递归：限制重试次数
                 if (dragSetupRetryCount < MAX_DRAG_SETUP_RETRIES) {
                     dragSetupRetryCount++;
                     buttonContainer.post(this::setupDragButton);
                 } else {
-                    // 超过最大重试次数，放弃定位，保留默认位置
                     dragSetupRetryCount = 0;
                 }
                 return;
             }
-            dragSetupRetryCount = 0; // 重置计数
+            dragSetupRetryCount = 0;
             int leftMargin = parentWidth - buttonContainer.getWidth() - marginRight;
             int topMargin = parentHeight - buttonContainer.getHeight() - marginBottom;
             topMargin = Math.max(0, topMargin);
@@ -686,7 +695,6 @@ public class FileManagerFragment extends Fragment {
             Toast.makeText(getContext(), "文件不存在或无法读取", Toast.LENGTH_SHORT).show();
             return;
         }
-        // 大文件保护：超过 5MB 禁止编辑
         if (file.length() > 5 * 1024 * 1024) {
             Toast.makeText(getContext(), "文件过大（超过5MB），无法在编辑器中打开", Toast.LENGTH_LONG).show();
             return;
@@ -1124,7 +1132,6 @@ public class FileManagerFragment extends Fragment {
             Toast.makeText(getContext(), "无法读取文件", Toast.LENGTH_SHORT).show();
             return;
         }
-        // 大文件保护
         if (file.length() > 5 * 1024 * 1024) {
             Toast.makeText(getContext(), "文件过大（超过5MB），无法在编辑器中打开", Toast.LENGTH_LONG).show();
             return;
