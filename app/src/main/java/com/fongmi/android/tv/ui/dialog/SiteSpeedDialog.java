@@ -1,6 +1,9 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.app.Dialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
@@ -12,6 +15,7 @@ import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -76,17 +80,41 @@ public final class SiteSpeedDialog {
         recyclerView.setLayoutManager(new LinearLayoutManager(activity));
         ResultAdapter adapter = new ResultAdapter();
         recyclerView.setAdapter(adapter);
+        LinearLayout.LayoutParams rvLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        recyclerView.setLayoutParams(rvLp);
         root.addView(recyclerView);
+
+        // 复制结果按钮（测速完成后显示）
+        TextView copyBtn = new TextView(activity);
+        copyBtn.setText("📋 复制测速结果");
+        copyBtn.setTextSize(15);
+        copyBtn.setGravity(Gravity.CENTER);
+        copyBtn.setPadding(0, ResUtil.dp2px(14), 0, ResUtil.dp2px(4));
+        copyBtn.setVisibility(View.GONE);
+        root.addView(copyBtn);
 
         Dialog dialog = LightDialog.create(activity, null, root);
         dialog.setCanceledOnTouchOutside(false);
         dialog.show();
         configureWindow(activity, dialog);
 
-        runSpeedTest(searchable, adapter, progress, status, dialog);
+        runSpeedTest(searchable, adapter, progress, status, copyBtn, dialog);
+
+        copyBtn.setOnClickListener(v -> {
+            StringBuilder sb = new StringBuilder();
+            sb.append("站源测速结果\n");
+            for (int i = 0; i < adapter.getItemCount(); i++) {
+                SpeedResult r = adapter.getItem(i);
+                String speed = r.success ? r.elapsed + "ms" : "失败";
+                sb.append(i + 1).append(". ").append(r.name).append(" — ").append(speed).append("\n");
+            }
+            ClipboardManager cm = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+            cm.setPrimaryClip(ClipData.newPlainText("site_speed_results", sb.toString()));
+            Toast.makeText(activity, "已复制到剪切板", Toast.LENGTH_SHORT).show();
+        });
     }
 
-    private static void runSpeedTest(List<Site> sites, ResultAdapter adapter, ProgressBar progress, TextView status, Dialog dialog) {
+    private static void runSpeedTest(List<Site> sites, ResultAdapter adapter, ProgressBar progress, TextView status, TextView copyBtn, Dialog dialog) {
         AtomicInteger completed = new AtomicInteger(0);
         List<SpeedResult> results = Collections.synchronizedList(new ArrayList<>());
 
@@ -110,6 +138,7 @@ public final class SiteSpeedDialog {
                     if (done >= sites.size()) {
                         status.setText(R.string.site_speed_done);
                         progress.setVisibility(View.GONE);
+                        copyBtn.setVisibility(View.VISIBLE);
                     }
                 });
             }, EXECUTOR);
@@ -153,6 +182,8 @@ public final class SiteSpeedDialog {
             items.addAll(newItems);
             notifyDataSetChanged();
         }
+
+        SpeedResult getItem(int position) { return items.get(position); }
 
         @Override
         public VH onCreateViewHolder(ViewGroup parent, int viewType) {
