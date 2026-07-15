@@ -137,6 +137,9 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.versionText.setText(AppVersion.fullName());
         setOtherText();
         setCacheText();
+
+        // 隐藏历史图标（保留主页和统计图标，间距保持原样）
+        mBinding.vodHistory.setVisibility(View.GONE);
     }
 
     private void setOtherText() {
