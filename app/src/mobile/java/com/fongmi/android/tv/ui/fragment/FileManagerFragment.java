@@ -96,7 +96,8 @@ public class FileManagerFragment extends Fragment {
     private Stack<File> backStack = new Stack<>();
     private Stack<File> forwardStack = new Stack<>();
 
-    private FrameLayout fullscreenEditorContainer;
+    // 修改：将 FrameLayout 改为 LinearLayout
+    private LinearLayout fullscreenEditorContainer;
     private EditText fullscreenEditor;
     private TextView fullscreenTitle;
     private ImageButton btnCloseEditor, btnSaveEditor, btnSearchToggle, btnJump;
@@ -290,7 +291,6 @@ public class FileManagerFragment extends Fragment {
         }
         SpannableStringBuilder spannable = new SpannableStringBuilder(text);
         for (int pos : matchPositions) {
-            // 高亮颜色：半透明亮黄色（白底黑字下极为醒目）
             spannable.setSpan(new BackgroundColorSpan(Color.argb(200, 255, 235, 59)),
                     pos, pos + keyword.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
