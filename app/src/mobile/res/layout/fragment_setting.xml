@@ -73,6 +73,7 @@
                     android:padding="7dp"
                     android:src="@drawable/ic_setting_home" />
 
+                <!-- 隐藏历史图标 -->
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/vodHistory"
                     android:layout_width="wrap_content"
@@ -80,7 +81,8 @@
                     android:layout_marginEnd="12dp"
                     android:background="@drawable/shape_item"
                     android:padding="7dp"
-                    android:src="@drawable/ic_setting_history" />
+                    android:src="@drawable/ic_setting_history"
+                    android:visibility="gone" />
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/vodStats"
@@ -206,7 +208,7 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <!-- ========== AI 助手入口（新增） ========== -->
+            <!-- AI 助手入口 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/aiAssistant"
                 android:layout_width="match_parent"
@@ -590,9 +592,10 @@
                     android:textColor="@color/white"
                     android:textSize="16sp"
                     tools:text="1.2.1" />
-</androidx.appcompat.widget.LinearLayoutCompat>
 
-            <!-- 新增：重置应用 -->
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <!-- 重置应用 -->
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/resetApp"
                 android:layout_width="match_parent"
