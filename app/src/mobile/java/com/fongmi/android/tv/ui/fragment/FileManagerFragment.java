@@ -173,6 +173,12 @@ public class FileManagerFragment extends Fragment {
 
         if (fullscreenEditor != null) {
             fullscreenEditor.setTypeface(android.graphics.Typeface.MONOSPACE);
+            // ========== 新增：优化滚动条触摸体验 ==========
+            fullscreenEditor.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+            fullscreenEditor.setScrollbarFadingEnabled(false);
+            fullscreenEditor.setFocusable(true);
+            fullscreenEditor.setFocusableInTouchMode(true);
+            // ===========================================
         }
 
         if (btnCloseEditor != null) {
