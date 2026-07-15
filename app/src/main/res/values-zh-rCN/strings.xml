@@ -670,8 +670,8 @@
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>
     <string name="setting_cache">缓存</string>
-    <string name="setting_backup">WebDAV备份</string>
-    <string name="setting_restore">WebDAV恢复</string>
+    <string name="setting_backup">备份/WebDAV</string>
+    <string name="setting_restore">恢复备份</string>
     <string name="setting_about">关于</string>
     <string name="setting_version">版本</string>
     <string name="setting_choose">选择</string>
@@ -1121,7 +1121,7 @@
     <string name="site_speed_testing">正在测试 %1$d/%2$d</string>
     <string name="site_speed_done">测试完成</string>
     <string name="site_speed_entry">站源测速</string>
-    <string name="sync_upload">上传观看进度</string>
-    <string name="sync_download">下载观看进度</string>
+    <string name="sync_upload">备份观看进度</string>
+    <string name="sync_download">恢复进度</string>
 
 </resources>
