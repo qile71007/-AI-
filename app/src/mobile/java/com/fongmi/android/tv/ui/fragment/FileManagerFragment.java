@@ -239,19 +239,20 @@ public class FileManagerFragment extends Fragment {
         btnSearchNext.setOnClickListener(v -> navigateMatch(1));
         btnJump.setOnClickListener(v -> showJumpDialog());
 
-        // ====== 实时搜索 + 搜索键兼容 ======
+        // 实时搜索监听（高亮但不自动跳转）
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                performSearch(s.toString());
+                performSearch(s.toString(), false); // 实时搜索不跳转
             }
             @Override public void afterTextChanged(Editable s) {}
         });
 
+        // 键盘搜索按钮监听（跳转到第一个匹配项）
         searchEditText.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH ||
                     (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
-                performSearch(searchEditText.getText().toString());
+                performSearch(searchEditText.getText().toString(), true); // 手动触发跳转
                 InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
                 return true;
@@ -282,7 +283,12 @@ public class FileManagerFragment extends Fragment {
         imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
     }
 
-    private void performSearch(String keyword) {
+    /**
+     * 执行搜索
+     * @param keyword 搜索关键词
+     * @param scrollToFirst 是否滚动到第一个匹配项（手动触发时为 true）
+     */
+    private void performSearch(String keyword, boolean scrollToFirst) {
         if (TextUtils.isEmpty(keyword)) {
             clearHighlights();
             matchPositions.clear();
@@ -310,6 +316,7 @@ public class FileManagerFragment extends Fragment {
             return;
         }
 
+        // 构建高亮文本
         SpannableStringBuilder spannable = new SpannableStringBuilder(text);
         for (int pos : matchPositions) {
             spannable.setSpan(new BackgroundColorSpan(Color.argb(200, 255, 235, 59)),
@@ -322,8 +329,11 @@ public class FileManagerFragment extends Fragment {
         isPerformingSearch = false;
 
         currentMatchIndex = 0;
-        scrollToMatch(currentMatchIndex);
         updateSearchCount();
+
+        if (scrollToFirst) {
+            scrollToMatch(0);
+        }
     }
 
     private void navigateMatch(int step) {
