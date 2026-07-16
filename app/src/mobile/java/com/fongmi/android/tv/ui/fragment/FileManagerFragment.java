@@ -79,7 +79,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -207,8 +206,8 @@ public class FileManagerFragment extends Fragment {
                 if (!tmpDir.mkdirs()) throw new IOException("无法创建临时目录");
 
                 if (isRemoteConfig) {
-                    okhttp3.Request req = new okhttp3.Request.Builder().url(currentConfigUrl).build();
-                    try (Response resp = OkHttp.get().newCall(req).execute()) {
+                    // 直接传入 URL 字符串，而不是构建 Request 对象
+                    try (Response resp = OkHttp.get().newCall(currentConfigUrl).execute()) {
                         if (!resp.isSuccessful()) throw new IOException("下载配置失败: " + resp.code());
                         configContent = resp.body() != null ? resp.body().string() : "";
                     }
@@ -338,8 +337,8 @@ public class FileManagerFragment extends Fragment {
                     String ext = fileName.contains(".") ? fileName.substring(fileName.lastIndexOf(".")) : "";
                     out = new File(targetDir, base + "_" + System.currentTimeMillis() + ext);
                 }
-                okhttp3.Request req = new okhttp3.Request.Builder().url(url).build();
-                try (Response resp = OkHttp.get().newCall(req).execute()) {
+                // 直接传入 URL 字符串
+                try (Response resp = OkHttp.get().newCall(url).execute()) {
                     if (!resp.isSuccessful() || resp.body() == null) {
                         throw new IOException("HTTP " + (resp.code()));
                     }
@@ -1035,7 +1034,6 @@ public class FileManagerFragment extends Fragment {
                     if (isVideoFile(n)) playVideo(f); else if (isAudioFile(n)) playAudio(f); else if (isImageFile(n)) previewImage(f); else if (isTextFile(n)) editTextFile(f);
                     else Toast.makeText(getContext(), "不支持此类型", Toast.LENGTH_SHORT).show(); }
             });
-            // 修正点：将三元表达式改为 if-else 语句
             h.itemView.setOnLongClickListener(v -> {
                 if (f.isDirectory()) {
                     showFolderOptions(f);
