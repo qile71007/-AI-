@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -457,7 +459,6 @@ public class FileManagerFragment extends Fragment {
     }
 
     // ==================== 搜索相关 ====================
-    // 注意：setupFullscreenEditor 已被完全重写（见下方）
     private void toggleSearchBar() {
         if (searchLayout.getVisibility() == View.VISIBLE) closeSearchBar();
         else {
@@ -654,12 +655,10 @@ public class FileManagerFragment extends Fragment {
         scrollSeekBar.setMax(1000);
         scrollSeekBar.setProgress(0);
         scrollSeekBar.setRotation(270);
-        // 美化拇指和进度条
-        Drawable thumb = ContextCompat.getDrawable(getContext(), android.R.drawable.btn_star_big_on);
-        if (thumb != null) {
-            thumb.setTint(Color.parseColor("#FF9800"));
-            scrollSeekBar.setThumb(thumb);
-        }
+        // 使用自定义颜色 Drawable 作为拇指，避免依赖系统资源
+        Drawable thumb = new ColorDrawable(Color.parseColor("#FF9800"));
+        // 可选：设置拇指大小（默认会拉伸，可不设置）
+        scrollSeekBar.setThumb(thumb);
         scrollSeekBar.getProgressDrawable().setTint(Color.parseColor("#FF9800"));
         LinearLayout.LayoutParams seekLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
