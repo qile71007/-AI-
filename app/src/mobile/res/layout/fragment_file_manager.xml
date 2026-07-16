@@ -160,7 +160,6 @@
             android:padding="8dp"
             android:visibility="gone">
 
-            <!-- 修改：添加 imeOptions 和 singleLine，确保键盘显示搜索按钮 -->
             <EditText
                 android:id="@+id/search_edit_text"
                 android:layout_width="0dp"
