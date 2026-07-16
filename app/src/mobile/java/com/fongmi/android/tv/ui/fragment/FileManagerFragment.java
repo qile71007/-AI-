@@ -75,7 +75,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -197,30 +196,26 @@ public class FileManagerFragment extends Fragment {
         Toast.makeText(getContext(), "开始生成本地化包，请稍候...", Toast.LENGTH_SHORT).show();
 
         new Thread(() -> {
-            // 获取安全的 Context 引用
             Context appCtx = getContext() != null ? getContext().getApplicationContext() : null;
             if (appCtx == null) return;
 
             try {
-                // 1. 获取配置内容与基础信息
                 String configContent;
                 File configBaseDir = null;
-                String baseUrl = null; // 用于远程配置的相对路径拼接
+                String baseUrl = null;
                 File tmpDir = new File(appCtx.getCacheDir(), "pkg_" + System.currentTimeMillis());
                 if (!tmpDir.mkdirs()) throw new IOException("无法创建临时目录");
 
                 if (isRemoteConfig) {
-                    // 下载远程配置
                     okhttp3.Request req = new okhttp3.Request.Builder().url(currentConfigUrl).build();
                     try (Response resp = OkHttp.get().newCall(req).execute()) {
                         if (!resp.isSuccessful()) throw new IOException("下载配置失败: " + resp.code());
                         configContent = resp.body() != null ? resp.body().string() : "";
                     }
-                    // 将配置内容保存到临时目录（用于后续打包）
                     File tmpConfig = new File(tmpDir, getConfigFileName());
                     try (FileWriter fw = new FileWriter(tmpConfig)) { fw.write(configContent); }
-                    configBaseDir = tmpDir; // 相对路径解析的基础目录（但远程情况下，我们使用 baseUrl 构建 URL）
-                    baseUrl = currentConfigUrl; // 用于拼接相对路径
+                    configBaseDir = tmpDir;
+                    baseUrl = currentConfigUrl;
                 } else {
                     if (currentConfigFile == null || !currentConfigFile.exists()) throw new IOException("本地配置文件不存在");
                     configContent = readFileToString(currentConfigFile);
@@ -228,20 +223,17 @@ public class FileManagerFragment extends Fragment {
                     baseUrl = null;
                 }
 
-                // 2. 解析所有资源引用（URL、绝对路径、相对路径）
                 Map<String, String> sourceToAbsolute = parseAllLinks(configContent, configBaseDir, baseUrl);
-                // 移除配置自身的引用（避免重复打包）
                 if (currentConfigFile != null) sourceToAbsolute.remove(currentConfigFile.getAbsolutePath());
                 sourceToAbsolute.remove(currentConfigUrl);
 
-                // 3. 下载/复制资源到临时目录，并建立原始引用 → 本地相对路径 的映射
                 Map<String, String> sourceToLocalPath = new ConcurrentHashMap<>();
                 CountDownLatch latch = new CountDownLatch(sourceToAbsolute.size());
                 List<Exception> errors = Collections.synchronizedList(new ArrayList<>());
 
                 for (Map.Entry<String, String> entry : sourceToAbsolute.entrySet()) {
-                    String originalRef = entry.getKey();      // 配置中原样引用的字符串
-                    String absPath = entry.getValue();        // 解析后的绝对路径或 URL
+                    String originalRef = entry.getKey();
+                    String absPath = entry.getValue();
                     if (absPath.startsWith("http")) {
                         downloadFileAsync(originalRef, absPath, tmpDir, sourceToLocalPath, latch, errors);
                     } else {
@@ -249,26 +241,21 @@ public class FileManagerFragment extends Fragment {
                     }
                 }
 
-                // 等待所有任务完成（最多 60 秒）
                 latch.await(60, TimeUnit.SECONDS);
                 if (!errors.isEmpty()) {
                     Log.w("Package", "部分资源处理失败: " + errors.size());
                 }
 
-                // 4. 重写配置文件内容，将原始引用替换为本地相对路径
                 String rewrittenContent = rewriteConfigContent(configContent, sourceToLocalPath);
-                // 覆盖临时目录中的配置文件
                 try (FileWriter fw = new FileWriter(new File(tmpDir, getConfigFileName()))) {
                     fw.write(rewrittenContent);
                 }
 
-                // 5. 打包 ZIP
                 File zipFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
                         "local_" + currentConfigType + "_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date()) + ".zip");
                 createZipFromDir(tmpDir, zipFile);
                 deleteRecursive(tmpDir);
 
-                // 提示成功（必须在 UI 线程）
                 if (getActivity() != null) {
                     getActivity().runOnUiThread(() ->
                             Toast.makeText(getContext(), "本地化包已保存至:\n" + zipFile.getAbsolutePath(), Toast.LENGTH_LONG).show()
@@ -284,15 +271,8 @@ public class FileManagerFragment extends Fragment {
         }).start();
     }
 
-    /**
-     * 解析配置内容中的所有资源引用，返回 Map<原始引用, 绝对路径/URL>
-     * @param content 配置内容
-     * @param baseDir 本地配置文件所在目录（为 null 表示远程）
-     * @param baseUrl 远程配置的基础 URL（为 null 表示本地）
-     */
     private Map<String, String> parseAllLinks(String content, File baseDir, String baseUrl) {
         Map<String, String> result = new HashMap<>();
-        // 匹配 URL
         Pattern urlPat = Pattern.compile("https?://[^\\s\"'<>]+");
         Matcher m = urlPat.matcher(content);
         while (m.find()) {
@@ -300,7 +280,6 @@ public class FileManagerFragment extends Fragment {
             result.put(url, url);
         }
 
-        // 匹配路径（非 URL）：支持 /absolute, ./rel, ../rel, 或纯文件名
         Pattern pathPat = Pattern.compile("(?<!https?://)(?:/\\S+|(?<=\\s|\"|')(?:\\.{0,2}/\\S+)|(?<=\\s|\"|')(?:[^/\\s]+\\.\\w+))");
         m = pathPat.matcher(content);
         while (m.find()) {
@@ -308,7 +287,6 @@ public class FileManagerFragment extends Fragment {
             if (path.isEmpty() || path.startsWith("http")) continue;
 
             if (path.startsWith("/")) {
-                // 绝对路径 – 仅当 baseDir 存在且文件存在时处理（本地）
                 if (baseDir != null) {
                     File resolved = new File(path);
                     if (resolved.exists()) {
@@ -316,9 +294,7 @@ public class FileManagerFragment extends Fragment {
                     }
                 }
             } else {
-                // 相对路径
                 if (baseDir != null) {
-                    // 本地文件 – 基于 baseDir 解析
                     try {
                         File resolved = new File(baseDir, path).getCanonicalFile();
                         if (resolved.exists()) {
@@ -326,12 +302,10 @@ public class FileManagerFragment extends Fragment {
                         }
                     } catch (IOException ignored) {}
                 } else if (baseUrl != null) {
-                    // 远程配置 – 基于 baseUrl 拼接成完整 URL
                     try {
                         URI baseUri = new URI(baseUrl);
                         URI resolvedUri = baseUri.resolve(path);
                         String fullUrl = resolvedUri.toString();
-                        // 不检查存在性，直接添加到下载列表
                         result.put(path, fullUrl);
                     } catch (URISyntaxException ignored) {}
                 }
@@ -340,15 +314,11 @@ public class FileManagerFragment extends Fragment {
         return result;
     }
 
-    /**
-     * 下载远程资源，并记录映射（保留目录结构）
-     */
     private void downloadFileAsync(String originalRef, String url, File destDir,
                                    Map<String, String> sourceToLocalPath,
                                    CountDownLatch latch, List<Exception> errors) {
         new Thread(() -> {
             try {
-                // 从 URL 提取路径，保留子目录结构
                 Uri uri = Uri.parse(url);
                 String path = uri.getPath();
                 String fileName = (path != null && !path.isEmpty()) ? path.substring(path.lastIndexOf('/') + 1) : "file";
@@ -363,13 +333,11 @@ public class FileManagerFragment extends Fragment {
                     throw new IOException("无法创建目录: " + targetDir);
                 }
                 File out = new File(targetDir, fileName);
-                // 重名处理
                 if (out.exists()) {
                     String base = fileName.replaceFirst("[.][^.]+$", "");
                     String ext = fileName.contains(".") ? fileName.substring(fileName.lastIndexOf(".")) : "";
                     out = new File(targetDir, base + "_" + System.currentTimeMillis() + ext);
                 }
-                // 下载
                 okhttp3.Request req = new okhttp3.Request.Builder().url(url).build();
                 try (Response resp = OkHttp.get().newCall(req).execute()) {
                     if (!resp.isSuccessful() || resp.body() == null) {
@@ -381,7 +349,6 @@ public class FileManagerFragment extends Fragment {
                         while ((len = is.read(buf)) != -1) os.write(buf, 0, len);
                     }
                 }
-                // 记录映射：原始引用 → 本地相对路径（相对于 destDir）
                 String relative = destDir.toURI().relativize(out.toURI()).getPath();
                 sourceToLocalPath.put(originalRef, "./" + relative);
             } catch (Exception e) {
@@ -392,20 +359,15 @@ public class FileManagerFragment extends Fragment {
         }).start();
     }
 
-    /**
-     * 复制本地文件，并记录映射（保留相对路径结构）
-     */
     private void copyLocalFile(String originalRef, File srcFile, File destDir, File baseDir,
                                Map<String, String> sourceToLocalPath,
                                CountDownLatch latch, List<Exception> errors) {
         new Thread(() -> {
             try {
-                // 保持相对路径（相对于 baseDir）
                 String relativePath = baseDir.toURI().relativize(srcFile.toURI()).getPath();
                 File dest = new File(destDir, relativePath);
                 File parent = dest.getParentFile();
                 if (parent != null && !parent.exists()) parent.mkdirs();
-                // 重名处理
                 if (dest.exists()) {
                     String name = dest.getName();
                     String base = name.replaceFirst("[.][^.]+$", "");
@@ -417,7 +379,6 @@ public class FileManagerFragment extends Fragment {
                     int len;
                     while ((len = is.read(buf)) != -1) os.write(buf, 0, len);
                 }
-                // 记录映射
                 String relative = destDir.toURI().relativize(dest.toURI()).getPath();
                 sourceToLocalPath.put(originalRef, "./" + relative);
             } catch (Exception e) {
@@ -428,21 +389,17 @@ public class FileManagerFragment extends Fragment {
         }).start();
     }
 
-    /**
-     * 重写配置内容：将所有原始引用替换为本地相对路径
-     */
     private String rewriteConfigContent(String content, Map<String, String> sourceToLocalPath) {
         String rewritten = content;
         for (Map.Entry<String, String> entry : sourceToLocalPath.entrySet()) {
             String original = entry.getKey();
             String local = entry.getValue();
-            // 普通字符串替换（配置通常为 JSON/M3U，简单替换足够）
             rewritten = rewritten.replace(original, local);
         }
         return rewritten;
     }
 
-    // ==================== 原有辅助方法（保持不变） ====================
+    // ==================== 辅助方法 ====================
     private String readFileToString(File file) throws IOException {
         StringBuilder sb = new StringBuilder();
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
@@ -492,7 +449,7 @@ public class FileManagerFragment extends Fragment {
         file.delete();
     }
 
-    // ==================== 搜索相关（保持不变） ====================
+    // ==================== 搜索相关 ====================
     private void setupFullscreenEditor() {
         if (fullscreenEditorContainer == null) return;
         fullscreenEditor = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.fullscreen_editor));
@@ -1078,7 +1035,15 @@ public class FileManagerFragment extends Fragment {
                     if (isVideoFile(n)) playVideo(f); else if (isAudioFile(n)) playAudio(f); else if (isImageFile(n)) previewImage(f); else if (isTextFile(n)) editTextFile(f);
                     else Toast.makeText(getContext(), "不支持此类型", Toast.LENGTH_SHORT).show(); }
             });
-            h.itemView.setOnLongClickListener(v -> { (f.isDirectory() ? showFolderOptions(f) : showFileOptions(f)); return true; });
+            // 修正点：将三元表达式改为 if-else 语句
+            h.itemView.setOnLongClickListener(v -> {
+                if (f.isDirectory()) {
+                    showFolderOptions(f);
+                } else {
+                    showFileOptions(f);
+                }
+                return true;
+            });
         }
         @Override public int getItemCount() { return fileList.size(); }
         private String formatSize(long s) {
