@@ -295,7 +295,7 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:paddingStart="12dp"
                             android:paddingEnd="12dp"
-                            android:text="@string/play_sort"
+                            android:text="倒序"
                             android:textColor="@color/white_80"
                             android:textSize="13sp" />
 
@@ -307,7 +307,7 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:paddingStart="12dp"
                             android:paddingEnd="4dp"
-                            android:text="@string/play_all"
+                            android:text="全部"
                             android:textColor="@color/white_80"
                             android:textSize="13sp" />
 
