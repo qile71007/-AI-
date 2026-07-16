@@ -62,7 +62,7 @@
         android:layout_below="@id/toolbar"
         android:padding="4dp" />
 
-    <!-- 浮动编辑按钮 -->
+    <!-- 浮动按钮容器 -->
     <LinearLayout
         android:id="@+id/button_container"
         android:layout_width="wrap_content"
@@ -79,9 +79,20 @@
             android:scaleType="centerInside"
             android:contentDescription="编辑配置"
             android:padding="10dp" />
+
+        <ImageButton
+            android:id="@+id/btn_package"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:src="@drawable/ic_package"
+            android:background="@drawable/bg_back_button"
+            android:scaleType="centerInside"
+            android:contentDescription="打包本地化"
+            android:padding="10dp" />
     </LinearLayout>
 
-    <!-- 全屏编辑器（包含搜索栏） -->
+    <!-- 全屏编辑器 -->
     <LinearLayout
         android:id="@+id/fullscreen_editor_container"
         android:layout_width="match_parent"
@@ -90,7 +101,6 @@
         android:visibility="gone"
         android:background="#FFFFFF">
 
-        <!-- 标题栏 + 搜索/跳转/保存按钮 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -150,7 +160,7 @@
                 android:tint="@android:color/white" />
         </LinearLayout>
 
-        <!-- 搜索栏（默认隐藏） -->
+        <!-- 搜索栏 -->
         <LinearLayout
             android:id="@+id/search_layout"
             android:layout_width="match_parent"
@@ -226,5 +236,4 @@
             android:gravity="top|start"
             android:inputType="textMultiLine|textNoSuggestions" />
     </LinearLayout>
-
 </RelativeLayout>
