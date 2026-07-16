@@ -6,9 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,13 +19,11 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.BackgroundColorSpan;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -36,7 +31,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -132,12 +126,6 @@ public class FileManagerFragment extends Fragment {
     private String lastSearchKeyword = null;
     private boolean isPerformingSearch = false;
 
-    // ========== 新增：垂直滑块相关 ==========
-    private SeekBar scrollSeekBar;
-    private TextView positionText;
-    private ViewTreeObserver.OnScrollChangedListener scrollListener;
-    private boolean isSeeking = false;
-
     private static final int MAX_DRAG_SETUP_RETRIES = 10;
     private int dragSetupRetryCount = 0;
 
@@ -218,6 +206,7 @@ public class FileManagerFragment extends Fragment {
                 if (!tmpDir.mkdirs()) throw new IOException("无法创建临时目录");
 
                 if (isRemoteConfig) {
+                    // 直接传入 URL 字符串，而不是构建 Request 对象
                     try (Response resp = OkHttp.get().newCall(currentConfigUrl).execute()) {
                         if (!resp.isSuccessful()) throw new IOException("下载配置失败: " + resp.code());
                         configContent = resp.body() != null ? resp.body().string() : "";
@@ -348,6 +337,7 @@ public class FileManagerFragment extends Fragment {
                     String ext = fileName.contains(".") ? fileName.substring(fileName.lastIndexOf(".")) : "";
                     out = new File(targetDir, base + "_" + System.currentTimeMillis() + ext);
                 }
+                // 直接传入 URL 字符串
                 try (Response resp = OkHttp.get().newCall(url).execute()) {
                     if (!resp.isSuccessful() || resp.body() == null) {
                         throw new IOException("HTTP " + (resp.code()));
@@ -459,6 +449,66 @@ public class FileManagerFragment extends Fragment {
     }
 
     // ==================== 搜索相关 ====================
+    private void setupFullscreenEditor() {
+        if (fullscreenEditorContainer == null) return;
+        fullscreenEditor = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.fullscreen_editor));
+        fullscreenTitle = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.fullscreen_title));
+        btnCloseEditor = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_close_editor));
+        btnSaveEditor = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_save_editor));
+        btnSearchToggle = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_search_editor));
+        btnJump = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_jump_editor));
+        searchLayout = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.search_layout));
+        searchEditText = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.search_edit_text));
+        searchCount = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.search_count));
+        btnSearchPrev = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_search_prev));
+        btnSearchNext = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_search_next));
+        btnSearchClose = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_search_close));
+
+        fullscreenEditor.setTypeface(android.graphics.Typeface.MONOSPACE);
+        fullscreenEditor.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (isPerformingSearch) return;
+                clearHighlights();
+                matchPositions.clear();
+                currentMatchIndex = -1;
+                updateSearchCount();
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
+        btnCloseEditor.setOnClickListener(v -> closeFullscreenEditor());
+        btnSaveEditor.setOnClickListener(v -> {
+            if (fullscreenEditor != null && currentConfigFile != null) {
+                saveAndApplyConfig(fullscreenEditor.getText().toString());
+                closeFullscreenEditor();
+            }
+        });
+        btnSearchToggle.setOnClickListener(v -> toggleSearchBar());
+        btnSearchClose.setOnClickListener(v -> closeSearchBar());
+        btnSearchPrev.setOnClickListener(v -> navigateMatch(-1));
+        btnSearchNext.setOnClickListener(v -> navigateMatch(1));
+        btnJump.setOnClickListener(v -> showJumpDialog());
+
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                performSearch(s.toString(), false);
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+        searchEditText.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH ||
+                    (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                performSearch(searchEditText.getText().toString(), true);
+                InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
+                return true;
+            }
+            return false;
+        });
+    }
+
     private void toggleSearchBar() {
         if (searchLayout.getVisibility() == View.VISIBLE) closeSearchBar();
         else {
@@ -597,216 +647,7 @@ public class FileManagerFragment extends Fragment {
         fullscreenEditor.scrollTo(0, Math.max(0, y - 20));
     }
 
-    // ==================== 完全重写的全屏编辑器（含垂直滑块） ====================
-    private void setupFullscreenEditor() {
-        if (fullscreenEditorContainer == null) return;
-
-        fullscreenEditor = fullscreenEditorContainer.findViewById(R.id.fullscreen_editor);
-        fullscreenTitle = fullscreenEditorContainer.findViewById(R.id.fullscreen_title);
-        btnCloseEditor = fullscreenEditorContainer.findViewById(R.id.btn_close_editor);
-        btnSaveEditor = fullscreenEditorContainer.findViewById(R.id.btn_save_editor);
-        btnSearchToggle = fullscreenEditorContainer.findViewById(R.id.btn_search_editor);
-        btnJump = fullscreenEditorContainer.findViewById(R.id.btn_jump_editor);
-        searchLayout = fullscreenEditorContainer.findViewById(R.id.search_layout);
-        searchEditText = fullscreenEditorContainer.findViewById(R.id.search_edit_text);
-        searchCount = fullscreenEditorContainer.findViewById(R.id.search_count);
-        btnSearchPrev = fullscreenEditorContainer.findViewById(R.id.btn_search_prev);
-        btnSearchNext = fullscreenEditorContainer.findViewById(R.id.btn_search_next);
-        btnSearchClose = fullscreenEditorContainer.findViewById(R.id.btn_search_close);
-
-        fullscreenEditor.setTypeface(Typeface.MONOSPACE);
-
-        // ---------- 1. 重构布局：将编辑器放入水平布局，右侧加滑块 ----------
-        ViewGroup parent = (ViewGroup) fullscreenEditor.getParent(); // fullscreenEditorContainer
-        int index = parent.indexOfChild(fullscreenEditor);
-        LinearLayout.LayoutParams editorParams = (LinearLayout.LayoutParams) fullscreenEditor.getLayoutParams();
-
-        parent.removeView(fullscreenEditor);
-
-        LinearLayout hLayout = new LinearLayout(getContext());
-        hLayout.setOrientation(LinearLayout.HORIZONTAL);
-        hLayout.setLayoutParams(editorParams);
-        hLayout.setWeightSum(1f);
-
-        // 编辑器占剩余空间
-        LinearLayout.LayoutParams editLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
-        fullscreenEditor.setLayoutParams(editLp);
-        hLayout.addView(fullscreenEditor);
-
-        // 右侧滑块容器
-        LinearLayout sliderContainer = new LinearLayout(getContext());
-        sliderContainer.setOrientation(LinearLayout.VERTICAL);
-        sliderContainer.setGravity(Gravity.CENTER_HORIZONTAL);
-        int sliderWidth = dpToPx(40);
-        LinearLayout.LayoutParams sliderLp = new LinearLayout.LayoutParams(sliderWidth, ViewGroup.LayoutParams.MATCH_PARENT);
-        sliderLp.leftMargin = dpToPx(4);
-        sliderContainer.setLayoutParams(sliderLp);
-
-        // 行号显示
-        positionText = new TextView(getContext());
-        positionText.setTextSize(12);
-        positionText.setTextColor(Color.GRAY);
-        positionText.setGravity(Gravity.CENTER);
-        positionText.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(50)));
-        positionText.setText("0/0");
-
-        // 垂直 SeekBar
-        scrollSeekBar = new SeekBar(getContext());
-        scrollSeekBar.setMax(1000);
-        scrollSeekBar.setProgress(0);
-        scrollSeekBar.setRotation(270);
-        // 使用自定义颜色 Drawable 作为拇指，避免依赖系统资源
-        Drawable thumb = new ColorDrawable(Color.parseColor("#FF9800"));
-        // 可选：设置拇指大小（默认会拉伸，可不设置）
-        scrollSeekBar.setThumb(thumb);
-        scrollSeekBar.getProgressDrawable().setTint(Color.parseColor("#FF9800"));
-        LinearLayout.LayoutParams seekLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dpToPx(8)
-        );
-        seekLp.gravity = Gravity.CENTER_VERTICAL;
-        scrollSeekBar.setLayoutParams(seekLp);
-
-        sliderContainer.addView(positionText);
-        sliderContainer.addView(scrollSeekBar);
-        hLayout.addView(sliderContainer);
-
-        parent.addView(hLayout, index);
-
-        // ---------- 2. 双向同步 ----------
-        // 2.1 编辑器滚动监听
-        scrollListener = () -> {
-            if (isSeeking) return;
-            updateSliderAndPosition();
-        };
-        fullscreenEditor.getViewTreeObserver().addOnScrollChangedListener(scrollListener);
-
-        // 2.2 滑块拖动监听
-        scrollSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (!fromUser) return;
-                isSeeking = true;
-                scrollEditorTo(progress);
-                isSeeking = false;
-            }
-            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-
-        // 2.3 内容变化时更新滑块
-        fullscreenEditor.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
-            @Override public void afterTextChanged(Editable s) {
-                fullscreenEditor.post(() -> updateSliderAndPosition());
-            }
-        });
-        // 布局变化时更新
-        fullscreenEditor.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-            updateSliderAndPosition();
-        });
-
-        // ---------- 3. 原有搜索监听器（保留） ----------
-        fullscreenEditor.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (isPerformingSearch) return;
-                clearHighlights();
-                matchPositions.clear();
-                currentMatchIndex = -1;
-                updateSearchCount();
-            }
-            @Override public void afterTextChanged(Editable s) {}
-        });
-
-        // ---------- 4. 按钮事件 ----------
-        btnCloseEditor.setOnClickListener(v -> closeFullscreenEditor());
-        btnSaveEditor.setOnClickListener(v -> {
-            if (fullscreenEditor != null && currentConfigFile != null) {
-                saveAndApplyConfig(fullscreenEditor.getText().toString());
-                closeFullscreenEditor();
-            }
-        });
-        btnSearchToggle.setOnClickListener(v -> toggleSearchBar());
-        btnSearchClose.setOnClickListener(v -> closeSearchBar());
-        btnSearchPrev.setOnClickListener(v -> navigateMatch(-1));
-        btnSearchNext.setOnClickListener(v -> navigateMatch(1));
-        btnJump.setOnClickListener(v -> showJumpDialog());
-
-        searchEditText.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                performSearch(s.toString(), false);
-            }
-            @Override public void afterTextChanged(Editable s) {}
-        });
-        searchEditText.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_SEARCH ||
-                    (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
-                performSearch(searchEditText.getText().toString(), true);
-                InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(searchEditText.getWindowToken(), 0);
-                return true;
-            }
-            return false;
-        });
-    }
-
-    // ---------- 新增：滑块同步方法 ----------
-    private void updateSliderAndPosition() {
-        if (fullscreenEditor == null || scrollSeekBar == null || positionText == null) return;
-        Layout layout = fullscreenEditor.getLayout();
-        if (layout == null) return;
-
-        int scrollY = fullscreenEditor.getScrollY();
-        int totalHeight = layout.getHeight();
-        int visibleHeight = fullscreenEditor.getHeight();
-        int maxScroll = totalHeight - visibleHeight;
-
-        if (maxScroll <= 0) {
-            scrollSeekBar.setProgress(0);
-            positionText.setText("0/0");
-            return;
-        }
-
-        int progress = (int) ((float) scrollY / maxScroll * 1000);
-        scrollSeekBar.setProgress(progress);
-
-        int firstLine = layout.getLineForVertical(scrollY);
-        int lastLine = layout.getLineForVertical(scrollY + visibleHeight);
-        int totalLines = layout.getLineCount();
-        positionText.setText((firstLine + 1) + "-" + (lastLine + 1) + "/" + totalLines);
-    }
-
-    private void scrollEditorTo(int progress) {
-        if (fullscreenEditor == null) return;
-        Layout layout = fullscreenEditor.getLayout();
-        if (layout == null) return;
-
-        int totalHeight = layout.getHeight();
-        int visibleHeight = fullscreenEditor.getHeight();
-        int maxScroll = totalHeight - visibleHeight;
-        if (maxScroll <= 0) return;
-
-        int targetScroll = (int) ((float) progress / 1000 * maxScroll);
-        fullscreenEditor.scrollTo(0, targetScroll);
-    }
-
-    // ---------- 修改 closeFullscreenEditor 以清理监听器 ----------
-    private void closeFullscreenEditor() {
-        if (fullscreenEditorContainer != null) fullscreenEditorContainer.setVisibility(View.GONE);
-        closeSearchBar();
-        if (getActivity() != null) getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-
-        // 移除滚动监听，防止内存泄漏
-        if (scrollListener != null && fullscreenEditor != null) {
-            fullscreenEditor.getViewTreeObserver().removeOnScrollChangedListener(scrollListener);
-            scrollListener = null;
-        }
-    }
-
-    // ==================== 编辑器及文件操作（其余不变） ====================
+    // ==================== 编辑器及文件操作 ====================
     private void showFullscreenEditor(String content, String fileName) {
         if (fullscreenEditorContainer == null) return;
         String title = "编辑: " + fileName + (isRemoteConfig ? " (远程)" : "");
@@ -817,6 +658,12 @@ public class FileManagerFragment extends Fragment {
         fullscreenEditorContainer.bringToFront();
         fullscreenEditor.requestFocus();
         if (getActivity() != null) getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+    }
+
+    private void closeFullscreenEditor() {
+        if (fullscreenEditorContainer != null) fullscreenEditorContainer.setVisibility(View.GONE);
+        closeSearchBar();
+        if (getActivity() != null) getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
     private void setupDragButton() {
