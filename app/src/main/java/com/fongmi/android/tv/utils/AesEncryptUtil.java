@@ -8,7 +8,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class AesEncryptUtil {
     private static final String KEY = "qile7l2026secret";
-    private static final String IV = "7lprivate1234567";   // 改为16位
+    private static final String IV = "7lprivate1234567";   // 16位
     private static final String MODE = "AES/CBC/PKCS5Padding";
 
     public static String encrypt(String text) throws Exception {
