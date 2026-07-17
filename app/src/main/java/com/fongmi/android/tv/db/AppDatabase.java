@@ -5,6 +5,8 @@ import android.content.Context;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.bean.Config;
@@ -33,11 +35,19 @@ import java.util.List;
 @Database(entities = {Keep.class, Site.class, Live.class, Track.class, Config.class, Device.class, History.class}, version = AppDatabase.VERSION)
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 36;
+    public static final int VERSION = 37;
     public static final String NAME = "tv";
     public static final String SYMBOL = "@@@";
 
     private static volatile AppDatabase instance;
+
+    static final Migration MIGRATION_36_37 = new Migration(36, 37) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            db.execSQL("ALTER TABLE Config ADD COLUMN isSecret INTEGER DEFAULT 0");
+            db.execSQL("ALTER TABLE Config ADD COLUMN unlockKeyword TEXT DEFAULT ''");
+        }
+    };
 
     public static synchronized AppDatabase get() {
         if (instance == null) instance = create(App.get());
@@ -99,6 +109,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 .addMigrations(Migrations.MIGRATION_33_34)
                 .addMigrations(Migrations.MIGRATION_34_35)
                 .addMigrations(Migrations.MIGRATION_35_36)
+                .addMigrations(MIGRATION_36_37)
                 .fallbackToDestructiveMigration(true)
                 .allowMainThreadQueries().build();
     }
