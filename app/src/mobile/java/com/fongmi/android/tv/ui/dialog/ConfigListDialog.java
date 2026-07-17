@@ -109,14 +109,8 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
             public void afterTextChanged(Editable s) {
                 String keyword = s == null ? "" : s.toString().trim();
 
-                // ========== 全局解锁口令：七乐 / qile71007 ==========
-                if (keyword.equals("七乐") || keyword.equals("qile71007")) {
-                    SecretConfigManager.getInstance().unlock();
-                    adapter.setShowSecret(true);
-                    adapter.setUnlockedKeyword(null);
-                    binding.keyword.setText("");
-                    return;
-                } else if (keyword.equals("上锁")) {
+                // ========== Global lock (highest priority) ==========
+                if (keyword.equals("上锁")) {
                     SecretConfigManager.getInstance().lock();
                     adapter.setShowSecret(false);
                     adapter.setUnlockedKeyword(null);
@@ -124,14 +118,21 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
                     return;
                 }
 
-                // ========== 按 enc_keyword 明文解锁指定的私密源 ==========
-                boolean matched = adapter.unlockByKeyword(keyword);
-                if (matched) {
+                // ========== Global unlock: dynamic match ==========
+                if (SecretConfigManager.getInstance().unlock(keyword)) {
+                    adapter.setShowSecret(true);
+                    adapter.setUnlockedKeyword(null);
                     binding.keyword.setText("");
                     return;
                 }
 
-                // ========== 普通关键词过滤 ==========
+                // ========== Per-item unlock by keyword ==========
+                if (adapter.unlockByKeyword(keyword)) {
+                    binding.keyword.setText("");
+                    return;
+                }
+
+                // ========== Keyword filter ==========
                 if (adapter != null) adapter.filter(keyword);
                 binding.recycler.scrollToPosition(0);
                 savedState = null;
