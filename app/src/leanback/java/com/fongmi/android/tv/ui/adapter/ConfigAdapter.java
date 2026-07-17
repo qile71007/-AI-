@@ -11,22 +11,25 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.databinding.AdapterConfigBinding;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder> {
 
     private final OnClickListener listener;
     private List<Config> mItems;
+    private List<Config> mFiltered;
+    private String mKeyword = "";
     private boolean readOnly;
+    private boolean showSecret = false;
+    private String unlockedKeyword = null;
 
     public ConfigAdapter(OnClickListener listener) {
         this.listener = listener;
     }
 
     public interface OnClickListener {
-
         void onTextClick(Config item);
-
         void onDeleteClick(Config item);
     }
 
@@ -42,22 +45,95 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
     public ConfigAdapter addAll(int type, Config current) {
         mItems = Config.getAll(type);
         String currentUrl = current == null ? null : current.getUrl();
-        if (!readOnly && !TextUtils.isEmpty(currentUrl)) mItems.removeIf(item -> TextUtils.equals(item.getUrl(), currentUrl));
+        if (!readOnly && !TextUtils.isEmpty(currentUrl)) {
+            mItems.removeIf(item -> TextUtils.equals(item.getUrl(), currentUrl));
+        }
+        applyFilter();
         return this;
     }
 
+    public void setShowSecret(boolean showSecret) {
+        this.showSecret = showSecret;
+        this.unlockedKeyword = null;
+        applyFilter();
+    }
+
+    public void setUnlockedKeyword(String keyword) {
+        this.unlockedKeyword = keyword;
+        this.showSecret = false;
+        applyFilter();
+    }
+
+    public boolean unlockByKeyword(String keyword) {
+        if (TextUtils.isEmpty(keyword) || mItems == null) return false;
+        for (Config item : mItems) {
+            if (item.isSecret() && keyword.equals(item.getUnlockKeyword())) {
+                setUnlockedKeyword(keyword);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public int remove(Config item) {
-        int position = mItems.indexOf(item);
-        if (position == -1) return -1;
+        int position = mFiltered.indexOf(item);
+        int rawPosition = mItems.indexOf(item);
+        if (rawPosition == -1) return -1;
         item.delete();
-        mItems.remove(position);
-        notifyItemRemoved(position);
+        mItems.remove(rawPosition);
+        if (position != -1) {
+            mFiltered.remove(position);
+            notifyItemRemoved(position);
+        }
         return getItemCount();
+    }
+
+    public void filter(String keyword) {
+        this.mKeyword = keyword == null ? "" : keyword.trim();
+        applyFilter();
+    }
+
+    private void applyFilter() {
+        if (mItems == null) {
+            mFiltered = new ArrayList<>();
+        } else {
+            String lower = mKeyword.toLowerCase();
+            mFiltered = new ArrayList<>();
+            for (Config item : mItems) {
+                if (item.isSecret()) {
+                    if (!showSecret && !keywordMatches(item)) {
+                        continue;
+                    }
+                }
+                String desc = item.getDesc();
+                String url = item.getUrl();
+                if (TextUtils.isEmpty(lower) ||
+                        (desc != null && desc.toLowerCase().contains(lower)) ||
+                        (url != null && url.toLowerCase().contains(lower))) {
+                    mFiltered.add(item);
+                }
+            }
+        }
+        notifyDataSetChanged();
+    }
+
+    private boolean keywordMatches(Config item) {
+        if (unlockedKeyword == null) return false;
+        return unlockedKeyword.equals(item.getUnlockKeyword());
     }
 
     @Override
     public int getItemCount() {
-        return mItems.size();
+        return mFiltered == null ? 0 : mFiltered.size();
+    }
+
+    public int getAllItemCount() {
+        return mItems == null ? 0 : mItems.size();
+    }
+
+    public Config getItem(int position) {
+        if (mFiltered == null || position < 0 || position >= mFiltered.size()) return null;
+        return mFiltered.get(position);
     }
 
     @NonNull
@@ -68,8 +144,9 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Config item = mItems.get(position);
-        holder.binding.text.setText(item.getDesc());
+        Config item = mFiltered.get(position);
+        String displayName = item.isSecret() ? "🔒 " + item.getDesc() : item.getDesc();
+        holder.binding.text.setText(displayName);
         holder.binding.text.setOnClickListener(v -> listener.onTextClick(item));
         holder.binding.delete.setVisibility(readOnly ? View.GONE : View.VISIBLE);
         holder.binding.delete.setOnClickListener(v -> listener.onDeleteClick(item));
