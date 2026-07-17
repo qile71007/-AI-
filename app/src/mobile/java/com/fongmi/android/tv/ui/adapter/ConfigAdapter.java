@@ -17,19 +17,18 @@ import java.util.List;
 public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder> {
 
     private final OnClickListener listener;
-    private List<Config> mItems;          // 完整数据
-    private List<Config> mFiltered;       // 过滤后展示的数据
-    private String mKeyword = "";         // 当前过滤关键词
+    private List<Config> mItems;
+    private List<Config> mFiltered;
+    private String mKeyword = "";
     private boolean readOnly;
+    private boolean showSecret = false;
 
     public ConfigAdapter(OnClickListener listener) {
         this.listener = listener;
     }
 
     public interface OnClickListener {
-
         void onTextClick(Config item);
-
         void onDeleteClick(Config item);
     }
 
@@ -46,9 +45,13 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
         mItems = Config.getAll(type);
         String currentUrl = current == null ? null : current.getUrl();
         if (!readOnly && !TextUtils.isEmpty(currentUrl)) mItems.removeIf(item -> TextUtils.equals(item.getUrl(), currentUrl));
-        // 应用当前关键词（如果有）刷新显示列表
         applyFilter();
         return this;
+    }
+
+    public void setShowSecret(boolean showSecret) {
+        this.showSecret = showSecret;
+        applyFilter();
     }
 
     public int remove(Config item) {
@@ -64,9 +67,6 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
         return getItemCount();
     }
 
-    /**
-     * 根据关键词过滤配置列表（不区分大小写，匹配名称或URL）
-     */
     public void filter(String keyword) {
         this.mKeyword = keyword == null ? "" : keyword.trim();
         applyFilter();
@@ -75,16 +75,16 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
     private void applyFilter() {
         if (mItems == null) {
             mFiltered = new ArrayList<>();
-        } else if (TextUtils.isEmpty(mKeyword)) {
-            mFiltered = new ArrayList<>(mItems);
         } else {
             String lower = mKeyword.toLowerCase();
             mFiltered = new ArrayList<>();
             for (Config item : mItems) {
+                if (!showSecret && item.isSecret()) continue;
                 String desc = item.getDesc();
                 String url = item.getUrl();
-                if ((desc != null && desc.toLowerCase().contains(lower))
-                        || (url != null && url.toLowerCase().contains(lower))) {
+                if (TextUtils.isEmpty(lower) ||
+                        (desc != null && desc.toLowerCase().contains(lower)) ||
+                        (url != null && url.toLowerCase().contains(lower))) {
                     mFiltered.add(item);
                 }
             }
@@ -97,9 +97,6 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
         return mFiltered == null ? 0 : mFiltered.size();
     }
 
-    /**
-     * 返回未过滤的完整配置数量（用于判断是否真的没有任何配置可显示）
-     */
     public int getAllItemCount() {
         return mItems == null ? 0 : mItems.size();
     }
@@ -118,16 +115,15 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Config item = mFiltered.get(position);
-        holder.binding.text.setText(item.getDesc());
+        String displayName = item.isSecret() ? "🔒 " + item.getDesc() : item.getDesc();
+        holder.binding.text.setText(displayName);
         holder.binding.text.setOnClickListener(v -> listener.onTextClick(item));
         holder.binding.delete.setVisibility(readOnly ? View.GONE : View.VISIBLE);
         holder.binding.delete.setOnClickListener(v -> listener.onDeleteClick(item));
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-
         private final AdapterConfigBinding binding;
-
         ViewHolder(@NonNull AdapterConfigBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
