@@ -11,10 +11,12 @@ import com.fongmi.android.tv.bean.Depot;
 import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.bean.Rule;
 import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.ConfigEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.setting.CustomCspSetting;
+import com.fongmi.android.tv.utils.AesEncryptUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.web.ext.WebHomeExtensionRegistry;
 import com.github.catvod.bean.Doh;
@@ -144,12 +146,70 @@ public class VodConfig extends BaseConfig {
         }
     }
 
+    // ==================== 修改 parseDepot 支持混合私密/公开条目 ====================
     private void parseDepot(Config config, JsonObject object) throws Throwable {
-        List<Depot> items = Depot.arrayFrom(object.getAsJsonArray("urls").toString());
-        List<Config> configs = new ArrayList<>();
-        for (Depot item : items) configs.add(Config.find(item, VOD));
-        if (configs.isEmpty()) throw new Exception("Depot urls is empty");
-        load(this.config = configs.get(0));
+        com.google.gson.JsonArray urlsArray = object.getAsJsonArray("urls");
+        if (urlsArray == null || urlsArray.size() == 0) {
+            throw new Exception("urls array is empty");
+        }
+
+        List<Config> publicConfigs = new ArrayList<>();
+        for (int i = 0; i < urlsArray.size(); i++) {
+            com.google.gson.JsonElement element = urlsArray.get(i);
+            if (!element.isJsonObject()) continue;
+            JsonObject item = element.getAsJsonObject();
+
+            // 判断是否为私密条目（必须同时包含三个加密字段）
+            if (item.has("enc_name") && item.has("enc_url") && item.has("enc_keyword")) {
+                try {
+                    String encName = item.get("enc_name").getAsString();
+                    String encUrl = item.get("enc_url").getAsString();
+                    String encKeyword = item.get("enc_keyword").getAsString();
+
+                    String realName = AesEncryptUtil.decrypt(encName);
+                    String realUrl = AesEncryptUtil.decrypt(encUrl);
+                    String realKeyword = AesEncryptUtil.decrypt(encKeyword);
+
+                    // 查询是否已存在
+                    Config existing = AppDatabase.get().getConfigDao().find(realUrl, VOD);
+                    if (existing == null) {
+                        Config secret = new Config();
+                        secret.setType(VOD);
+                        secret.setUrl(realUrl);
+                        secret.setName(realName);
+                        secret.setSecret(true);
+                        secret.setUnlockKeyword(realKeyword);
+                        secret.insert();
+                    } else {
+                        existing.setName(realName);
+                        existing.setSecret(true);
+                        existing.setUnlockKeyword(realKeyword);
+                        existing.save();
+                    }
+                } catch (Exception e) {
+                    // 解密失败跳过该条目，不影响其他
+                    e.printStackTrace();
+                }
+            } else {
+                // 公开条目：作为 Depot 处理
+                String name = item.has("name") ? item.get("name").getAsString() : "";
+                String url = item.has("url") ? item.get("url").getAsString() : "";
+                if (!TextUtils.isEmpty(url)) {
+                    Depot depot = new Depot();
+                    depot.setName(name);
+                    depot.setUrl(url);
+                    publicConfigs.add(Config.find(depot, VOD));
+                }
+            }
+        }
+
+        if (publicConfigs.isEmpty()) {
+            throw new Exception("No public config found in urls");
+        }
+
+        // 取第一个公开配置作为当前激活配置
+        load(this.config = publicConfigs.get(0));
+        // 删除原仓库配置（避免重复）
         Config.delete(config.getUrl());
     }
 
@@ -166,6 +226,7 @@ public class VodConfig extends BaseConfig {
         config.setDanmaku(Json.safeString(object, "danmaku"));
     }
 
+    // ==================== 以下所有方法保持原样（未改动） ====================
     private void initList(JsonObject object) {
         setHeaders(Header.arrayFrom(fetchArray(object, "headers")));
         setProxy(Proxy.arrayFrom(fetchArray(object, "proxy")));
