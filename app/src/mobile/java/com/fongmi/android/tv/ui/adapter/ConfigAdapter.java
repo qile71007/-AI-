@@ -22,6 +22,7 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
     private String mKeyword = "";
     private boolean readOnly;
     private boolean showSecret = false;
+    private String unlockedKeyword = null;
 
     public ConfigAdapter(OnClickListener listener) {
         this.listener = listener;
@@ -44,14 +45,34 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
     public ConfigAdapter addAll(int type, Config current) {
         mItems = Config.getAll(type);
         String currentUrl = current == null ? null : current.getUrl();
-        if (!readOnly && !TextUtils.isEmpty(currentUrl)) mItems.removeIf(item -> TextUtils.equals(item.getUrl(), currentUrl));
+        if (!readOnly && !TextUtils.isEmpty(currentUrl)) {
+            mItems.removeIf(item -> TextUtils.equals(item.getUrl(), currentUrl));
+        }
         applyFilter();
         return this;
     }
 
     public void setShowSecret(boolean showSecret) {
         this.showSecret = showSecret;
+        this.unlockedKeyword = null;
         applyFilter();
+    }
+
+    public void setUnlockedKeyword(String keyword) {
+        this.unlockedKeyword = keyword;
+        this.showSecret = false;
+        applyFilter();
+    }
+
+    public boolean unlockByKeyword(String keyword) {
+        if (TextUtils.isEmpty(keyword) || mItems == null) return false;
+        for (Config item : mItems) {
+            if (item.isSecret() && keyword.equals(item.getUnlockKeyword())) {
+                setUnlockedKeyword(keyword);
+                return true;
+            }
+        }
+        return false;
     }
 
     public int remove(Config item) {
@@ -79,7 +100,11 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
             String lower = mKeyword.toLowerCase();
             mFiltered = new ArrayList<>();
             for (Config item : mItems) {
-                if (!showSecret && item.isSecret()) continue;
+                if (item.isSecret()) {
+                    if (!showSecret && !keywordMatches(item)) {
+                        continue;
+                    }
+                }
                 String desc = item.getDesc();
                 String url = item.getUrl();
                 if (TextUtils.isEmpty(lower) ||
@@ -90,6 +115,11 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
             }
         }
         notifyDataSetChanged();
+    }
+
+    private boolean keywordMatches(Config item) {
+        if (unlockedKeyword == null) return false;
+        return unlockedKeyword.equals(item.getUnlockKeyword());
     }
 
     @Override
@@ -129,4 +159,4 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
             this.binding = binding;
         }
     }
-}
+                              }
