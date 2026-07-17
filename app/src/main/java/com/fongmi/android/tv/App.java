@@ -150,6 +150,7 @@ public class App extends Application implements Application.ActivityLifecycleCal
     public void onActivityStopped(@NonNull Activity activity) {
     }
 
+    // ==================== 退出重置上锁状态 ====================
     @Override
     public void onTerminate() {
         super.onTerminate();
