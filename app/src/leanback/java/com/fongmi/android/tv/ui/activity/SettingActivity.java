@@ -1,11 +1,20 @@
 package com.fongmi.android.tv.ui.activity;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
@@ -29,7 +38,10 @@ import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.AboutDialog;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
+import com.fongmi.android.tv.ui.dialog.ConfigListDialog;
 import com.fongmi.android.tv.ui.dialog.DohDialog;
+import com.fongmi.android.tv.utils.AesEncryptUtil;
+import com.fongmi.android.tv.utils.SecretConfigManager;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.RestoreDialog;
@@ -45,6 +57,7 @@ import com.github.catvod.net.OkHttp;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -197,15 +210,15 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     }
 
     private void onVod(View view) {
-        ConfigDialog.create().vod().show(this);
+        ConfigListDialog.create().type(0).listener(this).show(this);
     }
 
     private void onLive(View view) {
-        ConfigDialog.create().live().show(this);
+        ConfigListDialog.create().type(1).listener(this).show(this);
     }
 
     private void onWall(View view) {
-        ConfigDialog.create().wall().show(this);
+        ConfigListDialog.create().type(2).listener(this).show(this);
     }
 
     private boolean onVodEdit(View view) {
@@ -253,6 +266,62 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
 
     private void onVersion(View view) {
         AboutDialog.show(this, () -> Updater.create().force().start(this));
+    }
+
+    // ==================== 私密配置生成工具 ====================
+    private boolean onVersionLong(View view) {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_encrypt, null);
+        new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .show();
+
+        EditText etName = dialogView.findViewById(R.id.et_name);
+        EditText etUrlPlain = dialogView.findViewById(R.id.et_url_plain);
+        EditText etKeyPlain = dialogView.findViewById(R.id.et_key_plain);
+        TextView tvJsonResult = dialogView.findViewById(R.id.tv_json_result);
+        Button btnGenerate = dialogView.findViewById(R.id.btn_generate_json);
+        Button btnCopy = dialogView.findViewById(R.id.btn_copy_json);
+
+        final String[] finalJson = {""};
+
+        btnGenerate.setOnClickListener(v -> {
+            String namePlain = etName.getText().toString().trim();
+            String urlPlain = etUrlPlain.getText().toString().trim();
+            String keyPlain = etKeyPlain.getText().toString().trim();
+            if (namePlain.isEmpty() || urlPlain.isEmpty() || keyPlain.isEmpty()) {
+                Toast.makeText(this, "名称、URL、关键词不能为空", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            try {
+                String encName = AesEncryptUtil.encrypt(namePlain);
+                String encUrl = AesEncryptUtil.encrypt(urlPlain);
+                String encKeyword = AesEncryptUtil.encrypt(keyPlain);
+                JSONObject jsonItem = new JSONObject();
+                jsonItem.put("enc_name", encName);
+                jsonItem.put("enc_url", encUrl);
+                jsonItem.put("enc_keyword", encKeyword);
+                finalJson[0] = jsonItem.toString(4);
+                tvJsonResult.setText(finalJson[0]);
+                Toast.makeText(this, "JSON生成完成", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                tvJsonResult.setText("加密失败：" + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+
+        btnCopy.setOnClickListener(v -> {
+            if (finalJson[0].isEmpty()) {
+                Toast.makeText(this, "请先生成JSON", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clipData = ClipData.newPlainText("私密配置", finalJson[0]);
+            clipboard.setPrimaryClip(clipData);
+            Toast.makeText(this, "JSON已复制到剪贴板，粘贴到urls数组即可", Toast.LENGTH_SHORT).show();
+        });
+
+        return true;
     }
 
     private void setWallDefault(View view) {
