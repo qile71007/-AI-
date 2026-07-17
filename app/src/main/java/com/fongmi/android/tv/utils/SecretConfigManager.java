@@ -3,7 +3,7 @@ package com.fongmi.android.tv.utils;
 public class SecretConfigManager {
     private static SecretConfigManager instance;
     private boolean unlocked = false;
-    private final String[] unlockKeys = {"七乐私密2026", "private7l"};
+    private final String[] unlockKeys = {"七乐", "qile71007"};
 
     private SecretConfigManager() {}
 
