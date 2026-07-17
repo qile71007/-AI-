@@ -36,6 +36,7 @@ import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.ui.dialog.SecretConfigManager;
 import com.fongmi.android.tv.ui.custom.FragmentStateManager;
 import com.fongmi.android.tv.ui.fragment.SettingEnhanceFragment;
 import com.fongmi.android.tv.ui.fragment.SettingDanmakuFragment;
@@ -428,6 +429,18 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (mChrome != null) mChrome.onWindowFocusChanged(hasFocus);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        SecretConfigManager.getInstance().lock();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        SecretConfigManager.getInstance().lock();
     }
 
     @Override
