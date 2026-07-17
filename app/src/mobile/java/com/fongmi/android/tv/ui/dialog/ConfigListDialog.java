@@ -17,12 +17,13 @@ import com.fongmi.android.tv.databinding.DialogConfigListBinding;
 import com.fongmi.android.tv.impl.ConfigListener;
 import com.fongmi.android.tv.ui.adapter.ConfigAdapter;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
+import com.fongmi.android.tv.utils.SecretConfigManager;
 import com.fongmi.android.tv.utils.Util;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.OnClickListener {
 
-    private static Parcelable savedState; // 保存滚动位置
+    private static Parcelable savedState;
 
     private DialogConfigListBinding binding;
     private ConfigListener listener;
@@ -70,12 +71,12 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
         Config current = getCurrentConfig();
         adapter = new ConfigAdapter(this);
         adapter.addAll(type, current);
+        adapter.setShowSecret(SecretConfigManager.getInstance().isUnlocked());
         binding.recycler.setAdapter(adapter);
         binding.recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.recycler.setItemAnimator(null);
         binding.recycler.setHasFixedSize(true);
 
-        // 自动定位到当前已选配置
         if (current != null) {
             String currentUrl = current.getUrl();
             binding.recycler.post(() -> {
@@ -90,7 +91,6 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
             });
         }
 
-        // 恢复上次保存的滚动位置
         if (savedState != null) {
             binding.recycler.getLayoutManager().onRestoreInstanceState(savedState);
         }
@@ -102,13 +102,28 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
             if (actionId == EditorInfo.IME_ACTION_SEARCH) Util.hideKeyboard(binding.keyword);
             return false;
         });
+
         binding.keyword.addTextChangedListener(new CustomTextListener() {
             @Override
             public void afterTextChanged(Editable s) {
-                // 实际过滤配置列表
-                String keyword = s == null ? "" : s.toString();
+                String keyword = s == null ? "" : s.toString().trim();
+
+                // ========== 解锁/上锁口令处理（新增） ==========
+                if (keyword.equals("七乐私密2026") || keyword.equals("private7l")) {
+                    SecretConfigManager.getInstance().unlock();
+                    adapter.setShowSecret(true);
+                    binding.keyword.setText("");               // 清空输入框
+                    // 清空后，过滤条件为空，自动显示所有（包括私密）
+                    return;
+                } else if (keyword.equals("上锁")) {
+                    SecretConfigManager.getInstance().lock();
+                    adapter.setShowSecret(false);
+                    binding.keyword.setText("");
+                    return;
+                }
+
+                // ========== 普通关键词过滤 ==========
                 if (adapter != null) adapter.filter(keyword);
-                // 搜索后滚动到顶部
                 binding.recycler.scrollToPosition(0);
                 savedState = null;
             }
@@ -118,7 +133,6 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
     @Override
     public void onStop() {
         super.onStop();
-        // 保存当前滚动位置
         if (binding != null && binding.recycler.getLayoutManager() != null) {
             savedState = binding.recycler.getLayoutManager().onSaveInstanceState();
         }
@@ -148,7 +162,6 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
     @Override
     public void onStart() {
         super.onStart();
-        // 仅在无任何配置时关闭，避免搜索无结果时误关弹窗
         if (adapter.getAllItemCount() == 0) dismiss();
     }
 }
