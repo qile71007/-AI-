@@ -71,7 +71,8 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
         Config current = getCurrentConfig();
         adapter = new ConfigAdapter(this);
         adapter.addAll(type, current);
-        adapter.setShowSecret(SecretConfigManager.getInstance().isUnlocked());
+        adapter.setShowSecret(false);
+        adapter.setUnlockedKeyword(null);
         binding.recycler.setAdapter(adapter);
         binding.recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.recycler.setItemAnimator(null);
@@ -108,16 +109,24 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
             public void afterTextChanged(Editable s) {
                 String keyword = s == null ? "" : s.toString().trim();
 
-                // ========== 解锁/上锁口令处理（新增） ==========
-                if (keyword.equals("七乐私密2026") || keyword.equals("private7l")) {
+                // ========== 全局解锁口令：七乐 / qile71007 ==========
+                if (keyword.equals("七乐") || keyword.equals("qile71007")) {
                     SecretConfigManager.getInstance().unlock();
                     adapter.setShowSecret(true);
-                    binding.keyword.setText("");               // 清空输入框
-                    // 清空后，过滤条件为空，自动显示所有（包括私密）
+                    adapter.setUnlockedKeyword(null);
+                    binding.keyword.setText("");
                     return;
                 } else if (keyword.equals("上锁")) {
                     SecretConfigManager.getInstance().lock();
                     adapter.setShowSecret(false);
+                    adapter.setUnlockedKeyword(null);
+                    binding.keyword.setText("");
+                    return;
+                }
+
+                // ========== 按 enc_keyword 明文解锁指定的私密源 ==========
+                boolean matched = adapter.unlockByKeyword(keyword);
+                if (matched) {
                     binding.keyword.setText("");
                     return;
                 }
