@@ -49,6 +49,9 @@ public class Config {
     @SerializedName("danmaku")
     private String danmaku;
 
+    private boolean isSecret = false;
+    private String unlockKeyword = "";
+
     public static List<Config> arrayFrom(String str) {
         Type listType = TypeToken.getParameterized(List.class, Config.class).getType();
         List<Config> items = App.gson().fromJson(str, listType);
@@ -216,6 +219,22 @@ public class Config {
 
     public void setDanmaku(String danmaku) {
         this.danmaku = danmaku;
+    }
+
+    public boolean isSecret() {
+        return isSecret;
+    }
+
+    public void setSecret(boolean secret) {
+        isSecret = secret;
+    }
+
+    public String getUnlockKeyword() {
+        return unlockKeyword;
+    }
+
+    public void setUnlockKeyword(String unlockKeyword) {
+        this.unlockKeyword = unlockKeyword;
     }
 
     public Config type(int type) {
