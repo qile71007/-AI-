@@ -191,14 +191,11 @@ public class VodConfig extends BaseConfig {
                     e.printStackTrace();
                 }
             } else {
-                // 公开条目：作为 Depot 处理
+                // 公开条目：直接通过 url 和 name 创建 Config
                 String name = item.has("name") ? item.get("name").getAsString() : "";
                 String url = item.has("url") ? item.get("url").getAsString() : "";
                 if (!TextUtils.isEmpty(url)) {
-                    Depot depot = new Depot();
-                    depot.setName(name);
-                    depot.setUrl(url);
-                    publicConfigs.add(Config.find(depot, VOD));
+                    publicConfigs.add(Config.find(url, name, VOD));
                 }
             }
         }
