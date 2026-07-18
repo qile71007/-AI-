@@ -206,7 +206,6 @@ public class FileManagerFragment extends Fragment {
                 if (!tmpDir.mkdirs()) throw new IOException("无法创建临时目录");
 
                 if (isRemoteConfig) {
-                    // 直接传入 URL 字符串，而不是构建 Request 对象
                     try (Response resp = OkHttp.get().newCall(currentConfigUrl).execute()) {
                         if (!resp.isSuccessful()) throw new IOException("下载配置失败: " + resp.code());
                         configContent = resp.body() != null ? resp.body().string() : "";
@@ -337,7 +336,6 @@ public class FileManagerFragment extends Fragment {
                     String ext = fileName.contains(".") ? fileName.substring(fileName.lastIndexOf(".")) : "";
                     out = new File(targetDir, base + "_" + System.currentTimeMillis() + ext);
                 }
-                // 直接传入 URL 字符串
                 try (Response resp = OkHttp.get().newCall(url).execute()) {
                     if (!resp.isSuccessful() || resp.body() == null) {
                         throw new IOException("HTTP " + (resp.code()));
@@ -508,7 +506,7 @@ public class FileManagerFragment extends Fragment {
             return false;
         });
 
-        // ========== 新增：为 fullscreenEditor 添加滚动条拖拽监听 ==========
+        // ========== 滚动条拖拽监听（修正版，避免使用 protected 方法） ==========
         fullscreenEditor.setOnTouchListener(new View.OnTouchListener() {
             private boolean isDragging = false;
             private float startY;
@@ -519,31 +517,26 @@ public class FileManagerFragment extends Fragment {
                 EditText et = (EditText) v;
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        // 判断触摸点是否在垂直滚动条区域
                         if (isTouchOnVerticalScrollBar(et, event.getX(), event.getY())) {
                             isDragging = true;
                             startY = event.getY();
                             startScrollY = et.getScrollY();
-                            // 消费事件，防止 EditText 处理（如光标移动）
                             return true;
                         }
                         break;
                     case MotionEvent.ACTION_MOVE:
                         if (isDragging) {
-                            int range = et.computeVerticalScrollRange();
-                            int extent = et.computeVerticalScrollExtent();
-                            int maxScroll = range - extent;
+                            Layout layout = et.getLayout();
+                            if (layout == null) return true;
+                            int totalHeight = layout.getLineTop(et.getLineCount());
+                            int visibleHeight = et.getHeight() - et.getPaddingTop() - et.getPaddingBottom();
+                            int maxScroll = Math.max(0, totalHeight - visibleHeight);
                             if (maxScroll > 0) {
-                                int trackHeight = et.getHeight() - et.getPaddingTop() - et.getPaddingBottom();
-                                int thumbHeight = (extent * trackHeight) / range; // 估算拇指高度
-                                int dragRange = trackHeight - thumbHeight;
-                                if (dragRange > 0) {
-                                    float deltaY = startY - event.getY();
-                                    float ratio = (float) maxScroll / dragRange;
-                                    int newScrollY = startScrollY + (int) (deltaY * ratio);
-                                    newScrollY = Math.max(0, Math.min(newScrollY, maxScroll));
-                                    et.scrollTo(0, newScrollY);
-                                }
+                                float ratio = (float) maxScroll / visibleHeight;
+                                float deltaY = startY - event.getY();
+                                int newScrollY = startScrollY + (int) (deltaY * ratio);
+                                newScrollY = Math.max(0, Math.min(newScrollY, maxScroll));
+                                et.scrollTo(0, newScrollY);
                             }
                             return true;
                         }
@@ -564,7 +557,6 @@ public class FileManagerFragment extends Fragment {
                 if (scrollBarWidth == 0) return false;
                 int right = et.getWidth() - et.getPaddingRight();
                 int left = right - scrollBarWidth;
-                // 支持 RTL 布局
                 if (et.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL) {
                     left = et.getPaddingLeft();
                     right = left + scrollBarWidth;
@@ -577,7 +569,7 @@ public class FileManagerFragment extends Fragment {
                 return false;
             }
         });
-        // ========== 新增结束 ==========
+        // ========== 结束 ==========
     }
 
     private void toggleSearchBar() {
