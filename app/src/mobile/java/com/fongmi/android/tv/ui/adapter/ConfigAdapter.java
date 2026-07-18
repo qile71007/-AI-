@@ -104,6 +104,10 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
                     if (!showSecret && !keywordMatches(item)) {
                         continue;
                     }
+                    if (keywordMatches(item)) {
+                        mFiltered.add(item);
+                        continue; // 已解锁的私密配置跳过文本过滤
+                    }
                 }
                 String desc = item.getDesc();
                 String url = item.getUrl();
