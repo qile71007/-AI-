@@ -463,6 +463,10 @@ public class FileManagerFragment extends Fragment {
         btnSearchClose = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_search_close));
 
         fullscreenEditor.setTypeface(android.graphics.Typeface.MONOSPACE);
+
+        // 让滚动条常驻显示，不自动消失
+        fullscreenEditor.setScrollbarFadingEnabled(false);
+
         fullscreenEditor.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -506,7 +510,7 @@ public class FileManagerFragment extends Fragment {
             return false;
         });
 
-        // ========== 滚动条拖拽监听（修正版，避免使用 protected 方法） ==========
+        // ========== 滚动条拖拽监听（修正版：滚动条常驻 + 方向修正） ==========
         fullscreenEditor.setOnTouchListener(new View.OnTouchListener() {
             private boolean isDragging = false;
             private float startY;
@@ -532,8 +536,10 @@ public class FileManagerFragment extends Fragment {
                             int visibleHeight = et.getHeight() - et.getPaddingTop() - et.getPaddingBottom();
                             int maxScroll = Math.max(0, totalHeight - visibleHeight);
                             if (maxScroll > 0) {
+                                // 修正方向：手指向下滑动（event.getY() 增大），滚动应向下（scrollY 增大）
+                                float deltaY = event.getY() - startY;
+                                // 比例：最大滚动距离 / 可见高度（简单比例，实际可更精确但已满足需求）
                                 float ratio = (float) maxScroll / visibleHeight;
-                                float deltaY = startY - event.getY();
                                 int newScrollY = startScrollY + (int) (deltaY * ratio);
                                 newScrollY = Math.max(0, Math.min(newScrollY, maxScroll));
                                 et.scrollTo(0, newScrollY);
