@@ -507,6 +507,77 @@ public class FileManagerFragment extends Fragment {
             }
             return false;
         });
+
+        // ========== 新增：为 fullscreenEditor 添加滚动条拖拽监听 ==========
+        fullscreenEditor.setOnTouchListener(new View.OnTouchListener() {
+            private boolean isDragging = false;
+            private float startY;
+            private int startScrollY;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                EditText et = (EditText) v;
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        // 判断触摸点是否在垂直滚动条区域
+                        if (isTouchOnVerticalScrollBar(et, event.getX(), event.getY())) {
+                            isDragging = true;
+                            startY = event.getY();
+                            startScrollY = et.getScrollY();
+                            // 消费事件，防止 EditText 处理（如光标移动）
+                            return true;
+                        }
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        if (isDragging) {
+                            int range = et.computeVerticalScrollRange();
+                            int extent = et.computeVerticalScrollExtent();
+                            int maxScroll = range - extent;
+                            if (maxScroll > 0) {
+                                int trackHeight = et.getHeight() - et.getPaddingTop() - et.getPaddingBottom();
+                                int thumbHeight = (extent * trackHeight) / range; // 估算拇指高度
+                                int dragRange = trackHeight - thumbHeight;
+                                if (dragRange > 0) {
+                                    float deltaY = startY - event.getY();
+                                    float ratio = (float) maxScroll / dragRange;
+                                    int newScrollY = startScrollY + (int) (deltaY * ratio);
+                                    newScrollY = Math.max(0, Math.min(newScrollY, maxScroll));
+                                    et.scrollTo(0, newScrollY);
+                                }
+                            }
+                            return true;
+                        }
+                        break;
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        if (isDragging) {
+                            isDragging = false;
+                            return true;
+                        }
+                        break;
+                }
+                return false;
+            }
+
+            private boolean isTouchOnVerticalScrollBar(EditText et, float x, float y) {
+                int scrollBarWidth = et.getVerticalScrollbarWidth();
+                if (scrollBarWidth == 0) return false;
+                int right = et.getWidth() - et.getPaddingRight();
+                int left = right - scrollBarWidth;
+                // 支持 RTL 布局
+                if (et.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL) {
+                    left = et.getPaddingLeft();
+                    right = left + scrollBarWidth;
+                }
+                if (x >= left && x <= right) {
+                    int top = et.getPaddingTop();
+                    int bottom = et.getHeight() - et.getPaddingBottom();
+                    return y >= top && y <= bottom;
+                }
+                return false;
+            }
+        });
+        // ========== 新增结束 ==========
     }
 
     private void toggleSearchBar() {
