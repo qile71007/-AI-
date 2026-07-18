@@ -168,7 +168,7 @@ public class VodConfig extends BaseConfig {
 
                     String realName = AesEncryptUtil.decrypt(encName);
                     String realUrl = AesEncryptUtil.decrypt(encUrl);
-                    String realKeyword = AesEncryptUtil.decrypt(encKeyword);
+                    String realKeyword = AesEncryptUtil.decrypt(encKeyword).trim();
 
                     // 查询是否已存在
                     Config existing = AppDatabase.get().getConfigDao().find(realUrl, VOD);
