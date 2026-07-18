@@ -72,6 +72,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.fongmi.android.tv.utils.SecretConfigManager;
 import com.fongmi.android.tv.web.HomeWebController;
 import com.fongmi.android.tv.web.WebHomeViewport;
 import com.github.catvod.crawler.SpiderDebug;
@@ -749,6 +750,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     protected void onPause() {
         if (mWeb != null) mWeb.onPause();
+        SecretConfigManager.getInstance().lock();
         super.onPause();
         mClock.stop();
     }
@@ -787,6 +789,12 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private void confirmExitHome() {
         if (PlaybackService.isRunning()) moveTaskToBack(true);
         else super.onBackInvoked();
+    }
+
+    @Override
+    protected void onStop() {
+        SecretConfigManager.getInstance().lock();
+        super.onStop();
     }
 
     @Override
