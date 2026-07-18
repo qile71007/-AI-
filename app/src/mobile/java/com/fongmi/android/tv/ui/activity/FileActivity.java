@@ -56,12 +56,6 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
     private void setRecyclerView() {
         mBinding.recycler.setHasFixedSize(true);
         mBinding.recycler.setAdapter(mAdapter = new FileAdapter(this));
-        mBinding.recycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                mAdapter.scheduleWindowUpdate(recyclerView);
-            }
-        });
     }
 
     private void checkPermission() {
