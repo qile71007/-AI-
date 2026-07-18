@@ -118,16 +118,17 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
                     return;
                 }
 
+                // ========== Per-item unlock by keyword ==========
+                if (adapter.unlockByKeyword(keyword)) {
+                    binding.keyword.setText("");
+                    adapter.filter("");
+                    return;
+                }
+
                 // ========== Global unlock: dynamic match ==========
                 if (SecretConfigManager.getInstance().unlock(keyword)) {
                     adapter.setShowSecret(true);
                     adapter.setUnlockedKeyword(null);
-                    binding.keyword.setText("");
-                    return;
-                }
-
-                // ========== Per-item unlock by keyword ==========
-                if (adapter.unlockByKeyword(keyword)) {
                     binding.keyword.setText("");
                     return;
                 }
