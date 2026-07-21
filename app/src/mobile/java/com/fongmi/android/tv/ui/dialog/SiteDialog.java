@@ -32,11 +32,6 @@ import com.fongmi.android.tv.ui.adapter.SiteAdapter;
 import com.fongmi.android.tv.ui.adapter.SiteSpeedAdapter;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import com.fongmi.android.tv.ui.adapter.SiteSpeedAdapter;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -60,8 +55,6 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     private boolean change;
     private boolean block;
     private int columnCount = 1;
-    private SiteSpeedAdapter speedAdapter;
-    private boolean speedMode;
     private SiteSpeedAdapter speedAdapter;
     private boolean speedMode;
 
@@ -161,6 +154,7 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     }
 
     private void onSpeedToggle(View view) {
+        if (binding == null) return;
         Util.hideKeyboard(binding.keyword);
         speedMode = !speedMode;
         binding.speed.setSelected(speedMode);
@@ -177,6 +171,7 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     }
 
     private void startSpeedTest() {
+        if (binding == null) return;
         speedAdapter = new SiteSpeedAdapter(new SiteSpeedAdapter.ProgressCallback() {
             @Override
             public void onProgress(int done, int total) {

@@ -27,6 +27,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import android.os.Handler;
+import android.os.Looper;
 
 public class SiteSpeedAdapter extends RecyclerView.Adapter<SiteSpeedAdapter.ViewHolder> {
 
@@ -61,9 +63,9 @@ public class SiteSpeedAdapter extends RecyclerView.Adapter<SiteSpeedAdapter.View
             if (!site.isSearchable()) {
                 items.add(new SpeedResult(site.getName(), site.getKey(), 0, false));
                 int done = completed.incrementAndGet();
-                notifyDataSetChanged();
-                if (callback != null) callback.onProgress(done, siteList.size());
-                if (done >= siteList.size()) { running = false; if (callback != null) callback.onComplete(); }
+                new Handler(Looper.getMainLooper()).post(() -> notifyDataSetChanged());
+                if (callback != null) new Handler(Looper.getMainLooper()).post(() -> callback.onProgress(done, siteList.size()));
+                if (done >= siteList.size()) { running = false; if (callback != null) new Handler(Looper.getMainLooper()).post(() -> callback.onComplete()); }
                 continue;
             }
             CompletableFuture.runAsync(() -> {
@@ -81,9 +83,9 @@ public class SiteSpeedAdapter extends RecyclerView.Adapter<SiteSpeedAdapter.View
                 items.add(new SpeedResult(site.getName(), site.getKey(), elapsed, success));
                 int done = completed.incrementAndGet();
                 sortItems();
-                notifyDataSetChanged();
-                if (callback != null) callback.onProgress(done, siteList.size());
-                if (done >= siteList.size()) { running = false; if (callback != null) callback.onComplete(); }
+                new Handler(Looper.getMainLooper()).post(() -> notifyDataSetChanged());
+                if (callback != null) new Handler(Looper.getMainLooper()).post(() -> callback.onProgress(done, siteList.size()));
+                if (done >= siteList.size()) { running = false; if (callback != null) new Handler(Looper.getMainLooper()).post(() -> callback.onComplete()); }
             }, EXECUTOR);
         }
     }

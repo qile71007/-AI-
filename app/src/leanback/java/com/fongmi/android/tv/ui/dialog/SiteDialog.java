@@ -157,6 +157,8 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         binding.select.setVisibility(action ? View.VISIBLE : View.GONE);
         binding.cancel.setVisibility(action ? View.VISIBLE : View.GONE);
         binding.mode.setVisibility(View.GONE);
+        binding.speed.setVisibility(action ? View.VISIBLE : View.GONE);
+        binding.speedResult.setVisibility(View.GONE);
         setActionEnabled(false);
         binding.recycler.setAdapter(null);
         binding.recycler.setItemAnimator(null);
@@ -281,6 +283,7 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     }
 
     private void onSpeedToggle() {
+        if (binding == null) return;
         speedMode = !speedMode;
         binding.speed.setSelected(speedMode);
         if (speedMode) {
@@ -294,6 +297,7 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     }
 
     private void startSpeedTest() {
+        if (binding == null) return;
         speedAdapter = new SiteSpeedAdapter(new SiteSpeedAdapter.ProgressCallback() {
             @Override
             public void onProgress(int done, int total) {
