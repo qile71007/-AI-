@@ -1131,8 +1131,6 @@
     <string name="site_speed_entry">Site Speed Test</string>
     <string name="site_speed_copy">Copy results</string>
     <string name="site_speed_copied">Results copied to clipboard</string>
-    <string name="site_speed_copy">Copy results</string>
-    <string name="site_speed_copied">Results copied to clipboard</string>
     <string name="sync_upload">Upload Watch History</string>
     <string name="sync_download">Download Watch History</string>
 

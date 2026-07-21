@@ -14,11 +14,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.SiteApi;
-import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.AdapterSiteSpeedBinding;
 import com.fongmi.android.tv.setting.SiteHealthStore;
-import com.fongmi.android.tv.utils.ResUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.CopyOnWriteArrayList;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -36,7 +35,7 @@ public class SiteSpeedAdapter extends RecyclerView.Adapter<SiteSpeedAdapter.View
     private static final int TIMEOUT_SECONDS = 8;
     private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(5);
 
-    private final List<SpeedResult> items = new ArrayList<>();
+    private final List<SpeedResult> items = new CopyOnWriteArrayList<>();
     private final List<Site> sites = new ArrayList<>();
     private final AtomicInteger completed = new AtomicInteger(0);
     private final ProgressCallback callback;
@@ -91,10 +90,13 @@ public class SiteSpeedAdapter extends RecyclerView.Adapter<SiteSpeedAdapter.View
     }
 
     private void sortItems() {
-        Collections.sort(items, (a, b) -> {
+        List<SpeedResult> sorted = new ArrayList<>(items);
+        Collections.sort(sorted, (a, b) -> {
             if (a.success != b.success) return a.success ? -1 : 1;
             return Long.compare(a.elapsed, b.elapsed);
         });
+        items.clear();
+        items.addAll(sorted);
     }
 
     public boolean isRunning() {
