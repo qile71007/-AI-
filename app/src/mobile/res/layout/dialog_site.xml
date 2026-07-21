@@ -61,6 +61,17 @@
             android:src="@drawable/ic_site_single_column"
             app:tint="@color/dialog_outlined_button_text" />
 
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/speed"
+            android:layout_width="24dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="0dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_site_speed"
+            app:tint="@color/dialog_outlined_button_text" />
+
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <HorizontalScrollView
@@ -93,5 +104,65 @@
         android:paddingBottom="4dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:maxHeight="376dp" />
+
+    <!-- 测速结果展示区域 -->
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/speedResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ProgressBar
+            android:id="@+id/speedProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginBottom="8dp"
+            android:max="100"
+            android:progress="0" />
+
+        <TextView
+            android:id="@+id/speedStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/dialog_outlined_button_text"
+            android:textSize="14sp"
+            tools:text="Testing 0/5" />
+
+        <com.fongmi.android.tv.ui.custom.CustomRecyclerView
+            android:id="@+id/speedRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:maxHeight="240dp"
+            tools:itemCount="5"
+            tools:listitem="@layout/adapter_site_speed" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/speedCopy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:padding="12dp"
+            android:text="@string/site_speed_copy"
+            android:textColor="@color/dialog_outlined_button_text"
+            android:textSize="14sp"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
 </androidx.appcompat.widget.LinearLayoutCompat>

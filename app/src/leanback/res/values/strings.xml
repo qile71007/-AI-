@@ -17,4 +17,6 @@
     <string name="push_clip">Push clipboard content</string>
     <string name="push_info">Scan QR Code or enter the URL in browser\n<xliff:g name="name">%s</xliff:g></string>
 
+    <string name="site_speed_copy">Copy results</string>
+    <string name="site_speed_copied">Results copied to clipboard</string>
 </resources>

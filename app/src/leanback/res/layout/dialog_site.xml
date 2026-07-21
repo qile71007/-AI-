@@ -152,10 +152,73 @@
                 android:focusable="true"
                 android:focusableInTouchMode="true"
                 android:nextFocusUp="@id/cancel"
-                android:nextFocusDown="@id/mode"
+                android:nextFocusDown="@id/speed"
                 android:padding="8dp"
                 app:tint="@color/site_action_icon"
                 tools:src="@drawable/ic_site_list" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/speed"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/selector_site_action"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:nextFocusUp="@id/mode"
+                android:nextFocusDown="@id/speed"
+                android:padding="8dp"
+                android:src="@drawable/ic_site_speed"
+                app:tint="@color/site_action_icon" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <!-- 测速结果展示区域 -->
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/speedResult"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="16dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <ProgressBar
+                android:id="@+id/speedProgress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:layout_marginBottom="8dp"
+                android:max="100"
+                android:progress="0" />
+
+            <TextView
+                android:id="@+id/speedStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                tools:text="Testing 0/5" />
+
+            <com.fongmi.android.tv.ui.custom.CustomRecyclerView
+                android:id="@+id/speedRecycler"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:paddingStart="4dp"
+                android:paddingTop="0dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp"
+                app:maxHeight="344dp"
+                tools:itemCount="5"
+                tools:listitem="@layout/adapter_site_speed" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
 

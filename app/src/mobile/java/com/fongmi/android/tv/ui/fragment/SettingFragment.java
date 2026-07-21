@@ -194,7 +194,7 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.incognito.setOnClickListener(this::setIncognito);
         mBinding.vodHistory.setOnClickListener(this::onVodHistory);
         mBinding.vodStats.setOnClickListener(this::onVodStats);
-        mBinding.vodStats.setOnLongClickListener(v -> { onSiteSpeed(v); return true; });
+        // Speed test moved to SiteDialog (station list page)
         mBinding.themeColor.setOnClickListener(this::onThemeColor);
         mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
@@ -377,6 +377,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         StatsDialog.show(requireActivity());
     }
 
+    // Speed test has been moved to SiteDialog (station list page)
+    // This method is kept for reference but no longer called from UI
     private void onSiteSpeed(View view) {
         SiteSpeedDialog.show(requireActivity());
     }

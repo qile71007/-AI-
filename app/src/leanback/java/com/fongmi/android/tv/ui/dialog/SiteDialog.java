@@ -26,6 +26,10 @@ import com.fongmi.android.tv.databinding.DialogSiteBinding;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.SiteListener;
 import com.fongmi.android.tv.ui.adapter.SiteAdapter;
+import com.fongmi.android.tv.ui.adapter.SiteSpeedAdapter;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -51,6 +55,8 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     private boolean action;
     private boolean listLoaded;
     private int type;
+    private SiteSpeedAdapter speedAdapter;
+    private boolean speedMode;
 
     public static SiteDialog create() {
         return new SiteDialog();
@@ -199,6 +205,7 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         });
         binding.search.setOnClickListener(v -> setType(v.isSelected() ? 0 : 1));
         binding.change.setOnClickListener(v -> setType(v.isSelected() ? 0 : 2));
+        binding.speed.setOnClickListener(v -> onSpeedToggle());
         binding.keyword.addTextChangedListener(new com.fongmi.android.tv.ui.custom.CustomTextListener() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -271,6 +278,51 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     public void onItemClick(Site item) {
         if (listener != null) listener.setSite(item);
         dismiss();
+    }
+
+    private void onSpeedToggle() {
+        speedMode = !speedMode;
+        binding.speed.setSelected(speedMode);
+        if (speedMode) {
+            binding.speedResult.setVisibility(View.VISIBLE);
+            binding.recycler.setVisibility(View.GONE);
+            startSpeedTest();
+        } else {
+            binding.speedResult.setVisibility(View.GONE);
+            binding.recycler.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void startSpeedTest() {
+        speedAdapter = new SiteSpeedAdapter(new SiteSpeedAdapter.ProgressCallback() {
+            @Override
+            public void onProgress(int done, int total) {
+                if (binding == null || getDialogActivity() == null) return;
+                binding.speedProgress.setMax(total);
+                binding.speedProgress.setProgress(done);
+                binding.speedStatus.setText(getDialogActivity().getString(R.string.site_speed_testing, done, total));
+            }
+
+            @Override
+            public void onComplete() {
+                if (binding == null || getDialogActivity() == null) return;
+                binding.speedStatus.setText(R.string.site_speed_done);
+                binding.speedProgress.setVisibility(View.GONE);
+            }
+        });
+        binding.speedRecycler.setAdapter(speedAdapter);
+        binding.speedRecycler.setLayoutManager(new LinearLayoutManager(getDialogActivity()));
+        binding.speedRecycler.setItemAnimator(null);
+        binding.speedProgress.setVisibility(View.VISIBLE);
+        binding.speedProgress.setProgress(0);
+
+        java.util.List<Site> searchable = new java.util.ArrayList<>();
+        for (Site s : VodConfig.get().getSites()) {
+            if (s.isSearchable()) searchable.add(s);
+        }
+        binding.speedProgress.setMax(searchable.size());
+        binding.speedStatus.setText(getDialogActivity().getString(R.string.site_speed_testing, 0, searchable.size()));
+        speedAdapter.startTest(searchable);
     }
 
     private void loadConfig(FragmentActivity activity, Config config) {

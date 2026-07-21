@@ -29,6 +29,14 @@ import com.fongmi.android.tv.impl.SiteListener;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.setting.SiteBlockSetting;
 import com.fongmi.android.tv.ui.adapter.SiteAdapter;
+import com.fongmi.android.tv.ui.adapter.SiteSpeedAdapter;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import com.fongmi.android.tv.ui.adapter.SiteSpeedAdapter;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -52,6 +60,10 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
     private boolean change;
     private boolean block;
     private int columnCount = 1;
+    private SiteSpeedAdapter speedAdapter;
+    private boolean speedMode;
+    private SiteSpeedAdapter speedAdapter;
+    private boolean speedMode;
 
     public static SiteDialog create() {
         return new SiteDialog();
@@ -144,6 +156,63 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         });
         binding.block.setOnClickListener(this::onBlockToggle);
         binding.search.setOnClickListener(this::onColumnToggle);
+        binding.speed.setOnClickListener(this::onSpeedToggle);
+        binding.speedCopy.setOnClickListener(this::onSpeedCopy);
+    }
+
+    private void onSpeedToggle(View view) {
+        Util.hideKeyboard(binding.keyword);
+        speedMode = !speedMode;
+        binding.speed.setSelected(speedMode);
+        if (speedMode) {
+            binding.speedResult.setVisibility(View.VISIBLE);
+            binding.recycler.setVisibility(View.GONE);
+            binding.groupScroll.setVisibility(View.GONE);
+            startSpeedTest();
+        } else {
+            binding.speedResult.setVisibility(View.GONE);
+            binding.recycler.setVisibility(View.VISIBLE);
+            binding.speedCopy.setVisibility(View.GONE);
+        }
+    }
+
+    private void startSpeedTest() {
+        speedAdapter = new SiteSpeedAdapter(new SiteSpeedAdapter.ProgressCallback() {
+            @Override
+            public void onProgress(int done, int total) {
+                if (getActivity() == null || binding == null) return;
+                binding.speedProgress.setMax(total);
+                binding.speedProgress.setProgress(done);
+                binding.speedStatus.setText(getString(R.string.site_speed_testing, done, total));
+            }
+
+            @Override
+            public void onComplete() {
+                if (getActivity() == null || binding == null) return;
+                binding.speedStatus.setText(R.string.site_speed_done);
+                binding.speedProgress.setVisibility(View.GONE);
+                binding.speedCopy.setVisibility(View.VISIBLE);
+            }
+        });
+        binding.speedRecycler.setAdapter(speedAdapter);
+        binding.speedRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+        binding.speedRecycler.setItemAnimator(null);
+        binding.speedProgress.setVisibility(View.VISIBLE);
+        binding.speedProgress.setProgress(0);
+        binding.speedCopy.setVisibility(View.GONE);
+        binding.speedStatus.setText(getString(R.string.site_speed_testing, 0, 0));
+
+        java.util.List<Site> searchable = new java.util.ArrayList<>();
+        for (Site s : VodConfig.get().getSites()) {
+            if (s.isSearchable()) searchable.add(s);
+        }
+        binding.speedProgress.setMax(searchable.size());
+        binding.speedStatus.setText(getString(R.string.site_speed_testing, 0, searchable.size()));
+        speedAdapter.startTest(searchable);
+    }
+
+    private void onSpeedCopy(View view) {
+        if (speedAdapter != null) speedAdapter.copyResults(requireContext());
     }
 
     private void onBlockToggle(View view) {

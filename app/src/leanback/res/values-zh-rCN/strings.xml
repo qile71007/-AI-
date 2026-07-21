@@ -17,4 +17,6 @@
     <string name="push_clip">推送剪贴板内容</string>
     <string name="push_info">使用手机扫描二维码，或于浏览器访问地址\n<xliff:g name="name">%s</xliff:g></string>
 
+    <string name="site_speed_copy">📋 复制测速结果</string>
+    <string name="site_speed_copied">已复制到剪切板</string>
 </resources>
