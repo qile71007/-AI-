@@ -76,17 +76,17 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
     }
 
     private void initViews() {
-        tvPath = findViewById(R.id.tv_path);
-        btnBack = findViewById(R.id.btn_back);
-        editorContainer = findViewById(R.id.editor_container);
-        editorText = findViewById(R.id.editor_text);
-        btnCloseEditor = findViewById(R.id.btn_close_editor);
-        btnTts = findViewById(R.id.btn_tts);
-        btnSave = findViewById(R.id.btn_save);
-        editorTitle = findViewById(R.id.editor_title);
+        tvPath = mBinding.tvPath;
+        btnBack = mBinding.btnBack;
+        editorContainer = mBinding.editorContainer;
+        editorText = mBinding.editorText;
+        btnCloseEditor = mBinding.btnCloseEditor;
+        btnTts = mBinding.btnTts;
+        btnSave = mBinding.btnSave;
+        editorTitle = mBinding.editorTitle;
 
-        if (btnBack != null) btnBack.setOnClickListener(v -> {
-            if (editorContainer != null && editorContainer.getVisibility() == View.VISIBLE) {
+        btnBack.setOnClickListener(v -> {
+            if (editorContainer.getVisibility() == View.VISIBLE) {
                 closeEditor();
             } else if (!isRoot()) {
                 update(dir.getParentFile());
@@ -94,10 +94,9 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
                 finish();
             }
         });
-
-        if (btnCloseEditor != null) btnCloseEditor.setOnClickListener(v -> closeEditor());
-        if (btnSave != null) btnSave.setOnClickListener(v -> saveEditor());
-        if (btnTts != null) btnTts.setOnClickListener(v -> toggleTts());
+        btnCloseEditor.setOnClickListener(v -> closeEditor());
+        btnSave.setOnClickListener(v -> saveEditor());
+        btnTts.setOnClickListener(v -> toggleTts());
     }
 
     private void setRecyclerView() {
@@ -172,7 +171,8 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
         }
         editorText.setText(content.toString());
         editorTitle.setText("编辑: " + file.getName());
-        mBinding.browserArea.setVisibility(View.GONE);
+        if (mBinding.pathBar != null) mBinding.pathBar.setVisibility(View.GONE);
+        mBinding.progressLayout.setVisibility(View.GONE);
         editorContainer.setVisibility(View.VISIBLE);
         editorText.requestFocus();
         initTtsEngine();
@@ -181,7 +181,8 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
     private void closeEditor() {
         stopTts();
         editorContainer.setVisibility(View.GONE);
-        mBinding.browserArea.setVisibility(View.VISIBLE);
+        if (mBinding.pathBar != null) mBinding.pathBar.setVisibility(View.VISIBLE);
+        mBinding.progressLayout.setVisibility(View.VISIBLE);
         editingFile = null;
     }
 
@@ -296,7 +297,5 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
         }
     }
 
-    private <T extends View> T findViewById(int id) {
-        return (T) getWindow().getDecorView().findViewById(id);
-    }
+
 }
