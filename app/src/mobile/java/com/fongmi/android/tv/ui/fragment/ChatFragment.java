@@ -31,6 +31,9 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
+import java.util.Locale;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -43,7 +46,6 @@ import com.fongmi.android.tv.R;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
 
 public class ChatFragment extends Fragment {
@@ -51,10 +53,13 @@ public class ChatFragment extends Fragment {
     private WebView webView;
     private ProgressBar progressBar;
     private LinearLayout buttonContainer;
-    private ImageButton btnBack, btnRefresh, btnGo;
+    private ImageButton btnBack, btnRefresh, btnGo, btnTts;
     private EditText urlInput;
     private ValueCallback<Uri[]> filePathCallback;
     private static final String DEFAULT_URL = "http://tvm.serv00.net";
+    private TextToSpeech ttsEngine;
+    private boolean isSpeaking = false;
+    private boolean ttsInitialized = false;
     private boolean isAttached = false;
 
     // ==================== 安全防护：URL 安全校验器 ====================
@@ -410,6 +415,7 @@ public class ChatFragment extends Fragment {
         btnRefresh = view.findViewById(R.id.btn_refresh);
         urlInput = view.findViewById(R.id.url_input);
         btnGo = view.findViewById(R.id.btn_go);
+        btnTts = view.findViewById(R.id.btn_tts);
 
         setupWebView();
         setupUrlBar();
@@ -597,6 +603,7 @@ public class ChatFragment extends Fragment {
     private void setupUrlBar() {
         // 点击"前往"按钮
         btnGo.setOnClickListener(v -> loadUrlFromInput());
+        btnTts.setOnClickListener(v -> toggleTts());
 
         // 键盘回车触发
         urlInput.setOnKeyListener((v, keyCode, event) -> {
@@ -606,6 +613,103 @@ public class ChatFragment extends Fragment {
             }
             return false;
         });
+        initTtsEngine();
+    }
+
+    // ==================== TTS 语音朗读 ====================
+    private void initTtsEngine() {
+        if (ttsEngine != null) return;
+        Context ctx = getContext();
+        if (ctx == null) return;
+        ttsEngine = new TextToSpeech(ctx, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                int result = ttsEngine.setLanguage(Locale.getDefault());
+                ttsInitialized = (result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED);
+            }
+        });
+        ttsEngine.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override public void onStart(String utteranceId) {}
+            @Override public void onDone(String utteranceId) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        isSpeaking = false;
+                        updateTtsIcon();
+                    });
+                }
+            }
+            @Override public void onError(String utteranceId, int errorCode) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        isSpeaking = false;
+                        updateTtsIcon();
+                    });
+                }
+            }
+            @Override public void onError(String utteranceId) {}
+        });
+    }
+
+    private void toggleTts() {
+        if (!ttsInitialized || ttsEngine == null) {
+            Toast.makeText(getContext(), "语音引擎未初始化", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (isSpeaking) {
+            stopTts();
+        } else {
+            startTts();
+        }
+    }
+
+    private void startTts() {
+        if (webView == null) return;
+        // 通过 JavaScript 获取网页正文内容
+        webView.evaluateJavascript("(function() { return document.body.innerText; })();", value -> {
+            if (value == null || value.equals("null") || TextUtils.isEmpty(value.trim())) {
+                Toast.makeText(getContext(), "没有可朗读的文本", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // 去掉引号（JS 返回的是带引号的字符串）
+            String text = value;
+            if (text.startsWith(""") && text.endsWith(""")) {
+                text = text.substring(1, text.length() - 1);
+            }
+            // 转义处理
+            text = text.replace("\n", "
+").replace("\t", "	").replace("\"", """);
+            text = text.trim();
+            if (TextUtils.isEmpty(text)) {
+                Toast.makeText(getContext(), "没有可朗读的文本", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // 分块朗读
+            int maxLen = 4000;
+            isSpeaking = true;
+            updateTtsIcon();
+            if (text.length() <= maxLen) {
+                ttsEngine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts_utterance");
+            } else {
+                ttsEngine.speak(text.substring(0, maxLen), TextToSpeech.QUEUE_FLUSH, null, "tts_utterance_0");
+                int start = maxLen, idx = 1;
+                while (start < text.length()) {
+                    int end = Math.min(start + maxLen, text.length());
+                    ttsEngine.speak(text.substring(start, end), TextToSpeech.QUEUE_ADD, null, "tts_utterance_" + idx);
+                    start = end;
+                    idx++;
+                }
+            }
+        });
+    }
+
+    private void stopTts() {
+        if (ttsEngine != null) ttsEngine.stop();
+        isSpeaking = false;
+        updateTtsIcon();
+    }
+
+    private void updateTtsIcon() {
+        if (btnTts == null) return;
+        btnTts.setImageResource(isSpeaking ? R.drawable.ic_volume_off : R.drawable.ic_volume_up);
     }
 
     private void loadUrlFromInput() {

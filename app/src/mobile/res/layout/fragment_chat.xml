@@ -44,6 +44,15 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="前往"
             android:tint="#FFFFFF" />
+        <ImageButton
+            android:id="@+id/btn_tts"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_volume_up"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="朗读"
+            android:tint="#FFFFFF" />
     </LinearLayout>
 
     <!-- WebView -->
