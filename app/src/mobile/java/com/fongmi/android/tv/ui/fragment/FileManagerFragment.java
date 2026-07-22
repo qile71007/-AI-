@@ -782,16 +782,24 @@ public class FileManagerFragment extends Fragment {
 
     private void startTts() {
         if (fullscreenEditor == null) return;
-        // 优先使用用户选中的文本，没有选中则朗读全文
+        String fullText = fullscreenEditor.getText().toString();
+        if (TextUtils.isEmpty(fullText.trim())) {
+            Toast.makeText(getContext(), "没有可朗读的文本", Toast.LENGTH_SHORT).show();
+            return;
+        }
         int selStart = fullscreenEditor.getSelectionStart();
         int selEnd = fullscreenEditor.getSelectionEnd();
         String text;
         boolean hasSelection = selStart >= 0 && selEnd >= 0 && selStart != selEnd;
         if (hasSelection) {
-            text = fullscreenEditor.getText().toString().substring(
-                Math.min(selStart, selEnd), Math.max(selStart, selEnd)).trim();
+            // 有选中文本 → 朗读选中部分
+            text = fullText.substring(Math.min(selStart, selEnd), Math.max(selStart, selEnd)).trim();
+        } else if (selStart > 0) {
+            // 无选中但光标不在开头 → 从光标位置朗读到末尾
+            text = fullText.substring(selStart).trim();
         } else {
-            text = fullscreenEditor.getText().toString().trim();
+            // 无选中且光标在开头 → 朗读全文
+            text = fullText.trim();
         }
         if (TextUtils.isEmpty(text)) {
             Toast.makeText(getContext(), "没有可朗读的文本", Toast.LENGTH_SHORT).show();
