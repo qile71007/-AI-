@@ -782,7 +782,17 @@ public class FileManagerFragment extends Fragment {
 
     private void startTts() {
         if (fullscreenEditor == null) return;
-        String text = fullscreenEditor.getText().toString().trim();
+        // 优先使用用户选中的文本，没有选中则朗读全文
+        int selStart = fullscreenEditor.getSelectionStart();
+        int selEnd = fullscreenEditor.getSelectionEnd();
+        String text;
+        boolean hasSelection = selStart >= 0 && selEnd >= 0 && selStart != selEnd;
+        if (hasSelection) {
+            text = fullscreenEditor.getText().toString().substring(
+                Math.min(selStart, selEnd), Math.max(selStart, selEnd)).trim();
+        } else {
+            text = fullscreenEditor.getText().toString().trim();
+        }
         if (TextUtils.isEmpty(text)) {
             Toast.makeText(getContext(), "没有可朗读的文本", Toast.LENGTH_SHORT).show();
             return;
@@ -806,7 +816,6 @@ public class FileManagerFragment extends Fragment {
             }
         }
     }
-
     private void stopTts() {
         if (ttsEngine != null) {
             ttsEngine.stop();

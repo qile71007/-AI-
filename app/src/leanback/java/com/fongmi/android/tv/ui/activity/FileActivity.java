@@ -229,12 +229,22 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
     }
 
     private void startTts() {
-        String text = editorText.getText().toString().trim();
+        // 优先使用用户选中的文本，没有选中则朗读全文
+        int selStart = editorText.getSelectionStart();
+        int selEnd = editorText.getSelectionEnd();
+        String text;
+        boolean hasSelection = selStart >= 0 && selEnd >= 0 && selStart != selEnd;
+        if (hasSelection) {
+            text = editorText.getText().toString().substring(
+                Math.min(selStart, selEnd), Math.max(selStart, selEnd)).trim();
+        } else {
+            text = editorText.getText().toString().trim();
+        }
         if (TextUtils.isEmpty(text)) {
             Toast.makeText(this, "没有可朗读的文本", Toast.LENGTH_SHORT).show();
             return;
         }
-        isSpeaking = true;
+                isSpeaking = true;
         updateTtsIcon();
         int maxLen = 4000;
         if (text.length() <= maxLen) {
