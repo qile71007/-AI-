@@ -244,7 +244,7 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
             Toast.makeText(this, "没有可朗读的文本", Toast.LENGTH_SHORT).show();
             return;
         }
-                isSpeaking = true;
+        isSpeaking = true;
         updateTtsIcon();
         int maxLen = 4000;
         if (text.length() <= maxLen) {
@@ -254,7 +254,7 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
             int start = maxLen, idx = 1;
             while (start < text.length()) {
                 int end = Math.min(start + maxLen, text.length());
-                ttsEngine.speak(text.substring(start, end), TextToSpeech.QUEUE_ADD, null, "tts_" + idx);
+                                ttsEngine.speak(text.substring(start, end), TextToSpeech.QUEUE_ADD, null, "tts_" + idx);
                 start = end;
                 idx++;
             }
