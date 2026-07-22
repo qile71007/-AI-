@@ -936,6 +936,12 @@ public class ChatFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        stopTts();
+        if (ttsEngine != null) {
+            ttsEngine.stop();
+            ttsEngine.shutdown();
+            ttsEngine = null;
+        }
         if (webView != null) {
             webView.loadData("", "text/html", "utf-8");
             webView.clearHistory();
@@ -949,6 +955,7 @@ public class ChatFragment extends Fragment {
         btnBack = null;
         btnRefresh = null;
         btnGo = null;
+        btnTts = null;
         urlInput = null;
         buttonContainer = null;
         progressBar = null;
