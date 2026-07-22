@@ -30,6 +30,9 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
+import java.util.Locale;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -76,7 +79,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Stack;
@@ -110,6 +112,10 @@ public class FileManagerFragment extends Fragment {
     private LinearLayout fullscreenEditorContainer;
     private EditText fullscreenEditor;
     private TextView fullscreenTitle;
+    private ImageButton btnTtsEditor;
+    private TextToSpeech ttsEngine;
+    private boolean isSpeaking = false;
+    private boolean ttsInitialized = false;
     private ImageButton btnCloseEditor, btnSaveEditor, btnSearchToggle, btnJump;
     private View searchLayout;
     private EditText searchEditText;
@@ -461,6 +467,8 @@ public class FileManagerFragment extends Fragment {
         btnSearchPrev = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_search_prev));
         btnSearchNext = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_search_next));
         btnSearchClose = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_search_close));
+        btnTtsEditor = Objects.requireNonNull(fullscreenEditorContainer.findViewById(R.id.btn_tts_editor));
+        initTtsEngine();
 
         fullscreenEditor.setTypeface(android.graphics.Typeface.MONOSPACE);
 
@@ -480,6 +488,7 @@ public class FileManagerFragment extends Fragment {
         });
 
         btnCloseEditor.setOnClickListener(v -> closeFullscreenEditor());
+        btnTtsEditor.setOnClickListener(v -> toggleTts());
         btnSaveEditor.setOnClickListener(v -> {
             if (fullscreenEditor != null && currentConfigFile != null) {
                 saveAndApplyConfig(fullscreenEditor.getText().toString());
@@ -729,7 +738,96 @@ public class FileManagerFragment extends Fragment {
         if (getActivity() != null) getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
     }
 
+    private void initTtsEngine() {
+        if (ttsEngine != null) return;
+        ttsEngine = new TextToSpeech(getContext(), status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                int result = ttsEngine.setLanguage(Locale.getDefault());
+                ttsInitialized = (result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED);
+            }
+        });
+        ttsEngine.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override public void onStart(String utteranceId) {}
+            @Override public void onDone(String utteranceId) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        isSpeaking = false;
+                        updateTtsButtonIcon();
+                    });
+                }
+            }
+            @Override public void onError(String utteranceId, int errorCode) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        isSpeaking = false;
+                        updateTtsButtonIcon();
+                    });
+                }
+            }
+            @Override public void onError(String utteranceId) {}
+        });
+    }
+
+    private void toggleTts() {
+        if (!ttsInitialized || ttsEngine == null) {
+            Toast.makeText(getContext(), "语音引擎未初始化", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (isSpeaking) {
+            stopTts();
+        } else {
+            startTts();
+        }
+    }
+
+    private void startTts() {
+        if (fullscreenEditor == null) return;
+        String text = fullscreenEditor.getText().toString().trim();
+        if (TextUtils.isEmpty(text)) {
+            Toast.makeText(getContext(), "没有可朗读的文本", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // Speak in chunks to avoid limit issues
+        int maxLen = 4000;
+        isSpeaking = true;
+        updateTtsButtonIcon();
+        if (text.length() <= maxLen) {
+            ttsEngine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts_utterance");
+        } else {
+            // Speak first chunk immediately, queue remaining
+            ttsEngine.speak(text.substring(0, maxLen), TextToSpeech.QUEUE_FLUSH, null, "tts_utterance_0");
+            int start = maxLen;
+            int idx = 1;
+            while (start < text.length()) {
+                int end = Math.min(start + maxLen, text.length());
+                ttsEngine.speak(text.substring(start, end), TextToSpeech.QUEUE_ADD, null, "tts_utterance_" + idx);
+                start = end;
+                idx++;
+            }
+        }
+    }
+
+    private void stopTts() {
+        if (ttsEngine != null) {
+            ttsEngine.stop();
+        }
+        isSpeaking = false;
+        updateTtsButtonIcon();
+    }
+
+    private void updateTtsButtonIcon() {
+        if (btnTtsEditor == null) return;
+        if (isSpeaking) {
+            btnTtsEditor.setImageResource(com.fongmi.android.tv.R.drawable.ic_volume_off);
+            btnTtsEditor.setContentDescription("停止朗读");
+        } else {
+            btnTtsEditor.setImageResource(com.fongmi.android.tv.R.drawable.ic_volume_up);
+            btnTtsEditor.setContentDescription("朗读");
+        }
+    }
+
     private void closeFullscreenEditor() {
+        stopTts();
         if (fullscreenEditorContainer != null) fullscreenEditorContainer.setVisibility(View.GONE);
         closeSearchBar();
         if (getActivity() != null) getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
@@ -1155,5 +1253,16 @@ public class FileManagerFragment extends Fragment {
         if (fullscreenEditorContainer != null && fullscreenEditorContainer.getVisibility() == View.VISIBLE) { closeFullscreenEditor(); return true; }
         if (!backStack.isEmpty()) { goBack(); return true; }
         return false;
+    }
+
+    @Override
+    public void onDestroyView() {
+        stopTts();
+        if (ttsEngine != null) {
+            ttsEngine.stop();
+            ttsEngine.shutdown();
+            ttsEngine = null;
+        }
+        super.onDestroyView();
     }
 }
