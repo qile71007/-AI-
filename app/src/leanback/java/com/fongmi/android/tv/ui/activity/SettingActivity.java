@@ -60,6 +60,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.io.File;
 import java.util.List;
 
 public class SettingActivity extends BaseActivity implements ConfigListener, SiteListener, LiveListener, DohDialog.Listener {
@@ -144,6 +145,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
+        mBinding.resetApp.setOnClickListener(this::onResetApp);
     }
 
     @Override
@@ -264,6 +266,45 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         SettingDanmakuActivity.start(this);
     }
 
+    private void onResetApp(View view) {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.setting_reset_app)
+                .setMessage(R.string.setting_reset_app_confirm)
+                .setNegativeButton(R.string.dialog_negative, null)
+                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> resetApp())
+                .show();
+    }
+    private void resetApp() {
+        try {
+            getSharedPreferences(getPackageName() + "_preferences", 0).edit().clear().apply();
+            File prefsDir = new File(getApplicationInfo().dataDir, "shared_prefs");
+            deleteRecursive(prefsDir);
+            File dbDir = new File(getApplicationInfo().dataDir, "databases");
+            deleteRecursive(dbDir);
+            File filesDir = getFilesDir();
+            deleteRecursive(filesDir);
+            File cacheDir = getCacheDir();
+            deleteRecursive(cacheDir);
+            File externalCacheDir = getExternalCacheDir();
+            if (externalCacheDir != null) deleteRecursive(externalCacheDir);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (intent != null) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+        }
+        System.exit(0);
+    }
+    private void deleteRecursive(File file) {
+        if (file == null || !file.exists()) return;
+        if (file.isDirectory()) {
+            File[] children = file.listFiles();
+            if (children != null) for (File child : children) deleteRecursive(child);
+        }
+        file.delete();
+    }
     private void onVersion(View view) {
         AboutDialog.show(this, () -> Updater.create().force().start(this));
     }
