@@ -1,4 +1,4 @@
-name: 手动APK构建和发布
+name: 手机端手动APK构建和发布
 
 on:
   workflow_dispatch:
