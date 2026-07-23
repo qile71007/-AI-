@@ -59,3 +59,4 @@ public abstract class BaseFragment extends Fragment {
         isDataLoaded = false;
     }
 }
+    public boolean canBack() { return false; }

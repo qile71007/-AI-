@@ -47,6 +47,9 @@ public class ConfigListDialog extends BaseAlertDialog implements ConfigAdapter.O
     public void show(Fragment fragment) {
         show(fragment.getChildFragmentManager(), null);
     }
+    public void show(androidx.fragment.app.FragmentActivity activity) {
+        show(activity.getSupportFragmentManager(), null);
+    }
 
     @Override
     protected ViewBinding getBinding() {

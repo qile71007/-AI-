@@ -138,7 +138,6 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
         }
     }
 
-    @Override
     public void onItemLongClick(File file) {
         if (file.isDirectory()) return;
         if (isTextFile(file)) {
