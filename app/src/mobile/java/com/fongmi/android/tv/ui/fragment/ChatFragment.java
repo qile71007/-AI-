@@ -671,12 +671,12 @@ public class ChatFragment extends Fragment {
             }
             // 去掉引号（JS 返回的是带引号的字符串）
             String text = value;
-            if (text.startsWith(""") && text.endsWith(""")) {
+            if (text.startsWith("\"") && text.endsWith("\"")) {
                 text = text.substring(1, text.length() - 1);
             }
             // 转义 JSON 特殊字符
-            text = text.replace("\n", "
-").replace("\t", "	").replace("\"", """);
+            text = text.replace("\n", "\n").replace("\t", "\t").replace("\"", "\"");
+
             text = text.trim();
             if (TextUtils.isEmpty(text)) {
                 Toast.makeText(getContext(), "没有可朗读的文本", Toast.LENGTH_SHORT).show();
