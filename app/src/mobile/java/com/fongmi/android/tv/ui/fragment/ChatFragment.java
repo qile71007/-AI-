@@ -674,7 +674,7 @@ public class ChatFragment extends Fragment {
             if (text.startsWith(""") && text.endsWith(""")) {
                 text = text.substring(1, text.length() - 1);
             }
-            // 转义处理
+            // 转义 JSON 特殊字符
             text = text.replace("\n", "
 ").replace("\t", "	").replace("\"", """);
             text = text.trim();
