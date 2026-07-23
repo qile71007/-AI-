@@ -67,9 +67,8 @@ public class FileAdapter extends RecyclerView.Adapter<FileAdapter.ViewHolder> {
     }
 
     public interface OnClickListener {
-
         void onItemClick(File file);
-
+        void onItemLongClick(File file);
         void onCurrentDirClick(File dir);
     }
 
