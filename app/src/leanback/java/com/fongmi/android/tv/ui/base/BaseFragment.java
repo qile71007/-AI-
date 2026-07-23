@@ -58,5 +58,6 @@ public abstract class BaseFragment extends Fragment {
         isViewCreated = false;
         isDataLoaded = false;
     }
-}
+
     public boolean canBack() { return false; }
+}
