@@ -136,7 +136,7 @@ public class HistorySyncUtil {
                     .put(body)
                     .header("Authorization", "Basic " + credentials)
                     .build();
-            try (okhttp3.Response resp = com.github.catvod.net.OkHttp.get().newCall(request).execute()) {
+            try (okhttp3.Response resp = com.github.catvod.net.OkHttp.client().newCall(request).execute()) {
                 return resp.isSuccessful();
             }
         } catch (Exception e) {
@@ -152,7 +152,7 @@ public class HistorySyncUtil {
                     .get()
                     .header("Authorization", "Basic " + credentials)
                     .build();
-            try (okhttp3.Response resp = com.github.catvod.net.OkHttp.get().newCall(request).execute()) {
+            try (okhttp3.Response resp = com.github.catvod.net.OkHttp.client().newCall(request).execute()) {
                 if (!resp.isSuccessful() || resp.body() == null) return false;
                 try (java.io.FileOutputStream fos = new java.io.FileOutputStream(dest)) {
                     fos.write(resp.body().bytes());
