@@ -663,26 +663,31 @@ public class ChatFragment extends Fragment {
 
     private void startTts() {
         if (webView == null) return;
-        // 通过 JavaScript 获取网页正文内容
-        webView.evaluateJavascript("(function() { return document.body.innerText; })();", value -> {
+        // \u5148\u5c1d\u8bd5\u83b7\u53d6\u7f51\u9875\u4e2d\u9009\u4e2d\u7684\u6587\u672c\uff0c\u5982\u679c\u6709\u9009\u4e2d\u5219\u6717\u8bfb\u9009\u4e2d\u90e8\u5206
+                        String js = "(function(){var s=window.getSelection()+'';return s.trim()?\"[SELECTED]\"+s:document.body.innerText;})();";
+        webView.evaluateJavascript(js, value -> {
             if (value == null || value.equals("null") || TextUtils.isEmpty(value.trim())) {
-                Toast.makeText(getContext(), "没有可朗读的文本", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "\u6ca1\u6709\u53ef\u6717\u8bfb\u7684\u6587\u672c", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // 去掉引号（JS 返回的是带引号的字符串）
+            // \u53bb\u6389\u5f15\u53f7\uff08JS \u8fd4\u56de\u7684\u662f\u5e26\u5f15\u53f7\u7684\u5b57\u7b26\u4e32\uff09
             String text = value;
             if (text.startsWith("\"") && text.endsWith("\"")) {
                 text = text.substring(1, text.length() - 1);
             }
-            // 转义 JSON 特殊字符
+            // \u68c0\u67e5\u662f\u5426\u9009\u4e2d\u6587\u672c
+            boolean isSelected = text.startsWith("[SELECTED]");
+            if (isSelected) {
+                text = text.substring(10); // \u53bb\u6389\u6807\u8bb0
+            }
+            // \u8f6c\u4e49 JSON \u7279\u6b8a\u5b57\u7b26
             text = text.replace("\n", "\n").replace("\t", "\t").replace("\"", "\"");
-
             text = text.trim();
             if (TextUtils.isEmpty(text)) {
-                Toast.makeText(getContext(), "没有可朗读的文本", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "\u6ca1\u6709\u53ef\u6717\u8bfb\u7684\u6587\u672c", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // 分块朗读
+            // \u5206\u5757\u6717\u8bfb
             int maxLen = 4000;
             isSpeaking = true;
             updateTtsIcon();
@@ -700,7 +705,6 @@ public class ChatFragment extends Fragment {
             }
         });
     }
-
     private void stopTts() {
         if (ttsEngine != null) ttsEngine.stop();
         isSpeaking = false;
