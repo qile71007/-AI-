@@ -1,5 +1,4 @@
 package com.fongmi.android.tv.utils;
-import com.fongmi.android.tv.utils.WebdavUtil;
 
 import android.content.Context;
 import android.os.Handler;
@@ -54,7 +53,7 @@ public class HistorySyncUtil {
                     fos.write(json.getBytes("UTF-8"));
                 }
 
-                boolean ok = WebdavUtil.uploadFile(url, user, pass, localFile);
+                boolean ok = uploadWebdav(url, user, pass, localFile);
                 if (ok) postSuccess(callback, "已上传 " + all.size() + " 条观看记录");
                 else postError(callback, "上传失败，请检查 WebDAV 配置");
             } catch (Exception e) {
@@ -75,7 +74,7 @@ public class HistorySyncUtil {
                 }
 
                 File dest = new File(Path.cache(), LOCAL_FILE);
-                boolean ok = WebdavUtil.downloadFile(url, user, pass, REMOTE_FILE, dest);
+                boolean ok = downloadWebdav(url, user, pass, REMOTE_FILE, dest);
                 if (!ok || !dest.exists()) {
                     postError(callback, "下载失败，可能还没有云端记录");
                     return;
@@ -126,6 +125,43 @@ public class HistorySyncUtil {
                 postError(callback, "同步失败: " + e.getMessage());
             }
         }).start();
+    }
+
+    private static boolean uploadWebdav(String url, String user, String pass, File file) {
+        try {
+            okhttp3.RequestBody body = okhttp3.RequestBody.create(file, okhttp3.MediaType.parse("application/json"));
+            String credentials = android.util.Base64.encodeToString((user + ":" + pass).getBytes(), android.util.Base64.NO_WRAP);
+            okhttp3.Request request = new okhttp3.Request.Builder()
+                    .url(url + "/" + REMOTE_FILE)
+                    .put(body)
+                    .header("Authorization", "Basic " + credentials)
+                    .build();
+            try (okhttp3.Response resp = com.github.catvod.net.OkHttp.get().newCall(request).execute()) {
+                return resp.isSuccessful();
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean downloadWebdav(String url, String user, String pass, String remotePath, File dest) {
+        try {
+            String credentials = android.util.Base64.encodeToString((user + ":" + pass).getBytes(), android.util.Base64.NO_WRAP);
+            okhttp3.Request request = new okhttp3.Request.Builder()
+                    .url(url + "/" + remotePath)
+                    .get()
+                    .header("Authorization", "Basic " + credentials)
+                    .build();
+            try (okhttp3.Response resp = com.github.catvod.net.OkHttp.get().newCall(request).execute()) {
+                if (!resp.isSuccessful() || resp.body() == null) return false;
+                try (java.io.FileOutputStream fos = new java.io.FileOutputStream(dest)) {
+                    fos.write(resp.body().bytes());
+                }
+                return true;
+            }
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private static void postSuccess(Callback callback, String msg) {
