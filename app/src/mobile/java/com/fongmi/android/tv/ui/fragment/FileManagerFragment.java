@@ -1187,7 +1187,7 @@ public class FileManagerFragment extends Fragment {
     private boolean isVideoFile(String n) { n = n.toLowerCase(); return n.endsWith(".mp4") || n.endsWith(".mkv") || n.endsWith(".avi") || n.endsWith(".mov"); }
     private boolean isAudioFile(String n) { n = n.toLowerCase(); return n.endsWith(".mp3") || n.endsWith(".wav") || n.endsWith(".flac"); }
     private boolean isImageFile(String n) { n = n.toLowerCase(); return n.endsWith(".jpg") || n.endsWith(".png") || n.endsWith(".bmp"); }
-    private boolean isTextFile(String n) { n = n.toLowerCase(); return n.endsWith(".txt") || n.endsWith(".json") || n.endsWith(".xml") || n.endsWith(".m3u"); }
+    private boolean isTextFile(String n) { n = n.toLowerCase(); return n.endsWith(".txt") || n.endsWith(".json") || n.endsWith(".xml") || n.endsWith(".m3u") || n.endsWith(".js") || n.endsWith(".py") || n.endsWith(".php") || n.endsWith(".aps") || n.endsWith(".htm") || n.endsWith(".html") || n.endsWith(".log") || n.endsWith(".md") || n.endsWith(".java") || n.endsWith(".pdf") || n.endsWith(".docx") || n.endsWith(".doc") || n.endsWith(".pptx") || n.endsWith(".ini"); }
 
     private void playVideo(File f) { if (getActivity() != null) VideoActivity.file(getActivity(), f.getAbsolutePath()); }
     private void playAudio(File f) { if (getActivity() != null) VideoActivity.file(getActivity(), f.getAbsolutePath()); }
