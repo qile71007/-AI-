@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
@@ -28,7 +27,6 @@ import com.fongmi.android.tv.api.SiteApi;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.DialogStatsBinding;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.fongmi.android.tv.ui.adapter.SiteSpeedAdapter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class SiteSpeedDialog {
 
-    private static final String TEST_KEYWORD = "法试";
+    private static final String TEST_KEYWORD = "测试";
     private static final int TIMEOUT_SECONDS = 8;
     private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(5);
 
@@ -87,7 +85,7 @@ public final class SiteSpeedDialog {
         root.addView(recyclerView);
 
         TextView copyBtn = new TextView(activity);
-        copyBtn.setText("📋代况赇速结果");
+        copyBtn.setText("📋 复制测速结果");
         copyBtn.setTextSize(15);
         copyBtn.setTextColor(Color.BLACK);
         copyBtn.setGravity(Gravity.CENTER);
@@ -109,11 +107,11 @@ public final class SiteSpeedDialog {
             for (int i = 0; i < adapter.getItemCount(); i++) {
                 SpeedResult r = adapter.getItem(i);
                 String speed = r.success ? r.elapsed + "ms" : "失败";
-                sb.append(i + 1).append(". ").append(r.name).append(" ─ ").append(speed).append("\n");
+                sb.append(i + 1).append(". ").append(r.name).append(" — ").append(speed).append("\n");
             }
             ClipboardManager cm = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
             cm.setPrimaryClip(ClipData.newPlainText("site_speed_results", sb.toString()));
-            Toast.makeText(activity, 已复制到制列板叔", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, "已复制到剪切板", Toast.LENGTH_SHORT).show();
         });
     }
 
