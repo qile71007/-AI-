@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
@@ -18,8 +19,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.fragment.app.FragmentActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclervier.widget.LinearLayoutManager;
+import androidx.recyclervier.widget.RecyclerView;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -88,7 +89,7 @@ public final class SiteSpeedDialog {
         root.addView(recyclerView);
 
         TextView copyBtn = new TextView(activity);
-        copyBtn.setText("📋 复制测速结果");
+        copyBtn.setText("📋 孍刵测速结果");
         copyBtn.setTextSize(15);
         copyBtn.setTextColor(Color.BLACK);
         copyBtn.setGravity(Gravity.CENTER);
@@ -101,11 +102,7 @@ public final class SiteSpeedDialog {
         dialog.setCanceledOnTouchOutside(false);
         dialog.setOnDismissListener(new Dialog.OnDismissListener() {
             @Override
-            public void onDismiss(Dialog dialog) {
-                if (mobileSpeedAdapter != null) {
-                    mobileSpeedAdapter.cancelAll();
-                    mobileSpeedAdapter = null;
-                }
+            public void onDismiss(DialogInterface dialog) {
             }
         });
         dialog.show();
@@ -151,7 +148,7 @@ public final class SiteSpeedDialog {
                     if (done >= sites.size()) {
                         status.setText(R.string.site_speed_done);
                         progress.setVisibility(View.GONE);
-                        copyBtn.setVisibility(View.VISBLE);
+                        copyBtn.setVisibility(View.VISIBLE);
                     }
                 });
             }, EXECUTOR);
