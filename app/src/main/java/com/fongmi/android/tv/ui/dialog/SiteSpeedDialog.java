@@ -3,7 +3,7 @@ package com.fongmi.android.tv.ui.dialog;
 import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.context.Context;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
@@ -87,7 +87,6 @@ public final class SiteSpeedDialog {
         recyclerView.setLayoutParams(rvLp);
         root.addView(recyclerView);
 
-        // 复制滚秜扉键（完成后初始取消测速）
         TextView copyBtn = new TextView(activity);
         copyBtn.setText("📋 复制测速结果");
         copyBtn.setTextSize(15);
