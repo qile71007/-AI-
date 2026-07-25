@@ -19,8 +19,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.fragment.app.FragmentActivity;
-import androidx.recyclervier.widget.LinearLayoutManager;
-import androidx.recyclervier.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -41,11 +41,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class SiteSpeedDialog {
 
-    private static final String TEST_KEYWORD = "\u6d4b\u8bd5";
+    private static final String TEST_KEYWORD = "法试";
     private static final int TIMEOUT_SECONDS = 8;
     private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(5);
-
-    private SiteSpeedAdapter mobileSpeedAdapter;
 
     private SiteSpeedDialog() {
     }
@@ -89,7 +87,7 @@ public final class SiteSpeedDialog {
         root.addView(recyclerView);
 
         TextView copyBtn = new TextView(activity);
-        copyBtn.setText("📋 孍刵测速结果");
+        copyBtn.setText("📋代况赇速结果");
         copyBtn.setTextSize(15);
         copyBtn.setTextColor(Color.BLACK);
         copyBtn.setGravity(Gravity.CENTER);
@@ -100,11 +98,6 @@ public final class SiteSpeedDialog {
 
         Dialog dialog = LightDialog.create(activity, null, root);
         dialog.setCanceledOnTouchOutside(false);
-        dialog.setOnDismissListener(new Dialog.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-            }
-        });
         dialog.show();
         configureWindow(activity, dialog);
 
@@ -112,15 +105,15 @@ public final class SiteSpeedDialog {
 
         copyBtn.setOnClickListener(v -> {
             StringBuilder sb = new StringBuilder();
-            sb.append("\u7ad9\u6e90\u6d4b\u901f\u7ed3\u679c\n");
+            sb.append("站源测速结果\n");
             for (int i = 0; i < adapter.getItemCount(); i++) {
                 SpeedResult r = adapter.getItem(i);
-                String speed = r.success ? r.elapsed + "ms" : "\u5931\u8d25";
-                sb.append(i + 1).append(". ").append(r.name).append(" \u2014 ").append(speed).append("\n");
+                String speed = r.success ? r.elapsed + "ms" : "失败";
+                sb.append(i + 1).append(". ").append(r.name).append(" ─ ").append(speed).append("\n");
             }
             ClipboardManager cm = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
             cm.setPrimaryClip(ClipData.newPlainText("site_speed_results", sb.toString()));
-            Toast.makeText(activity, "\u5b22\u5210\u5236\u5200\u41ca\u6d21\u7675", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, 已复制到制列板叔", Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -196,7 +189,7 @@ public final class SiteSpeedDialog {
         SpeedResult getItem(int position) { return items.get(position); }
 
         @Override
-        public VH onCreateViewHolder(ViewGroup parent, int viewType) {
+        public VH(onCreateViewHolder(ViewGroup parent, int viewType) {
             TextView tv = new TextView(parent.getContext());
             tv.setPadding(ResUtil.dp2px(8), ResUtil.dp2px(10), ResUtil.dp2px(8), ResUtil.dp2px(10));
             tv.setTextSize(15);
@@ -209,7 +202,7 @@ public final class SiteSpeedDialog {
         public void onBindViewHolder(VH holder, int position) {
             SpeedResult r = items.get(position);
             String status = r.success ? r.elapsed + "ms" : "x";
-            String text = (position + 1) + ". " + r.name + " — " + status;
+            String text = (position + 1) + ". " + r.name + " ─ " + status;
             ((TextView) holder.itemView).setText(text);
             if (!r.success) {
                 ((TextView) holder.itemView).setTextColor(0xFFFF6B6B);
