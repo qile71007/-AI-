@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.LinearLayoutCompat;
@@ -30,8 +31,6 @@ import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.setting.SiteBlockSetting;
 import com.fongmi.android.tv.ui.adapter.SiteAdapter;
 import com.fongmi.android.tv.ui.adapter.SiteSpeedAdapter;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -153,25 +152,74 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         binding.speedCopy.setOnClickListener(this::onSpeedCopy);
     }
 
+    // ========== 测速核心逻辑修改 ==========
     private void onSpeedToggle(View view) {
         if (binding == null) return;
         Util.hideKeyboard(binding.keyword);
+
         speedMode = !speedMode;
         binding.speed.setSelected(speedMode);
+
         if (speedMode) {
+            // 进入测速模式
+            // 如果已有测速适配器且正在运行，先取消并重置
+            if (speedAdapter != null && speedAdapter.isRunning()) {
+                speedAdapter.cancelAll();
+                speedAdapter = null;
+            }
+            // 显示测速UI，隐藏站点列表
             binding.speedResult.setVisibility(View.VISIBLE);
             binding.recycler.setVisibility(View.GONE);
             binding.groupScroll.setVisibility(View.GONE);
+            // 设置按钮高亮（亮起）
+            setSpeedButtonHighlight(true);
+            // 开始测速
             startSpeedTest();
         } else {
+            // 退出测速模式
+            // 取消正在运行的测试
+            if (speedAdapter != null) {
+                speedAdapter.cancelAll();
+                speedAdapter = null;
+            }
+            // 隐藏测速UI，显示站点列表
             binding.speedResult.setVisibility(View.GONE);
             binding.recycler.setVisibility(View.VISIBLE);
+            binding.groupScroll.setVisibility(View.VISIBLE);
             binding.speedCopy.setVisibility(View.GONE);
+            // 恢复按钮颜色
+            setSpeedButtonHighlight(false);
+            // 重置进度和状态
+            binding.speedProgress.setVisibility(View.GONE);
+            binding.speedProgress.setProgress(0);
+            binding.speedStatus.setText("");
+        }
+    }
+
+    private void setSpeedButtonHighlight(boolean highlight) {
+        if (binding == null) return;
+        if (highlight) {
+            // 亮起：橙色背景
+            binding.speed.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.speed_testing_bg));
+            binding.speed.setColorFilter(ContextCompat.getColor(requireContext(), android.R.color.white));
+        } else {
+            // 恢复默认：使用原有的主题色（透明背景或默认）
+            binding.speed.setBackgroundTintList(null);
+            binding.speed.setColorFilter(null);
+            // 恢复默认 tint（参考布局中 app:tint="@color/dialog_outlined_button_text"）
+            binding.speed.setImageTintList(ContextCompat.getColorStateList(requireContext(), R.color.dialog_outlined_button_text));
         }
     }
 
     private void startSpeedTest() {
-        if (binding == null) return;
+        if (binding == null || getActivity() == null) return;
+
+        // 创建新的测速适配器（如果已存在则先取消并置空）
+        if (speedAdapter != null) {
+            speedAdapter.cancelAll();
+            speedAdapter = null;
+        }
+
         speedAdapter = new SiteSpeedAdapter(new SiteSpeedAdapter.ProgressCallback() {
             @Override
             public void onProgress(int done, int total) {
@@ -187,22 +235,29 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
                 binding.speedStatus.setText(R.string.site_speed_done);
                 binding.speedProgress.setVisibility(View.GONE);
                 binding.speedCopy.setVisibility(View.VISIBLE);
+                // 测速完成后弹出提示，告知用户点击测速按钮退出
+                Toast.makeText(requireContext(), R.string.site_speed_done_hint, Toast.LENGTH_LONG).show();
+                // 保持按钮亮起（已经亮起）
             }
         });
+
         binding.speedRecycler.setAdapter(speedAdapter);
         binding.speedRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.speedRecycler.setItemAnimator(null);
-        binding.speedProgress.setVisibility(View.VISIBLE);
-        binding.speedProgress.setProgress(0);
-        binding.speedCopy.setVisibility(View.GONE);
-        binding.speedStatus.setText(getString(R.string.site_speed_testing, 0, 0));
 
-        java.util.List<Site> searchable = new java.util.ArrayList<>();
+        // 准备测速站点列表（仅可搜索的）
+        List<Site> searchable = new ArrayList<>();
         for (Site s : VodConfig.get().getSites()) {
             if (s.isSearchable()) searchable.add(s);
         }
+
+        binding.speedProgress.setVisibility(View.VISIBLE);
+        binding.speedProgress.setProgress(0);
         binding.speedProgress.setMax(searchable.size());
+        binding.speedCopy.setVisibility(View.GONE);
         binding.speedStatus.setText(getString(R.string.site_speed_testing, 0, searchable.size()));
+
+        // 开始测速
         speedAdapter.startTest(searchable);
     }
 
@@ -210,6 +265,7 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         if (speedAdapter != null) speedAdapter.copyResults(requireContext());
     }
 
+    // ========== 其他原有方法（保持不变） ==========
     private void onBlockToggle(View view) {
         Util.hideKeyboard(binding.keyword);
         block = !block;
@@ -371,5 +427,15 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         window.getDecorView().setPadding(0, 0, 0, 0);
         window.setAttributes(params);
         window.setLayout(params.width, WindowManager.LayoutParams.WRAP_CONTENT);
+    }
+
+    @Override
+    public void onDestroyView() {
+        // 确保取消正在运行的测速
+        if (speedAdapter != null) {
+            speedAdapter.cancelAll();
+            speedAdapter = null;
+        }
+        super.onDestroyView();
     }
 }
