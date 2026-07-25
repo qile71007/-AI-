@@ -106,7 +106,7 @@ public class SiteSpeedAdapter extends RecyclerView.Adapter<SiteSpeedAdapter.View
 
     private void sortItems() {
         List<SpeedResult> sorted = new ArrayList<>(items);
-        Collections.sort(sorted, (a, b), -> {
+        Collections.sort(sorted, (a, b) -> {
             if (a.success != b.success) return a.success ? -1 : 1;
             return Long.compare(a.elapsed, b.elapsed);
         });
