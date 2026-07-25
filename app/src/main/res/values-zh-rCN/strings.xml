@@ -1123,5 +1123,6 @@
     <string name="site_speed_entry">站源测速</string>
     <string name="sync_upload">备份观看进度</string>
     <string name="sync_download">恢复进度</string>
+    <string name="site_speed_done_hint">测速完成，点击测速按钮退出</string>
 
 </resources>
