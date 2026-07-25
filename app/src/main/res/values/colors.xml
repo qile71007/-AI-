@@ -26,6 +26,6 @@
     <color name="white_70">#B3FFFFFF</color>
     <color name="white_80">#CCFFFFFF</color>
     <color name="white_90">#E6FFFFFF</color>
-    <color name="speed_testing_bg">#FF8C00</color>   <!-- 测速中按钮背景色（橙色） -->
+    <color name="speed_testing_bg">#FF8C00</color>
 
 </resources>
