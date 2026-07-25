@@ -17,15 +17,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.SiteApi;
+import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
-import com.fongmi.android.tv.databinding.DialogStatsBinding;
 import com.fongmi.android.tv.utils.ResUtil;
 
 import java.util.ArrayList;
@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class SiteSpeedDialog {
@@ -184,20 +183,26 @@ public final class SiteSpeedDialog {
             notifyDataSetChanged();
         }
 
-        SpeedResult getItem(int position) { return items.get(position); }
+        SpeedResult getItem(int position) {
+            return items.get(position);
+        }
 
+        @NonNull
         @Override
-        public VH(onCreateViewHolder(ViewGroup parent, int viewType) {
+        public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             TextView tv = new TextView(parent.getContext());
             tv.setPadding(ResUtil.dp2px(8), ResUtil.dp2px(10), ResUtil.dp2px(8), ResUtil.dp2px(10));
             tv.setTextSize(15);
-            RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.WRAP_CONTENT);
+            RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(
+                    RecyclerView.LayoutParams.MATCH_PARENT,
+                    RecyclerView.LayoutParams.WRAP_CONTENT
+            );
             tv.setLayoutParams(lp);
             return new VH(tv);
         }
 
         @Override
-        public void onBindViewHolder(VH holder, int position) {
+        public void onBindViewHolder(@NonNull VH holder, int position) {
             SpeedResult r = items.get(position);
             String status = r.success ? r.elapsed + "ms" : "x";
             String text = (position + 1) + ". " + r.name + " ─ " + status;
@@ -214,10 +219,14 @@ public final class SiteSpeedDialog {
         }
 
         @Override
-        public int getItemCount() { return items.size(); }
+        public int getItemCount() {
+            return items.size();
+        }
 
         static class VH extends RecyclerView.ViewHolder {
-            VH(View v) { super(v); }
+            VH(View v) {
+                super(v);
+            }
         }
     }
 }
