@@ -38,7 +38,8 @@ public class SiteSpeedAdapter extends RecyclerView.Adapter<SiteSpeedAdapter.View
     private final List<Site> sites = new ArrayList<>();
     private final AtomicInteger completed = new AtomicInteger(0);
     private final ProgressCallback callback;
-    private boolean running = false;
+    private volatile boolean running = false;
+    private final List<CompletableFuture<Void>> futures = new ArrayList<>();
 
     public interface ProgressCallback {
         void onProgress(int done, int total);
@@ -49,7 +50,8 @@ public class SiteSpeedAdapter extends RecyclerView.Adapter<SiteSpeedAdapter.View
         this.callback = callback;
     }
 
-    public void startTest(List<Site> siteList) {
+    public synchronized void startTest(List<Site> siteList) {
+        cancelAll();
         items.clear();
         sites.clear();
         completed.set(0);
@@ -66,31 +68,45 @@ public class SiteSpeedAdapter extends RecyclerView.Adapter<SiteSpeedAdapter.View
                 if (done >= siteList.size()) { running = false; if (callback != null) new Handler(Looper.getMainLooper()).post(() -> callback.onComplete()); }
                 continue;
             }
-            CompletableFuture.runAsync(() -> {
-                long start = System.currentTimeMillis();
-                boolean success = false;
-                try {
-                    var result = SiteApi.searchContent(site, TEST_KEYWORD, false, "1");
-                    success = result != null && result.getList() != null;
-                    // Record health
-                    SiteHealthStore.recordSearch(site, success, success && result.getList() != null ? result.getList().size() : 0, System.currentTimeMillis() - start, "");
-                } catch (Throwable e) {
-                    SiteHealthStore.recordSearch(site, false, 0, System.currentTimeMillis() - start, e.getMessage());
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                if (!Thread.currentThread().isInterrupted()) {
+                    long start = System.currentTimeMillis();
+                    boolean success = false;
+                    try {
+                        var result = SiteApi.searchContent(site, TEST_KEYWORD, false, "1");
+                        success = result != null && result.getList() != null;
+                        SiteHealthStore.recordSearch(site, success, success && result.getList() != null ? result.getList().size() : 0, System.currentTimeMillis() - start, "");
+                    } catch (Throwable e) {
+                        SiteHealthStore.recordSearch(site, false, 0, System.currentTimeMillis() - start, e.getMessage());
+                    }
+                    long elapsed = System.currentTimeMillis() - start;
+                    if (!Thread.currentThread().isInterrupted()) {
+                        items.add(new SpeedResult(site.getName(), site.getKey(), elapsed, success));
+                    }
                 }
-                long elapsed = System.currentTimeMillis() - start;
-                items.add(new SpeedResult(site.getName(), site.getKey(), elapsed, success));
                 int done = completed.incrementAndGet();
                 sortItems();
                 new Handler(Looper.getMainLooper()).post(() -> notifyDataSetChanged());
                 if (callback != null) new Handler(Looper.getMainLooper()).post(() -> callback.onProgress(done, siteList.size()));
                 if (done >= siteList.size()) { running = false; if (callback != null) new Handler(Looper.getMainLooper()).post(() -> callback.onComplete()); }
             }, EXECUTOR);
+            futures.add(future);
         }
+    }
+
+    public synchronized void cancelAll() {
+        running = false;
+        for (CompletableFuture<?> future : futures) {
+            if (!future.isDone() && !future.isCancelled()) {
+                future.cancel(true);
+            }
+        }
+        futures.clear();
     }
 
     private void sortItems() {
         List<SpeedResult> sorted = new ArrayList<>(items);
-        Collections.sort(sorted, (a, b) -> {
+        Collections.sort(sorted, (a, b), -> {
             if (a.success != b.success) return a.success ? -1 : 1;
             return Long.compare(a.elapsed, b.elapsed);
         });

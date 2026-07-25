@@ -3,7 +3,7 @@ package com.fongmi.android.tv.ui.dialog;
 import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.Context;
+import android.context.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.Gravity;
@@ -27,6 +27,7 @@ import com.fongmi.android.tv.api.SiteApi;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.DialogStatsBinding;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.ui.adapter.SiteSpeedAdapter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,9 +40,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class SiteSpeedDialog {
 
-    private static final String TEST_KEYWORD = "测试";
+    private static final String TEST_KEYWORD = "\u6d4b\u8bd5";
     private static final int TIMEOUT_SECONDS = 8;
     private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(5);
+
+    private SiteSpeedAdapter mobileSpeedAdapter;
 
     private SiteSpeedDialog() {
     }
@@ -80,12 +83,11 @@ public final class SiteSpeedDialog {
         recyclerView.setLayoutManager(new LinearLayoutManager(activity));
         ResultAdapter adapter = new ResultAdapter();
         recyclerView.setAdapter(adapter);
-        // 固定列表高度，防止列表过长挤压按钮
         LinearLayout.LayoutParams rvLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, ResUtil.dp2px(240));
         recyclerView.setLayoutParams(rvLp);
         root.addView(recyclerView);
 
-        // 复制结果按钮（测速完成后显示）
+        // 复制滚秜扉键（完成后初始取消测速）
         TextView copyBtn = new TextView(activity);
         copyBtn.setText("📋 复制测速结果");
         copyBtn.setTextSize(15);
@@ -98,6 +100,15 @@ public final class SiteSpeedDialog {
 
         Dialog dialog = LightDialog.create(activity, null, root);
         dialog.setCanceledOnTouchOutside(false);
+        dialog.setOnDismissListener(new Dialog.OnDismissListener() {
+            @Override
+            public void onDismiss(Dialog dialog) {
+                if (mobileSpeedAdapter != null) {
+                    mobileSpeedAdapter.cancelAll();
+                    mobileSpeedAdapter = null;
+                }
+            }
+        });
         dialog.show();
         configureWindow(activity, dialog);
 
@@ -105,15 +116,15 @@ public final class SiteSpeedDialog {
 
         copyBtn.setOnClickListener(v -> {
             StringBuilder sb = new StringBuilder();
-            sb.append("站源测速结果\n");
+            sb.append("\u7ad9\u6e90\u6d4b\u901f\u7ed3\u679c\n");
             for (int i = 0; i < adapter.getItemCount(); i++) {
                 SpeedResult r = adapter.getItem(i);
-                String speed = r.success ? r.elapsed + "ms" : "失败";
-                sb.append(i + 1).append(". ").append(r.name).append(" — ").append(speed).append("\n");
+                String speed = r.success ? r.elapsed + "ms" : "\u5931\u8d25";
+                sb.append(i + 1).append(". ").append(r.name).append(" \u2014 ").append(speed).append("\n");
             }
             ClipboardManager cm = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
             cm.setPrimaryClip(ClipData.newPlainText("site_speed_results", sb.toString()));
-            Toast.makeText(activity, "已复制到剪切板", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, "\u5b22\u5210\u5236\u5200\u41ca\u6d21\u7675", Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -141,7 +152,7 @@ public final class SiteSpeedDialog {
                     if (done >= sites.size()) {
                         status.setText(R.string.site_speed_done);
                         progress.setVisibility(View.GONE);
-                        copyBtn.setVisibility(View.VISIBLE);
+                        copyBtn.setVisibility(View.VISBLE);
                     }
                 });
             }, EXECUTOR);
@@ -153,7 +164,6 @@ public final class SiteSpeedDialog {
         if (window == null) return;
         WindowManager.LayoutParams params = window.getAttributes();
         params.width = (int) (ResUtil.getScreenWidth(activity) * (ResUtil.isLand(activity) ? 0.62f : 0.92f));
-        // 高度自适应，让复制按钮始终可见；最大不超过屏幕 80%
         params.height = (int) (ResUtil.getScreenHeight(activity) * 0.8);
         params.gravity = Gravity.CENTER;
         window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
