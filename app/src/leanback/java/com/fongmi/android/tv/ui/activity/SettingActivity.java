@@ -1,39 +1,6 @@
 package com.fongmi.android.tv.ui.activity;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.View;
-import android.widget.Toast;
-
-import androidx.appcompat.app.AlertDialog;
-import androidx.viewbinding.ViewBinding;
-
-import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.Updater;
-import com.fongmi.android.tv.api.config.LiveConfig;
-import com.fongmi.android.tv.api.config.VodConfig;
-import com.fongmi.android.tv.api.config.WallConfig;
-import com.fongmi.android.tv.bean.Config;
-import com.fongmi.android.tv.bean.Live;
-import com.fongmi.android.tv.bean.Site;
-import com.fongmi.android.tv.databinding.ActivitySettingBinding;
-import com.fongmi.android.tv.db.AppDatabase;
-import com.fongmi.android.tv.event.ConfigEvent;
-import com.fongmi.android.tv.event.RefreshEvent;
-import com.fongmi.android.tv.impl.Callback;
-import com.fongmi.android.tv.impl.ConfigListener;
-import com.fongmi.android.tv.impl.LiveListener;
-import com.fongmi.android.tv.impl.SiteListener;
-import com.fongmi.android.tv.setting.PlayerSetting;
-import com.fongmi.android.tv.setting.Setting;
-import com.fongmi.android.tv.ui.base.BaseActivity;
-import com.fongmi.android.tv.ui.dialog.AboutDialog;
-import com.fongmi.android.tv.ui.dialog.ConfigDialog;
-import com.fongmi.android.tv.ui.dialog.ConfigListDialog;
-import com.fongmi.android.tv.ui.dialog.DohDialog;
 import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -573,10 +540,11 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
                         if ((f.path.endsWith(".bk.gz") || f.path.endsWith(".zip")) && (latest == null || f.modified > latest.modified)) latest = f;
                     }
                     if (latest == null) { tvStatus.setText("未找到备份文件"); return; }
+                    final WebdavUtil.RemoteFile finalLatest = latest;
                     File tempFile = new File(getExternalCacheDir(), "restore_temp." + (latest.path.endsWith(".zip") ? "zip" : "gz"));
                     tvStatus.setText("正在下载...");
                     new Thread(() -> {
-                        boolean downloaded = WebdavUtil.downloadFile(url, user, pass, latest.path, tempFile);
+                        boolean downloaded = WebdavUtil.downloadFile(url, user, pass, finalLatest.path, tempFile);
                         runOnUiThread(() -> {
                             if (!downloaded) { tvStatus.setText("下载失败"); return; }
                             tvStatus.setText("正在恢复...");
