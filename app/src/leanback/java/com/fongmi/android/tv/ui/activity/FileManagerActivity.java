@@ -2,17 +2,14 @@ package com.fongmi.android.tv.ui.activity;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
-import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
@@ -20,13 +17,14 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.ActivityFileManagerBinding;
 import com.fongmi.android.tv.ui.base.BaseActivity;
-import com.fongmi.android.tv.utils.KeyUtil;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Stack;
 
 public class FileManagerActivity extends BaseActivity {
 
@@ -34,7 +32,8 @@ public class FileManagerActivity extends BaseActivity {
     private FileAdapter mAdapter;
     private File mCurrentDir;
     private final List<File> mFiles = new ArrayList<>();
-    private final java.util.Stack<File> mBackStack = new java.util.Stack<>();
+    private final Stack<File> mBackStack = new Stack<>();
+    private File mEditingFile = null;
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, FileManagerActivity.class));
@@ -57,6 +56,11 @@ public class FileManagerActivity extends BaseActivity {
     protected void initEvent() {
         mBinding.btnBackDir.setOnClickListener(v -> goBack());
         mBinding.btnForwardDir.setOnClickListener(v -> goForward());
+        mBinding.btnNewFolder.setOnClickListener(v -> createNewFolder());
+        mBinding.btnEdit.setOnClickListener(v -> toggleEditMode());
+        mBinding.btnPackage.setOnClickListener(v -> Toast.makeText(this, "打包功能开发中", Toast.LENGTH_SHORT).show());
+        mBinding.btnCloseEditor.setOnClickListener(v -> closeEditor());
+        mBinding.btnSaveEditor.setOnClickListener(v -> saveCurrentFile());
     }
 
     private void loadDirectory(File dir) {
@@ -74,13 +78,14 @@ public class FileManagerActivity extends BaseActivity {
             mFiles.addAll(Arrays.asList(files));
         }
         mAdapter.notifyDataSetChanged();
-        mBinding.btnBackDir.setEnabled(mBackStack.size() > 0);
+        mBinding.btnBackDir.setEnabled(!mBackStack.isEmpty());
+        updateEditButton();
     }
 
     private void goBack() {
         if (mBackStack.isEmpty()) return;
-        File prev = mBackStack.pop();
-        loadDirectory(prev);
+        closeEditor();
+        loadDirectory(mBackStack.pop());
     }
 
     private void goForward() {
@@ -89,9 +94,92 @@ public class FileManagerActivity extends BaseActivity {
         loadDirectory(mCurrentDir.getParentFile());
     }
 
+    private void createNewFolder() {
+        if (mCurrentDir == null) return;
+        File newDir = new File(mCurrentDir, "new_folder_" + System.currentTimeMillis());
+        if (newDir.mkdirs()) {
+            loadDirectory(mCurrentDir);
+            Toast.makeText(this, "文件夹已创建", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "创建失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void toggleEditMode() {
+        if (mEditingFile != null) {
+            closeEditor();
+            return;
+        }
+        for (File f : mFiles) {
+            if (f.isFile() && isEditableFile(f.getName())) {
+                openEditor(f);
+                return;
+            }
+        }
+        Toast.makeText(this, "当前目录无可编辑文件", Toast.LENGTH_SHORT).show();
+    }
+
+    private boolean isEditableFile(String name) {
+        String lower = name.toLowerCase();
+        return lower.endsWith(".json") || lower.endsWith(".txt") || lower.endsWith(".xml")
+                || lower.endsWith(".m3u") || lower.endsWith(".m3u8") || lower.endsWith(".py")
+                || lower.endsWith(".js") || lower.endsWith(".css") || lower.endsWith(".html")
+                || lower.endsWith(".conf") || lower.endsWith(".cfg") || lower.endsWith(".ini")
+                || lower.endsWith(".md") || lower.endsWith(".csv") || lower.endsWith(".properties")
+                || lower.endsWith(".java") || lower.endsWith(".kt");
+    }
+
+    private void openEditor(File file) {
+        mEditingFile = file;
+        mBinding.fullscreenEditorContainer.setVisibility(View.VISIBLE);
+        mBinding.fullscreenTitle.setText(file.getName());
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            byte[] data = new byte[(int) Math.min(file.length(), 1024 * 1024)];
+            int len = fis.read(data);
+            fis.close();
+            mBinding.fullscreenEditor.setText(new String(data, 0, len));
+        } catch (Exception e) {
+            mBinding.fullscreenEditor.setText("无法读取文件: " + e.getMessage());
+        }
+        mBinding.recyclerView.setVisibility(View.GONE);
+        mBinding.toolbar.setVisibility(View.GONE);
+        mBinding.buttonContainer.setVisibility(View.GONE);
+    }
+
+    private void closeEditor() {
+        mEditingFile = null;
+        mBinding.fullscreenEditorContainer.setVisibility(View.GONE);
+        mBinding.recyclerView.setVisibility(View.VISIBLE);
+        mBinding.toolbar.setVisibility(View.VISIBLE);
+        mBinding.buttonContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void saveCurrentFile() {
+        if (mEditingFile == null) return;
+        try {
+            FileWriter fw = new FileWriter(mEditingFile);
+            fw.write(mBinding.fullscreenEditor.getText().toString());
+            fw.close();
+            Toast.makeText(this, "保存成功", Toast.LENGTH_SHORT).show();
+            closeEditor();
+            loadDirectory(mCurrentDir);
+        } catch (Exception e) {
+            Toast.makeText(this, "保存失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updateEditButton() {
+        boolean hasEditable = false;
+        for (File f : mFiles) {
+            if (f.isFile() && isEditableFile(f.getName())) { hasEditable = true; break; }
+        }
+        mBinding.btnEdit.setVisibility(hasEditable ? View.VISIBLE : View.GONE);
+    }
+
     private class FileAdapter extends RecyclerView.Adapter<FileAdapter.ViewHolder> {
         @Override
-        public ViewHolder onCreateViewHolder(android.view.ViewGroup parent, int viewType) {
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             TextView tv = new TextView(FileManagerActivity.this);
             tv.setPadding(24, 16, 24, 16);
             tv.setTextSize(18);
@@ -108,10 +196,12 @@ public class FileManagerActivity extends BaseActivity {
             holder.textView.setText(prefix + file.getName());
             holder.textView.setOnClickListener(v -> {
                 if (file.isDirectory()) {
+                    closeEditor();
                     mBackStack.push(mCurrentDir);
                     loadDirectory(file);
+                } else if (isEditableFile(file.getName())) {
+                    openEditor(file);
                 } else {
-                    // 尝试打开文件
                     try {
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setDataAndType(android.net.Uri.fromFile(file), "video/*");
@@ -122,8 +212,7 @@ public class FileManagerActivity extends BaseActivity {
                 }
             });
         }
-        @Override
-        public int getItemCount() { return mFiles.size(); }
+        @Override public int getItemCount() { return mFiles.size(); }
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView textView;
             ViewHolder(TextView tv) { super(tv); textView = tv; }
