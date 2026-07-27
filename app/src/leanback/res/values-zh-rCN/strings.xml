@@ -20,4 +20,11 @@
     <string name="site_speed_copy">📋 复制测速结果</string>
     <string name="site_speed_copied">已复制到剪切板</string>
     <string name="home_file">文件管理</string>
+    <string name="home_chat">聊天</string>
+    <string name="chat_download_started">下载已开始</string>
+    <string name="chat_download_failed">下载失败</string>
+    <string name="chat_tts_unavailable">语音引擎未就绪</string>
+    <string name="setting_timer">定时</string>
+    <string name="setting_filter">过滤</string>
+    <string name="setting_sync">同步记录</string>
 </resources>

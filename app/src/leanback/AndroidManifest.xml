@@ -183,5 +183,19 @@
             </intent-filter>
         </receiver>
 
+    
+        <activity
+            android:name=".ui.activity.ChatActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:exported="true"
+            android:screenOrientation="sensorLandscape" />
+
+    
+        <activity
+            android:name=".ui.activity.FileManagerActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:exported="true"
+            android:screenOrientation="sensorLandscape" />
+
     </application>
 </manifest>

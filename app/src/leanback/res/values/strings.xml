@@ -8,6 +8,13 @@
     <string name="home_push">Push</string>
     <string name="home_setting">Setting</string>
     <string name="home_file">File Manager</string>
+    <string name="home_chat">Chat</string>
+    <string name="chat_download_started">Download started</string>
+    <string name="chat_download_failed">Download failed</string>
+    <string name="chat_tts_unavailable">TTS engine not available</string>
+    <string name="setting_timer">Timer</string>
+    <string name="setting_filter">Filter</string>
+    <string name="setting_sync">Sync History</string>
     <string name="home_history">History</string>
     <string name="home_recommend">Recommend</string>
 
