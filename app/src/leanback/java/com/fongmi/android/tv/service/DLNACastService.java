@@ -1,23 +1,25 @@
+
 package com.fongmi.android.tv.service;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import androidx.annotation.Nullable;
-import com.fongmi.android.tv.bean.CastVideo;
-import com.fongmi.android.tv.dlna.DLNACastManager;
 
-public class DLNACastService extends Service {
-    @Nullable @Override
-    public IBinder onBind(Intent intent) { return null; }
+import androidx.annotation.Nullable;
+
+import org.jupnp.android.AndroidUpnpService;
+import org.jupnp.android.AndroidUpnpServiceImpl;
+
+public class DLNACastService extends AndroidUpnpServiceImpl {
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        DLNACastManager.get().setCasting(true);
-        return START_STICKY;
+    public void onCreate() {
+        super.onCreate();
+        upnpService.startup();
     }
+
     @Override
     public void onDestroy() {
-        DLNACastManager.get().setCasting(false);
+        upnpService.shutdown();
         super.onDestroy();
     }
 }
