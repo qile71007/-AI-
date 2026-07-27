@@ -155,6 +155,7 @@ dependencies {
     implementation libs.zxing.core
     leanbackImplementation libs.leanback
     leanbackImplementation libs.androidautosize
+    leanbackImplementation libs.biometric
     mobileImplementation libs.biometric
     leanbackImplementation libs.zxing.android.embedded
     mobileImplementation libs.zxing.android.embedded
