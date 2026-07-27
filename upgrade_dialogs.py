@@ -1,4 +1,12 @@
+import os
+LEANBACK = '/home/tv_project/app/src/leanback'
+def write_java(path, code):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w') as f: f.write(code)
+    print(f'  [OK] {os.path.relpath(path, "/home/tv_project")}')
 
+# CastDialog
+write_java(f'{LEANBACK}/java/com/fongmi/android/tv/ui/dialog/CastDialog.java', '''
 package com.fongmi.android.tv.ui.dialog;
 
 import android.app.Activity;
@@ -42,3 +50,6 @@ public class CastDialog extends DialogFragment implements DLNACastManager.Device
         class ViewHolder extends RecyclerView.ViewHolder { TextView textView; ViewHolder(TextView tv) { super(tv); textView = tv; } }
     }
 }
+''')
+
+print('Done')
