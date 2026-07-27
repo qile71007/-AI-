@@ -9,7 +9,7 @@ import androidx.fragment.app.DialogFragment;
 import com.fongmi.android.tv.R;
 
 public class LiveProgramDialog extends DialogFragment {
-    public static void show(FragmentFragmentActivity activity) {
+    public static void show(FragmentActivity activity) {
         new LiveProgramDialog().show(activity.getSupportFragmentManager(), "liveprogramdialog");
     }
     @NonNull @Override

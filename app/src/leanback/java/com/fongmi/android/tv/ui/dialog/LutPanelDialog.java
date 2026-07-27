@@ -21,7 +21,7 @@ import java.util.List;
 public class LutPanelDialog extends DialogFragment {
     private final List<LutPreset> mPresets = new ArrayList<>();
     private PresetAdapter mAdapter;
-    public static void show(FragmentFragmentActivity activity) { new LutPanelDialog().show(activity.getSupportFragmentManager(), "lut_panel"); }
+    public static void show(FragmentActivity activity) { new LutPanelDialog().show(activity.getSupportFragmentManager(), "lut_panel"); }
     @Override public void onStart() { super.onStart(); loadPresets(); }
     @NonNull @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         RecyclerView recycler = new RecyclerView(requireActivity());

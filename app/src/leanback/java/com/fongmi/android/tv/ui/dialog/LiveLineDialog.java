@@ -9,7 +9,7 @@ import androidx.fragment.app.DialogFragment;
 import com.fongmi.android.tv.R;
 
 public class LiveLineDialog extends DialogFragment {
-    public static void show(FragmentFragmentActivity activity) {
+    public static void show(FragmentActivity activity) {
         new LiveLineDialog().show(activity.getSupportFragmentManager(), "livelinedialog");
     }
     @NonNull @Override

@@ -10,7 +10,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.HistorySyncUtil;
 
 public class SyncDialog extends DialogFragment {
-    public static void show(FragmentFragmentActivity activity) {
+    public static void show(FragmentActivity activity) {
         new SyncDialog().show(activity.getSupportFragmentManager(), "sync");
     }
     @NonNull @Override

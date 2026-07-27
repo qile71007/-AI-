@@ -20,7 +20,7 @@ import java.util.List;
 public class CastDialog extends DialogFragment implements DLNACastManager.DeviceListener {
     private final List<Device> mDevices = new ArrayList<>();
     private DeviceAdapter mAdapter;
-    public static void show(FragmentFragmentActivity activity) { new CastDialog().show(activity.getSupportFragmentManager(), "cast"); }
+    public static void show(FragmentActivity activity) { new CastDialog().show(activity.getSupportFragmentManager(), "cast"); }
     @Override public void onStart() { super.onStart(); DLNACastManager.get().init(requireActivity()); DLNACastManager.get().setDeviceListener(this); DLNACastManager.get().search(); }
     @NonNull @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         RecyclerView recycler = new RecyclerView(requireActivity());

@@ -12,7 +12,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.server.Server;
 
 public class ReceiveDialog extends DialogFragment {
-    public static void show(FragmentFragmentActivity activity) { new ReceiveDialog().show(activity.getSupportFragmentManager(), "receive"); }
+    public static void show(FragmentActivity activity) { new ReceiveDialog().show(activity.getSupportFragmentManager(), "receive"); }
     @NonNull @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         String address = Server.get().getAddress();
         TextView textView = new TextView(requireActivity());

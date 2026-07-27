@@ -14,7 +14,7 @@ import com.fongmi.android.tv.utils.Notify;
 
 public class TimerDialog extends DialogFragment {
     private CountDownTimer mTimer;
-    public static void show(FragmentFragmentActivity activity) {
+    public static void show(FragmentActivity activity) {
         new TimerDialog().show(activity.getSupportFragmentManager(), "timer");
     }
     @NonNull @Override
