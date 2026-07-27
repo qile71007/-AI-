@@ -1,6 +1,6 @@
 package com.fongmi.android.tv.ui.dialog;
 
-import android.app.Activity;
+import androidx.fragment.app.FragmentActivity;
 import android.app.Dialog;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -9,8 +9,8 @@ import androidx.fragment.app.DialogFragment;
 import com.fongmi.android.tv.R;
 
 public class TypeDialog extends DialogFragment {
-    public static void show(Activity activity) {
-        new TypeDialog().show(activity.getFragmentManager(), "type");
+    public static void show(FragmentFragmentActivity activity) {
+        new TypeDialog().show(activity.getSupportFragmentManager(), "type");
     }
     @NonNull @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

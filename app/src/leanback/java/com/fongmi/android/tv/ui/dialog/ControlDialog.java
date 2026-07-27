@@ -26,7 +26,7 @@ public class ControlDialog extends DialogFragment {
         for (float s : SPEEDS) { Button btn = new Button(requireActivity()); btn.setText(s + "x"); btn.setPadding(12, 8, 12, 8); btn.setOnClickListener(v -> { if (mPlayer != null) mPlayer.setSpeed(s); }); speedRow.addView(btn); }
         layout.addView(speedRow);
         addBtn(layout, "切换解码", v -> { if (mPlayer != null) mPlayer.toggleDecode(); });
-        return new AlertDialog.Builder(requireActivity()).setTitle(R.string.player_control).setView(layout).setNegativeButton(R.string.dialog_negative, null).create();
+        return new AlertDialog.Builder(requireActivity()).setTitle("播放控制").setView(layout).setNegativeButton(R.string.dialog_negative, null).create();
     }
     private void addBtn(LinearLayout parent, String text, View.OnClickListener listener) { Button btn = new Button(requireActivity()); btn.setText(text); btn.setPadding(16, 12, 16, 12); btn.setAllCaps(false); btn.setOnClickListener(listener); parent.addView(btn); }
 }

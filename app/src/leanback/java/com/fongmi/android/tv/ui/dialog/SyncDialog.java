@@ -1,6 +1,6 @@
 package com.fongmi.android.tv.ui.dialog;
 
-import android.app.Activity;
+import androidx.fragment.app.FragmentActivity;
 import android.app.Dialog;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -10,8 +10,8 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.HistorySyncUtil;
 
 public class SyncDialog extends DialogFragment {
-    public static void show(Activity activity) {
-        new SyncDialog().show(activity.getFragmentManager(), "sync");
+    public static void show(FragmentFragmentActivity activity) {
+        new SyncDialog().show(activity.getSupportFragmentManager(), "sync");
     }
     @NonNull @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

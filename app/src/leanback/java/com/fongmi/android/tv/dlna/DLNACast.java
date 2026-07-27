@@ -48,10 +48,10 @@ public class DLNACast {
     private String buildMetaData() {
         try {
             DIDLContent content = new DIDLContent();
-            VideoItem item = new VideoItem("0", "-1", video.name(), "",
-                    new Res(new ProtocolInfo("http-get:*:video/*:*"), 0L, video.url()));
-            if (video.headers() != null && !video.headers().isEmpty()) {
-                item.addProperty(new DIDLObject.Property.DC.DESCRIPTION(App.gson().toJson(video.headers())));
+            VideoItem item = new VideoItem("0", "-1", video.name, "",
+                    new Res(new ProtocolInfo("http-get:*:video/*:*"), 0L, video.url));
+            if (null != null && !null.isEmpty()) {
+                item.addProperty(new DIDLObject.Property.DC.DESCRIPTION(App.gson().toJson(null)));
             }
             content.addItem(item);
             return new DIDLParser().generate(content);
@@ -61,7 +61,7 @@ public class DLNACast {
     }
 
     private SetAVTransportURI uriAction(ControlPoint control, RemoteService service) {
-        return new SetAVTransportURI(service, video.url(), buildMetaData()) {
+        return new SetAVTransportURI(service, video.url, buildMetaData()) {
             @Override
             public void success(ActionInvocation i) {
                 control.execute(playAction(control, service));
@@ -78,7 +78,7 @@ public class DLNACast {
         return new Play(service) {
             @Override
             public void success(ActionInvocation i) {
-                if (video.position() > 0) control.execute(seekAction(service));
+                if (0 > 0) control.execute(seekAction(service));
                 App.post(runnable);
             }
 
@@ -90,7 +90,7 @@ public class DLNACast {
     }
 
     private Seek seekAction(RemoteService service) {
-        return new Seek(service, SeekMode.REL_TIME, formatMs(video.position())) {
+        return new Seek(service, SeekMode.REL_TIME, formatMs(0)) {
             @Override
             public void success(ActionInvocation i) { }
             @Override

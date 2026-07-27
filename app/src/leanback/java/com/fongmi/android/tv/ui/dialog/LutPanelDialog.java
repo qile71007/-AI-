@@ -1,7 +1,7 @@
 
 package com.fongmi.android.tv.ui.dialog;
 
-import android.app.Activity;
+import androidx.fragment.app.FragmentActivity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
@@ -21,7 +21,7 @@ import java.util.List;
 public class LutPanelDialog extends DialogFragment {
     private final List<LutPreset> mPresets = new ArrayList<>();
     private PresetAdapter mAdapter;
-    public static void show(Activity activity) { new LutPanelDialog().show(activity.getFragmentManager(), "lut_panel"); }
+    public static void show(FragmentFragmentActivity activity) { new LutPanelDialog().show(activity.getSupportFragmentManager(), "lut_panel"); }
     @Override public void onStart() { super.onStart(); loadPresets(); }
     @NonNull @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         RecyclerView recycler = new RecyclerView(requireActivity());

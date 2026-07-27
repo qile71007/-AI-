@@ -62,9 +62,9 @@ public class FolderActivity extends BaseActivity {
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Vod vod = mItems.get(position);
-            holder.textView.setText(vod.getVodName());
+            holder.textView.setText(vod.getName());
             holder.textView.setOnClickListener(v -> {
-                VideoActivity.start(FolderActivity.this, mKey, vod.getVodId(), vod.getVodName(), vod.getVodPic());
+                VideoActivity.start(FolderActivity.this, mKey, vod.getId(), vod.getName(), vod.getPic());
             });
         }
 

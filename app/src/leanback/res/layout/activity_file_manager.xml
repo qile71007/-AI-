@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="?android:attr/windowBackground">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:id="@+id/toolbar"
@@ -18,7 +17,6 @@
             android:layout_height="40dp"
             android:src="@drawable/ic_arrow_back"
             android:background="@android:color/transparent"
-            android:contentDescription="返回上级"
             android:tint="@android:color/white" />
 
         <ImageButton
@@ -27,7 +25,6 @@
             android:layout_height="40dp"
             android:src="@drawable/ic_arrow_forward"
             android:background="@android:color/transparent"
-            android:contentDescription="前进"
             android:tint="@android:color/white"
             android:layout_marginStart="4dp" />
 
@@ -50,4 +47,5 @@
         android:layout_height="match_parent"
         android:layout_below="@id/toolbar"
         android:padding="4dp" />
+
 </RelativeLayout>

@@ -1,6 +1,6 @@
 package com.fongmi.android.tv.ui.dialog;
 
-import android.app.Activity;
+import androidx.fragment.app.FragmentActivity;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -18,7 +18,7 @@ public class ThemeDialog extends DialogFragment {
     public static void show(Listener listener) {
         ThemeDialog dialog = new ThemeDialog();
         dialog.listener = listener;
-        dialog.show(((Activity)listener).getFragmentManager(), "theme");
+        dialog.show(listener.getFragmentManager(), "theme");
     }
     @NonNull @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
