@@ -1,40 +1,15 @@
-package com.fongmi.android.tv.ui.activity;
+#!/usr/bin/env python3
+"""升级 SettingActivity 加入全部移动版功能"""
+import os
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.View;
-import android.widget.Toast;
+LEANBACK = '/home/tv_project/app/src/leanback'
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.viewbinding.ViewBinding;
+# 读取当前 SettingActivity
+with open(f'{LEANBACK}/java/com/fongmi/android/tv/ui/activity/SettingActivity.java') as f:
+    code = f.read()
 
-import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.Updater;
-import com.fongmi.android.tv.api.config.LiveConfig;
-import com.fongmi.android.tv.api.config.VodConfig;
-import com.fongmi.android.tv.api.config.WallConfig;
-import com.fongmi.android.tv.bean.Config;
-import com.fongmi.android.tv.bean.Live;
-import com.fongmi.android.tv.bean.Site;
-import com.fongmi.android.tv.databinding.ActivitySettingBinding;
-import com.fongmi.android.tv.db.AppDatabase;
-import com.fongmi.android.tv.event.ConfigEvent;
-import com.fongmi.android.tv.event.RefreshEvent;
-import com.fongmi.android.tv.impl.Callback;
-import com.fongmi.android.tv.impl.ConfigListener;
-import com.fongmi.android.tv.impl.LiveListener;
-import com.fongmi.android.tv.impl.SiteListener;
-import com.fongmi.android.tv.setting.PlayerSetting;
-import com.fongmi.android.tv.setting.Setting;
-import com.fongmi.android.tv.ui.base.BaseActivity;
-import com.fongmi.android.tv.ui.dialog.AboutDialog;
-import com.fongmi.android.tv.ui.dialog.ConfigDialog;
-import com.fongmi.android.tv.ui.dialog.ConfigListDialog;
-import com.fongmi.android.tv.ui.dialog.DohDialog;
-import android.app.Dialog;
+# 添加缺失的导入
+new_imports = '''import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -106,50 +81,51 @@ import org.json.JSONObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+'''
 
-public class SettingActivity extends BaseActivity implements ConfigListener, SiteListener, LiveListener, DohDialog.Listener, ThemeDialog.Listener {
+# 替换旧导入
+old_imports_end = '''import com.fongmi.android.tv.utils.AesEncryptUtil;
+import com.fongmi.android.tv.utils.SecretConfigManager;
+import com.fongmi.android.tv.ui.dialog.HistoryDialog;
+import com.fongmi.android.tv.ui.dialog.LiveDialog;
+import com.fongmi.android.tv.ui.dialog.RestoreDialog;
+import com.fongmi.android.tv.ui.dialog.BackupProgressDialog;
+import com.fongmi.android.tv.ui.dialog.SiteDialog;
+import com.fongmi.android.tv.utils.AppVersion;
+import com.fongmi.android.tv.utils.FileUtil;
+import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.PermissionUtil;
+import com.fongmi.android.tv.utils.ResUtil;
+import com.github.catvod.bean.Doh;
+import com.github.catvod.net.OkHttp;
 
-    private ActivitySettingBinding mBinding;
-    private String[] size;
-    private String[] language;
-    private String[] uiScale;
-    private Dialog webDavDialog;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONObject;
 
-    public static void start(Activity activity) {
-        activity.startActivity(new Intent(activity, SettingActivity.class));
-    }
+import java.util.ArrayList;
+import java.io.File;
+import java.util.List;'''
 
-    private String getSwitch(boolean value) {
-        return getString(value ? R.string.setting_on : R.string.setting_off);
-    }
+code = code.replace(old_imports_end, new_imports.strip())
 
-    private int getDohIndex() {
-        return Math.max(0, VodConfig.get().getDoh().indexOf(Doh.objectFrom(Setting.getDoh())));
-    }
+# 添加接口实现
+code = code.replace('implements ConfigListener, SiteListener, LiveListener, DohDialog.Listener',
+                     'implements ConfigListener, SiteListener, LiveListener, DohDialog.Listener, ThemeDialog.Listener')
 
-    private String[] getDohList() {
-        List<String> list = new ArrayList<>();
-        for (Doh item : VodConfig.get().getDoh()) list.add(item.getName());
-        return list.toArray(new String[0]);
-    }
+# 添加字段
+code = code.replace('private String[] size;\n    private String[] language;',
+                     'private String[] size;\n    private String[] language;\n    private String[] uiScale;\n    private Dialog webDavDialog;')
 
-    @Override
-    protected ViewBinding getBinding() {
-        return mBinding = ActivitySettingBinding.inflate(getLayoutInflater());
-    }
+# 更新 setOtherText
+old_other = '''    private void setOtherText() {
+        mBinding.dohText.setText(getDohList()[getDohIndex()]);
+        mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
+        mBinding.languageText.setText((language = ResUtil.getStringArray(R.array.select_language))[Setting.getLanguageIndex()]);
+        mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
+    }'''
 
-    @Override
-    protected void initView(Bundle savedInstanceState) {
-        mBinding.vod.requestFocus();
-        mBinding.vodUrl.setText(VodConfig.getDesc());
-        mBinding.liveUrl.setText(LiveConfig.getDesc());
-        setWallText();
-        mBinding.versionText.setText(AppVersion.fullName());
-        setCacheText();
-        setOtherText();
-    }
-
-    private void setOtherText() {
+new_other = '''    private void setOtherText() {
         mBinding.themeColorText.setText(getThemeText());
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
@@ -162,209 +138,31 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         int color = Setting.getThemeColor();
         if (color == -1) return getString(R.string.setting_off);
         return getString(color == 0 ? R.string.setting_auto : R.string.setting_custom);
-    }
+    }'''
 
-    private void setCacheText() {
-        FileUtil.getCacheSize(new Callback() {
-            @Override
-            public void success(String result) {
-                mBinding.cacheText.setText(result);
-            }
-        });
-    }
+code = code.replace(old_other, new_other)
 
-    @Override
-    protected void initEvent() {
-        mBinding.vod.setOnClickListener(this::onVod);
-        mBinding.doh.setOnClickListener(this::setDoh);
-        mBinding.live.setOnClickListener(this::onLive);
-        mBinding.wall.setOnClickListener(this::onWall);
-        mBinding.size.setOnClickListener(this::setSize);
-        mBinding.language.setOnClickListener(this::setLanguage);
-        mBinding.cache.setOnClickListener(this::onCache);
-        mBinding.backup.setOnClickListener(this::onBackup);
-        mBinding.enhance.setOnClickListener(this::onEnhance);
-        mBinding.player.setOnClickListener(this::onPlayer);
-        mBinding.danmaku.setOnClickListener(this::onDanmaku);
-        mBinding.restore.setOnClickListener(this::onRestore);
-        mBinding.version.setOnClickListener(this::onVersion);
-        mBinding.vod.setOnLongClickListener(this::onVodEdit);
-        mBinding.vodHome.setOnClickListener(this::onVodHome);
-        mBinding.live.setOnLongClickListener(this::onLiveEdit);
-        mBinding.liveHome.setOnClickListener(this::onLiveHome);
-        mBinding.wall.setOnLongClickListener(this::onWallEdit);
-        mBinding.incognito.setOnClickListener(this::setIncognito);
-        mBinding.vodHistory.setOnClickListener(this::onVodHistory);
-        mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
-        mBinding.wallDefault.setOnClickListener(this::setWallDefault);
-        mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
-        mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
-        mBinding.resetApp.setOnClickListener(this::onResetApp);
+# 在 initEvent 中添加缺失的点击事件
+old_events = '''        mBinding.resetApp.setOnClickListener(this::onResetApp);'''
+
+new_events = '''        mBinding.resetApp.setOnClickListener(this::onResetApp);
         mBinding.themeColor.setOnClickListener(this::onThemeColor);
         mBinding.uiScale.setOnClickListener(this::setUiScale);
         mBinding.version.setOnLongClickListener(v -> { showEncryptTool(); return true; });
         mBinding.historySyncUpload.setOnClickListener(this::onSyncUpload);
-        mBinding.historySyncDownload.setOnClickListener(this::onSyncDownload);
+        mBinding.historySyncDownload.setOnClickListener(this::onSyncDownload);'''
+
+code = code.replace(old_events, new_events)
+
+# 添加缺失的方法
+# 在 onVersion 方法之前添加
+old_on_version = '''    private void onVersion(View view) {
+        AboutDialog.show(this, () -> Updater.create().force().start(this));
     }
 
-    @Override
-    public void setConfig(Config config) {
-        if (config == null) return;
-        String url = config.getUrl();
-        if (!TextUtils.isEmpty(url) && url.startsWith("file")) {
-            PermissionUtil.requestFile(this, allGranted -> load(config));
-        } else {
-            load(config);
-        }
-    }
+    // ==================== 私密配置生成工具 ===================='''
 
-    private void load(Config config) {
-        switch (config.getType()) {
-            case 0:
-                VodConfig.load(config, getCallback());
-                break;
-            case 1:
-                LiveConfig.load(config, getCallback());
-                break;
-            case 2:
-                Setting.putWall(0);
-                WallConfig.load(config, getCallback());
-                break;
-        }
-    }
-
-    private Callback getCallback() {
-        return new Callback() {
-            @Override
-            public void start() {
-                // ★ 防御性检查：Activity 销毁/结束时不再显示 ProgressDialog
-                if (isFinishing() || isDestroyed()) return;
-                Notify.progress(getActivity());
-            }
-
-            @Override
-            public void success() {
-                Notify.dismiss();
-                // ★ 防御性检查：避免 onSaveInstanceState 后操作 Fragment
-                if (isFinishing() || isDestroyed()) return;
-                setCacheText();
-            }
-
-            @Override
-            public void error(String msg) {
-                Notify.dismiss();
-                // ★ 防御性检查：避免 onSaveInstanceState 后再提示
-                if (isFinishing() || isDestroyed()) return;
-                Notify.show(msg);
-            }
-        };
-    }
-
-    @Override
-    public void setSite(Site item) {
-        VodConfig.get().setHome(item);
-    }
-
-    @Override
-    public void setLive(Live item) {
-        LiveConfig.get().setHome(item);
-    }
-
-    private void onVod(View view) {
-        ConfigListDialog.create().type(0).listener(this).show(this);
-    }
-
-    private void onLive(View view) {
-        ConfigListDialog.create().type(1).listener(this).show(this);
-    }
-
-    private void onWall(View view) {
-        ConfigListDialog.create().type(2).listener(this).show(this);
-    }
-
-    private boolean onVodEdit(View view) {
-        ConfigDialog.create().vod().edit().show(this);
-        return true;
-    }
-
-    private boolean onLiveEdit(View view) {
-        ConfigDialog.create().live().edit().show(this);
-        return true;
-    }
-
-    private boolean onWallEdit(View view) {
-        ConfigDialog.create().wall().edit().show(this);
-        return true;
-    }
-
-    private void onVodHome(View view) {
-        SiteDialog.create().action().show(this);
-    }
-
-    private void onLiveHome(View view) {
-        LiveDialog.create().action().show(this);
-    }
-
-    private void onVodHistory(View view) {
-        HistoryDialog.create().vod().show(this);
-    }
-
-    private void onLiveHistory(View view) {
-        HistoryDialog.create().live().show(this);
-    }
-
-    private void onPlayer(View view) {
-        SettingPlayerActivity.start(this);
-    }
-
-    private void onEnhance(View view) {
-        SettingEnhanceActivity.start(this);
-    }
-
-    private void onDanmaku(View view) {
-        SettingDanmakuActivity.start(this);
-    }
-
-    private void onResetApp(View view) {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.setting_reset_app)
-                .setMessage(R.string.setting_reset_app_confirm)
-                .setNegativeButton(R.string.dialog_negative, null)
-                .setPositiveButton(R.string.dialog_positive, (dialog, which) -> resetApp())
-                .show();
-    }
-    private void resetApp() {
-        try {
-            getSharedPreferences(getPackageName() + "_preferences", 0).edit().clear().apply();
-            File prefsDir = new File(getApplicationInfo().dataDir, "shared_prefs");
-            deleteRecursive(prefsDir);
-            File dbDir = new File(getApplicationInfo().dataDir, "databases");
-            deleteRecursive(dbDir);
-            File filesDir = getFilesDir();
-            deleteRecursive(filesDir);
-            File cacheDir = getCacheDir();
-            deleteRecursive(cacheDir);
-            File externalCacheDir = getExternalCacheDir();
-            if (externalCacheDir != null) deleteRecursive(externalCacheDir);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
-        if (intent != null) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-        }
-        System.exit(0);
-    }
-    private void deleteRecursive(File file) {
-        if (file == null || !file.exists()) return;
-        if (file.isDirectory()) {
-            File[] children = file.listFiles();
-            if (children != null) for (File child : children) deleteRecursive(child);
-        }
-        file.delete();
-    }
-    private void onVersion(View view) {
+new_methods = '''    private void onVersion(View view) {
         AboutDialog.show(this, () -> Updater.create().force().start(this));
     }
 
@@ -434,41 +232,18 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         dialog.show();
     }
 
-    // ==================== 私密配置生成工具 ====================
+    // ==================== 私密配置生成工具 ===================='''
 
-    private void setWallDefault(View view) {
-        Setting.putWall(Setting.nextDefaultWall());
-        Setting.putWallType(0);
-        setWallText();
-        ConfigEvent.wall();
-    }
+code = code.replace(old_on_version, new_methods)
 
-    private void setWallRefresh(View view) {
-        Setting.putWall(0);
-        WallConfig.get().load(getCallback());
-    }
+# 替换 setLanguage 使用单选框
+old_lang = '''    private void setLanguage(View view) {
+        int index = (Setting.getLanguageIndex() + 1) % language.length;
+        Setting.putLanguageIndex(index);
+        RefreshEvent.language();
+    }'''
 
-    private boolean onWallHistory(View view) {
-        HistoryDialog.create().wall().show(this);
-        return true;
-    }
-
-    private void setIncognito(View view) {
-        Setting.putIncognito(!Setting.isIncognito());
-        mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
-    }
-
-    private void setSize(View view) {
-        new MaterialAlertDialogBuilder(this).setTitle(R.string.setting_size).setNegativeButton(R.string.dialog_negative, null)
-                .setSingleChoiceItems(size, PlayerSetting.getSize(), (dialog, which) -> {
-                    mBinding.sizeText.setText(size[which]);
-                    PlayerSetting.putSize(which);
-                    RefreshEvent.size();
-                    dialog.dismiss();
-                }).show();
-    }
-
-    private void setLanguage(View view) {
+new_lang = '''    private void setLanguage(View view) {
         new MaterialAlertDialogBuilder(this).setTitle(R.string.setting_language).setNegativeButton(R.string.dialog_negative, null)
                 .setSingleChoiceItems(language, Setting.getLanguageIndex(), (dialog, which) -> {
                     if (which != Setting.getLanguageIndex()) {
@@ -478,29 +253,51 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
                     }
                     dialog.dismiss();
                 }).show();
-    }
+    }'''
 
-    private void setDoh(View view) {
-        DohDialog.create().index(getDohIndex()).show(this);
-    }
+code = code.replace(old_lang, new_lang)
 
-    @Override
-    public void setDoh(Doh doh) {
-        OkHttp.dns().setDoh(doh);
-        Setting.putDoh(doh.toString());
-        mBinding.dohText.setText(doh.getName());
-    }
+# 替换 setSize 使用单选框
+old_size = '''    private void setSize(View view) {
+        int index = (PlayerSetting.getSize() + 1) % size.length;
+        mBinding.sizeText.setText(size[index]);
+        PlayerSetting.putSize(index);
+        RefreshEvent.size();
+    }'''
 
-    private void onCache(View view) {
-        FileUtil.clearCache(new Callback() {
+new_size = '''    private void setSize(View view) {
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.setting_size).setNegativeButton(R.string.dialog_negative, null)
+                .setSingleChoiceItems(size, PlayerSetting.getSize(), (dialog, which) -> {
+                    mBinding.sizeText.setText(size[which]);
+                    PlayerSetting.putSize(which);
+                    RefreshEvent.size();
+                    dialog.dismiss();
+                }).show();
+    }'''
+
+code = code.replace(old_size, new_size)
+
+# 替换 onBackup 使用 WebDAV 对话框
+old_backup = '''    private void onBackup(View view) {
+        PermissionUtil.requestFile(this, allGranted -> {
+            BackupProgressDialog progress = BackupProgressDialog.open(getSupportFragmentManager(), "备份应用数据");
+            AppDatabase.backup(new Callback() {
             @Override
             public void success() {
-                setCacheText();
+                progress.finish();
+                Notify.show(R.string.backup_success);
             }
-        });
-    }
 
-    private void onBackup(View view) {
+            @Override
+            public void error() {
+                progress.finish();
+                Notify.show(R.string.backup_fail);
+            }
+            }, progress::update);
+        });
+    }'''
+
+new_backup = '''    private void onBackup(View view) {
         showWebDavBackupDialog();
     }
 
@@ -598,9 +395,9 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
                 runOnUiThread(() -> {
                     if (files == null || files.isEmpty()) tvStatus.setText("远程无备份文件");
                     else {
-                        StringBuilder sb = new StringBuilder("文件列表:\n");
+                        StringBuilder sb = new StringBuilder("文件列表:\\n");
                         for (WebdavUtil.RemoteFile f : files) {
-                            sb.append(f.path).append(" (").append(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault()).format(new java.util.Date(f.modified))).append(")\n");
+                            sb.append(f.path).append(" (").append(new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault()).format(new java.util.Date(f.modified))).append(")\\n");
                         }
                         tvStatus.setText(sb.toString());
                     }
@@ -616,43 +413,25 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
             webDavDialog.getWindow().setAttributes(params);
         }
         webDavDialog.show();
-    }
+    }'''
 
-    private void onRestore(View view) {
-        PermissionUtil.requestFile(this, allGranted -> RestoreDialog.create().callback(new Callback() {
-            @Override
-            public void success() {
-                Notify.show(R.string.restore_success);
-                setOtherText();
-            }
+code = code.replace(old_backup, new_backup)
 
-            @Override
-            public void error() {
-                Notify.show(R.string.restore_fail);
-            }
-        }).show(this));
-    }
-
-    private void initConfig() {
+# 添加 initConfig 方法
+old_restore = '''    private void initConfig() {
         VodConfig.get().init().load(getCallback());
         LiveConfig.get().init().load();
         WallConfig.get().init().load();
-    }
+    }'''
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onConfigEvent(ConfigEvent event) {
-        if (event.type() == ConfigEvent.Type.WALL) {
-            setWallText();
-            return;
-        }
-        if (event.type() != ConfigEvent.Type.COMMON) return;
-        mBinding.vodUrl.setText(VodConfig.getDesc());
-        mBinding.liveUrl.setText(LiveConfig.getDesc());
-        setWallText();
-    }
+if old_restore in code:
+    pass  # 已存在
+else:
+    # 在 onRestore 后添加
+    code = code.replace('    private void onRestore', '    private void initConfig() {\n        VodConfig.get().init().load(getCallback());\n        LiveConfig.get().init().load();\n        WallConfig.get().init().load();\n    }\n\n    private void onRestore')
 
-    private void setWallText() {
-        mBinding.wallUrl.setText(Setting.getWallDesc(WallConfig.getDesc()));
-    }
+# 写入文件
+with open(f'{LEANBACK}/java/com/fongmi/android/tv/ui/activity/SettingActivity.java', 'w') as f:
+    f.write(code)
 
-}
+print('SettingActivity upgraded!')

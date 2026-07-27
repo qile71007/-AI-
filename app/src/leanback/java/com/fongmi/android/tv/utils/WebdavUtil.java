@@ -8,11 +8,69 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import okhttp3.Response;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.MediaType;
 
 public class WebdavUtil {
     public static class RemoteFile { public String path; public long modified; }
-    public static boolean testConnection(String url, String user, String pass) { return true; }
-    public static boolean uploadFile(String url, String user, String pass, File file) { return false; }
-    public static boolean downloadFile(String url, String user, String pass, String remotePath, File local) { return false; }
-    public static List<RemoteFile> listFiles(String url, String user, String pass) { return new ArrayList<>(); }
+
+    public static boolean testConnection(String url, String user, String pass) {
+        try {
+            Request.Builder builder = new Request.Builder().url(url).method(PROPFIND, RequestBody.create(MediaType.parse(application/xml), "<?xml version='1.0'?><d:propfind xmlns:d='DAV:'><d:prop><d:displayname/></d:prop></d:propfind>"));
+            try (Response resp = OkHttp.get().newCall(builder.build()).execute()) { return resp.isSuccessful(); }
+        } catch (Exception e) { return false; }
+    }
+
+    public static boolean uploadFile(String url, String user, String pass, File file) {
+        try {
+            String remotePath = url.endsWith("/") ? url + file.getName() : url + "/" + file.getName();
+            Request.Builder builder = new Request.Builder().url(remotePath).put(RequestBody.create(MediaType.parse("application/octet-stream"), file));
+            try (Response resp = OkHttp.get().newCall(builder.build()).execute()) { return resp.isSuccessful(); }
+        } catch (Exception e) { return false; }
+    }
+
+    public static boolean downloadFile(String url, String user, String pass, String remotePath, File local) {
+        try {
+            String fullUrl = url.endsWith("/") ? url + remotePath : url + "/" + remotePath;
+            Request.Builder builder = new Request.Builder().url(fullUrl);
+            try (Response resp = OkHttp.get().newCall(builder.build()).execute()) {
+                try (InputStream is = resp.body().byteStream(); FileOutputStream fos = new FileOutputStream(local)) {
+                    byte[] buf = new byte[8192]; int len;
+                    while ((len = is.read(buf)) != -1) fos.write(buf, 0, len);
+                }
+                return true;
+            }
+        } catch (Exception e) { return false; }
+    }
+
+    public static List<RemoteFile> listFiles(String url, String user, String pass) {
+        List<RemoteFile> result = new ArrayList<>();
+        try {
+            String propfindXml = "<?xml version='1.0'?><d:propfind xmlns:d='DAV:'><d:prop><d:displayname/><d:getlastmodified/><d:resourcetype/></d:prop></d:propfind>";
+            Request.Builder builder = new Request.Builder().url(url).method("PROPFIND", RequestBody.create(MediaType.parse("application/xml"), propfindXml));
+            try (Response resp = OkHttp.get().newCall(builder.build()).execute()) {
+                String xml = resp.body().string();
+                // 简单解析 - 提取 href 和 getlastmodified
+                String[] parts = xml.split("<d:response>");
+                for (String part : parts) {
+                    if (part.contains("<d:href>")) {
+                        RemoteFile rf = new RemoteFile();
+                        int hrefStart = part.indexOf("<d:href>") + 8;
+                        int hrefEnd = part.indexOf("</d:href>");
+                        if (hrefStart > 7 && hrefEnd > hrefStart) rf.path = part.substring(hrefStart, hrefEnd);
+                        int modStart = part.indexOf("<d:getlastmodified>");
+                        if (modStart > 0) {
+                            modStart += 19;
+                            int modEnd = part.indexOf("</d:getlastmodified>");
+                            if (modEnd > modStart) {
+                                try { rf.modified = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", java.util.Locale.US).parse(part.substring(modStart, modEnd)).getTime(); } catch (Exception ignored) {}
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return result;
+    }
 }
