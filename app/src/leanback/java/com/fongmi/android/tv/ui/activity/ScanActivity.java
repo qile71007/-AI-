@@ -1,16 +1,78 @@
+
 package com.fongmi.android.tv.ui.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.viewbinding.ViewBinding;
+
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.ActivityScanBinding;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.utils.Util;
+import com.google.zxing.BarcodeFormat;
+import com.journeyapps.barcodescanner.BarcodeCallback;
+import com.journeyapps.barcodescanner.BarcodeResult;
+import com.journeyapps.barcodescanner.CaptureManager;
+import com.journeyapps.barcodescanner.DefaultDecoderFactory;
 
-public class ScanActivity extends BaseActivity {
+import java.util.List;
+
+public class ScanActivity extends BaseActivity implements BarcodeCallback {
+
     private ActivityScanBinding mBinding;
+    private CaptureManager mCapture;
+
     public static void start(Activity activity) { activity.startActivity(new Intent(activity, ScanActivity.class)); }
+
     @Override protected ViewBinding getBinding() { return mBinding = ActivityScanBinding.inflate(getLayoutInflater()); }
-    @Override protected void initView(Bundle savedInstanceState) { }
+
+    @Override protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Util.hideSystemUI(this);
+    }
+
+    @Override protected void initView(Bundle savedInstanceState) {
+        mCapture = new CaptureManager(this, mBinding.scanner);
+        mBinding.scanner.getBarcodeView().setDecoderFactory(new DefaultDecoderFactory(List.of(BarcodeFormat.QR_CODE)));
+    }
+
+    @Override public void barcodeResult(BarcodeResult result) {
+        if (result.getText() == null) return;
+        setResult(RESULT_OK, new Intent().putExtra("address", result.getText()));
+        finish();
+    }
+
+    @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (mCapture != null) mCapture.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    @Override public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Util.hideSystemUI(this);
+    }
+
+    @Override public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) Util.hideSystemUI(this);
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        if (mCapture != null) { mCapture.onResume(); mBinding.scanner.decodeSingle(this); }
+    }
+
+    @Override protected void onPause() {
+        super.onPause();
+        if (mCapture != null) mCapture.onPause();
+    }
+
+    @Override protected void onDestroy() {
+        super.onDestroy();
+        if (mCapture != null) mCapture.onDestroy();
+    }
 }
