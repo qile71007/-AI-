@@ -16,12 +16,8 @@ public class ReceiveDialog extends DialogFragment {
     @NonNull @Override public Dialog onCreateDialog(Bundle savedInstanceState) {
         String address = Server.get().getAddress();
         TextView textView = new TextView(requireActivity());
-        textView.setText("正在等待投屏...
-
-服务器地址: " + address + "
-
-请使用手机浏览器访问此地址");
+        textView.setText("正在等待投屏...\n\n服务器地址: " + address + "\n\n请使用手机浏览器访问此地址");
         textView.setPadding(24, 16, 24, 16); textView.setTextSize(16);
-        return new AlertDialog.Builder(requireActivity()).setTitle(R.string.player_receive).setView(textView).setPositiveButton(R.string.dialog_positive, null).create();
+        return new AlertDialog.Builder(requireActivity()).setTitle("接收投屏").setView(textView).setPositiveButton(R.string.dialog_positive, null).create();
     }
 }

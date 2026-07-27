@@ -21,7 +21,7 @@ public class ControlDialog extends DialogFragment {
         LinearLayout layout = new LinearLayout(requireActivity()); layout.setOrientation(LinearLayout.VERTICAL); layout.setPadding(32, 24, 32, 24);
         addBtn(layout, "播放/暂停", v -> { if (mPlayer != null) { if (mPlayer.isPlaying()) mPlayer.pause(); else mPlayer.play(); } });
         addBtn(layout, "停止", v -> { if (mPlayer != null) mPlayer.stop(); });
-        TextView speedTitle = new TextView(requireActivity()); speedTitle.setText("播放速度"); speedTitle.setTextSize(16); speedTitle.setPadding(0, 16, 0, 8); layout.addView(speedTitle);
+        TextView speedTitle = new TextView(requireActivity()); speedTitle.setText(getString(R.string.player_speed)); speedTitle.setTextSize(16); speedTitle.setPadding(0, 16, 0, 8); layout.addView(speedTitle);
         LinearLayout speedRow = new LinearLayout(requireActivity()); speedRow.setOrientation(LinearLayout.HORIZONTAL);
         for (float s : SPEEDS) { Button btn = new Button(requireActivity()); btn.setText(s + "x"); btn.setPadding(12, 8, 12, 8); btn.setOnClickListener(v -> { if (mPlayer != null) mPlayer.setSpeed(s); }); speedRow.addView(btn); }
         layout.addView(speedRow);

@@ -156,6 +156,7 @@ dependencies {
     leanbackImplementation libs.leanback
     leanbackImplementation libs.androidautosize
     mobileImplementation libs.biometric
+    leanbackImplementation libs.zxing.android.embedded
     mobileImplementation libs.zxing.android.embedded
     annotationProcessor libs.room.compiler
     annotationProcessor libs.eventbus.annotation.processor
