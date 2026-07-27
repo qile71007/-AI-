@@ -17,7 +17,7 @@ public class WebdavUtil {
 
     public static boolean testConnection(String url, String user, String pass) {
         try {
-            Request.Builder builder = new Request.Builder().url(url).method(PROPFIND, RequestBody.create(MediaType.parse(application/xml), "<?xml version='1.0'?><d:propfind xmlns:d='DAV:'><d:prop><d:displayname/></d:prop></d:propfind>"));
+            Request.Builder builder = new Request.Builder().url(url).method("PROPFIND", RequestBody.create(MediaType.parse("application/xml"), "<?xml version='1.0'?><d:propfind xmlns:d='DAV:'><d:prop><d:displayname/></d:prop></d:propfind>"));
             try (Response resp = OkHttp.get().newCall(builder.build()).execute()) { return resp.isSuccessful(); }
         } catch (Exception e) { return false; }
     }
