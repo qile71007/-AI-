@@ -1,16 +1,16 @@
 package com.fongmi.android.tv.ui.dialog;
 
-import androidx.fragment.app.FragmentActivity;
 import android.app.Dialog;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentActivity;
+
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.setting.Setting;
 
 public class ThemeDialog extends DialogFragment {
     public interface Listener { void setTheme(int color); }
@@ -18,7 +18,7 @@ public class ThemeDialog extends DialogFragment {
     public static void show(Listener listener) {
         ThemeDialog dialog = new ThemeDialog();
         dialog.listener = listener;
-        dialog.show(listener.getFragmentManager(), "theme");
+        dialog.show(((FragmentActivity)listener).getSupportFragmentManager(), "theme");
     }
     @NonNull @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
