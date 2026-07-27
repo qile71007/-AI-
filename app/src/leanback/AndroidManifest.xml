@@ -173,6 +173,10 @@
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
 
+        <service
+            android:name=".service.DLNACastService"
+            android:exported="false" />
+
         <receiver
             android:name=".receiver.BootReceiver"
             android:exported="true"
