@@ -64,7 +64,8 @@
         <item name="android:shadowRadius">3</item>
     </style>
 
-    <style name="Theme.WebHTL.LightDialog" parent="Theme.Material3.Light.Dialog.Alert">
+    <!-- 修复拼写错误：WebHTL -> WebHTV，匹配Java代码中的R.style.Theme_WebHTV_LightDialog引用 -->
+    <style name="Theme.WebHTV.LightDialog" parent="Theme.Material3.Light.Dialog.Alert">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowBackground">@color/transparent</item>
         <item name="android:colorBackground">@color/white</item>
