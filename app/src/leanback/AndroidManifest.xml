@@ -151,7 +151,8 @@
         <activity
             android:name=".ui.activity.SettingActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-            android:screenOrientation="sensorLandscape" />
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.App" />
 
         <activity
             android:name=".ui.activity.SettingPlayerActivity"
@@ -192,14 +193,39 @@
             android:name=".ui.activity.ChatActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:exported="true"
-            android:screenOrientation="sensorLandscape" />
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.App" />
 
-    
         <activity
             android:name=".ui.activity.FileManagerActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:exported="true"
-            android:screenOrientation="sensorLandscape" />
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.App" />
+
+        <activity
+            android:name=".ui.activity.HistoryActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.App" />
+
+        <activity
+            android:name=".ui.activity.ScanActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.App" />
+
+        <activity
+            android:name=".ui.activity.ImagePreviewActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.App" />
+
+        <activity
+            android:name=".ui.activity.FolderActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.App" />
 
     </application>
 </manifest>
