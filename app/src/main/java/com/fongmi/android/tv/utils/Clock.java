@@ -22,7 +22,7 @@ public class Clock {
     }
 
     public static Clock create(TextView view) {
-        return new Clock().view(view).format("HH:mm:ss");
+        return new Clock().view(view).format("yyyy年MM月dd日 EEEE HH点mm分ss秒");
     }
 
     public Clock() {
