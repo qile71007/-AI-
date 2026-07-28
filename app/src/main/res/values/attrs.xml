@@ -11,4 +11,7 @@
         <attr name="android:minHeight" />
         <attr name="maxHeight" />
     </declare-styleable>
+
+    <!-- attr for light theme -->
+    <attr name="isLightTheme" format="boolean" />
 </resources>
