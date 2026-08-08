@@ -1,8 +1,8 @@
 基于WebHomeTV更新至1.8.3版
-发布地址
+
 http://tvm.serv00.net/7l.html
 
-TVbox接口配置分享盏
+TVbox接口配置分享
 http://tvm.serv00.net/
 
 🔴重要提示说明：
