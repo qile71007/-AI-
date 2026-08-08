@@ -3,7 +3,7 @@
 http://tvm.serv00.net/7l.html
 
 TVbox接口配置分享盏
-http://tvm.serv00.net
+http://tvm.serv00.net/
 
 🔴重要提示说明：
 
